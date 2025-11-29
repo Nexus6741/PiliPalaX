@@ -82,8 +82,9 @@ class ApiInterceptor extends Interceptor {
   }
 
   static Future<String> checkConnect() async {
-    final List<ConnectivityResult> connectivityResults =
+    final ConnectivityResult connectivityResult =
         await (Connectivity().checkConnectivity());
+    final List<ConnectivityResult> connectivityResults = [connectivityResult];
 
     final connectionTypes = connectivityResults
         .map((result) {

@@ -5,7 +5,7 @@ import 'dart:ui';
 
 import 'package:PiliPalaX/services/service_locator.dart';
 import 'package:auto_orientation/auto_orientation.dart';
-import 'package:fl_pip/fl_pip.dart';
+// import 'package:fl_pip/fl_pip.dart';
 // import 'package:fl_pip/fl_pip.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -621,7 +621,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             (horizontalScreen ||
                                 MediaQuery.of(context).orientation ==
                                     Orientation.portrait),
-                        onPopInvokedWithResult: (bool didPop, Object? result) {
+                        onPopInvoked: (bool didPop) {
                           if (isFullScreen.value == true) {
                             plPlayerController!
                                 .triggerFullScreen(status: false);
@@ -674,7 +674,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               Expanded(
                 child: ColoredBox(
                   key: Key(heroTag),
-                  color: Theme.of(context).colorScheme.background,
+                  color: Theme.of(context).colorScheme.surface,
                   child: Column(
                     children: [
                       // Opacity(
@@ -758,7 +758,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               width: isFullScreen.value == true ? context.width : videoWidth,
               child: PopScope(
                 canPop: isFullScreen.value != true,
-                onPopInvokedWithResult: (bool didPop, Object? result) {
+                onPopInvoked: (bool didPop) {
                   if (isFullScreen.value == true) {
                     plPlayerController!.triggerFullScreen(status: false);
                   }
@@ -856,7 +856,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 : videoHeight,
             child: PopScope(
               canPop: isFullScreen.value != true,
-              onPopInvokedWithResult: (bool didPop, Object? result) {
+              onPopInvoked: (bool didPop) {
                 if (isFullScreen.value == true) {
                   plPlayerController!.triggerFullScreen(status: false);
                 }
@@ -954,7 +954,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               width: isFullScreen.value == true ? context.width : videoWidth,
               child: PopScope(
                 canPop: isFullScreen.value != true,
-                onPopInvokedWithResult: (bool didPop, Object? result) {
+                onPopInvoked: (bool didPop) {
                   if (isFullScreen.value == true) {
                     plPlayerController!.triggerFullScreen(status: false);
                   }
@@ -1059,7 +1059,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     isFullScreen.value == true ? context.height : videoHeight,
                 child: PopScope(
                   canPop: isFullScreen.value != true,
-                  onPopInvokedWithResult: (bool didPop, Object? result) {
+                  onPopInvoked: (bool didPop) {
                     if (isFullScreen.value == true) {
                       plPlayerController!.triggerFullScreen(status: false);
                     }
@@ -1186,7 +1186,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     systemNavigationBarColor: Colors.transparent),
               ),
         body: Container(
-          color: Theme.of(context).colorScheme.background,
+          color: Theme.of(context).colorScheme.surface,
           child: SafeArea(
               left: !removeSafeArea && isFullScreen.value != true,
               right: !removeSafeArea && isFullScreen.value != true,
@@ -1215,7 +1215,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     systemNavigationBarColor: Colors.transparent),
               ),
         body: Container(
-          color: Theme.of(context).colorScheme.background,
+          color: Theme.of(context).colorScheme.surface,
           child: SafeArea(
               left: !removeSafeArea && isFullScreen.value != true,
               right: !removeSafeArea && isFullScreen.value != true,
@@ -1259,20 +1259,20 @@ class _VideoDetailPageState extends State<VideoDetailPage>
     if (!Platform.isAndroid) {
       return childWhenDisabled;
     }
-    return PiPBuilder(builder: (PiPStatusInfo? statusInfo) {
-      print("PiPStatusInfo${statusInfo?.status}");
-      switch (statusInfo?.status) {
-        case PiPStatus.enabled:
-          return childWhenEnabled;
-        case PiPStatus.disabled:
-          return childWhenDisabled;
-        case PiPStatus.unavailable:
-          return childWhenDisabled;
-        case null:
-          return childWhenDisabled;
-      }
-    });
-    // return childWhenDisabled;
+    // return PiPBuilder(builder: (PiPStatusInfo? statusInfo) {
+    //   print("PiPStatusInfo${statusInfo?.status}");
+    //   switch (statusInfo?.status) {
+    //     case PiPStatus.enabled:
+    //       return childWhenEnabled;
+    //     case PiPStatus.disabled:
+    //       return childWhenDisabled;
+    //     case PiPStatus.unavailable:
+    //       return childWhenDisabled;
+    //     case null:
+    //       return childWhenDisabled;
+    //   }
+    // });
+    return childWhenDisabled;
     // if (Platform.isAndroid) {
     //   return PiPSwitcher(
     //     childWhenDisabled: childWhenDisabled,

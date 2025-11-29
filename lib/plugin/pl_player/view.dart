@@ -6,7 +6,7 @@ import 'dart:ui';
 import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
 import 'package:PiliPalaX/utils/id_utils.dart';
 import 'package:easy_debounce/easy_throttle.dart';
-import 'package:fl_pip/fl_pip.dart';
+// import 'package:fl_pip/fl_pip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
@@ -108,7 +108,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   RxBool draggingFixedProgressBar = false.obs;
   // 阅读器限制
   Timer? _accessibilityDebounce;
-  double _lastAnnouncedValue = -1;
+  final double _lastAnnouncedValue = -1;
 
   bool onlyPlayAudioUponEnteringBackgroundMode = false;
 
@@ -735,17 +735,17 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                         print(_.dataSource.videoSource);
                         print(_.dataSource.audioSource);
                         _.controls = false;
-                        FlPiP().enable(
-                          ios: FlPiPiOSConfig(
-                              videoPath: _.dataSource.videoSource ?? "",
-                              audioPath: _.dataSource.audioSource ?? "",
-                              packageName: null),
-                          android: FlPiPAndroidConfig(
-                            aspectRatio: Rational(
-                                _.videoPlayerController!.state.width!,
-                                _.videoPlayerController!.state.height!),
-                          ),
-                        );
+                        // FlPiP().enable(
+                        //   ios: FlPiPiOSConfig(
+                        //       videoPath: _.dataSource.videoSource ?? "",
+                        //       audioPath: _.dataSource.audioSource ?? "",
+                        //       packageName: null),
+                        //   android: FlPiPAndroidConfig(
+                        //     aspectRatio: Rational(
+                        //         _.videoPlayerController!.state.width!,
+                        //         _.videoPlayerController!.state.height!),
+                        //   ),
+                        // );
                         break;
                       case PlayerGestureAction.backToHome:
                         // lib/pages/video/widgets/header_control.dart

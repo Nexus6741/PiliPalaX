@@ -7,7 +7,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:easy_debounce/easy_throttle.dart';
-import 'package:fl_pip/fl_pip.dart';
+// import 'package:fl_pip/fl_pip.dart';
 import 'package:flutter/material.dart';
 // import 'package:android_window/main.dart' as android_window;
 // import 'android_window.dart';
@@ -102,9 +102,9 @@ class PlPlayerController {
   StreamSubscription<PlayerStatus>? _playerListenerForEnterPip;
 
   /// 后台播放
-  Rx<bool> _continuePlayInBackground = false.obs;
+  final Rx<bool> _continuePlayInBackground = false.obs;
 
-  Rx<bool> _onlyPlayAudio = false.obs;
+  final Rx<bool> _onlyPlayAudio = false.obs;
 
   ///
   // ignore: prefer_final_fields
@@ -420,33 +420,33 @@ class PlPlayerController {
     if (!GStorage.setting.get(SettingBoxKey.autoPiP, defaultValue: false)) {
       return;
     }
-    if (!await FlPiP().isAvailable) return;
-    _playerListenerForEnterPip =
-        onPlayerStatusChanged.listen((PlayerStatus status) async {
-      if (status != PlayerStatus.playing) {
-        bool isActive = (await FlPiP().isActive)?.status == PiPStatus.enabled;
-        if (isActive) return;
-        FlPiP().disable();
-        print('disabled pip');
-        return;
-      }
-      print('enable pip');
-      FlPiP().enable(
-        ios: FlPiPiOSConfig(
-            enabledWhenBackground: true,
-            videoPath: dataSource.videoSource!,
-            audioPath: dataSource.audioSource!,
-            packageName: 'PiliPalaX'),
-        android: FlPiPAndroidConfig(
-          enabledWhenBackground: true,
-          aspectRatio: Rational(
-            direction.value == 'vertical' ? 9 : 16,
-            direction.value == 'horizontal' ? 9 : 16,
-          ),
-        ),
-      );
-      print('enabled pip');
-    });
+    // if (!await FlPiP().isAvailable) return;
+    // _playerListenerForEnterPip =
+    //     onPlayerStatusChanged.listen((PlayerStatus status) async {
+    //   if (status != PlayerStatus.playing) {
+    //     bool isActive = (await FlPiP().isActive)?.status == PiPStatus.enabled;
+    //     if (isActive) return;
+    //     FlPiP().disable();
+    //     print('disabled pip');
+    //     return;
+    //   }
+    //   print('enable pip');
+    //   FlPiP().enable(
+    //     ios: FlPiPiOSConfig(
+    //         enabledWhenBackground: true,
+    //         videoPath: dataSource.videoSource!,
+    //         audioPath: dataSource.audioSource!,
+    //         packageName: 'PiliPalaX'),
+    //     android: FlPiPAndroidConfig(
+    //       enabledWhenBackground: true,
+    //       aspectRatio: Rational(
+    //         direction.value == 'vertical' ? 9 : 16,
+    //         direction.value == 'horizontal' ? 9 : 16,
+    //       ),
+    //     ),
+    //   );
+    //   print('enabled pip');
+    // });
   }
 
   // 获取实例 传参

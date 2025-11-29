@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 // import 'package:fl_pip/fl_pip.dart';
-import 'package:fl_pip/fl_pip.dart';
+// import 'package:fl_pip/fl_pip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -118,7 +118,7 @@ class _HeaderControlState extends State<HeaderControl> {
           height: 500,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
           ),
           margin: const EdgeInsets.all(12),
@@ -583,7 +583,7 @@ class _HeaderControlState extends State<HeaderControl> {
             height: 500,
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: const BorderRadius.all(Radius.circular(12)),
             ),
             margin: const EdgeInsets.all(12),
@@ -643,7 +643,7 @@ class _HeaderControlState extends State<HeaderControl> {
                           inactiveThumbColor:
                               Theme.of(context).colorScheme.primaryContainer,
                           inactiveTrackColor:
-                              Theme.of(context).colorScheme.background,
+                              Theme.of(context).colorScheme.surface,
                           splashRadius: 10.0,
                           // boolean variable value
                           value: shutdownTimerService.waitForPlayingCompleted,
@@ -723,7 +723,7 @@ class _HeaderControlState extends State<HeaderControl> {
           height: 310,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
           ),
           margin: const EdgeInsets.all(12),
@@ -822,7 +822,7 @@ class _HeaderControlState extends State<HeaderControl> {
           height: 250,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
           ),
           margin: const EdgeInsets.all(12),
@@ -908,7 +908,7 @@ class _HeaderControlState extends State<HeaderControl> {
           height: 250,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
           ),
           margin: const EdgeInsets.all(12),
@@ -1006,7 +1006,7 @@ class _HeaderControlState extends State<HeaderControl> {
             height: 580,
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.background,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: const BorderRadius.all(Radius.circular(12)),
             ),
             margin: const EdgeInsets.all(12),
@@ -1386,7 +1386,7 @@ class _HeaderControlState extends State<HeaderControl> {
           height: 300,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: const BorderRadius.all(Radius.circular(12)),
           ),
           margin: const EdgeInsets.all(12),
@@ -1505,18 +1505,18 @@ class _HeaderControlState extends State<HeaderControl> {
           print(widget.controller!.dataSource.videoSource);
           print(widget.controller!.dataSource.audioSource);
           widget.controller!.controls = false;
-          FlPiP().enable(
-            ios: FlPiPiOSConfig(
-                videoPath: widget.videoDetailCtr!.videoUrl,
-                audioPath: widget.videoDetailCtr!.audioUrl,
-                packageName: null),
-            android: FlPiPAndroidConfig(
-              aspectRatio: Rational(
-                widget.videoDetailCtr!.data.dash!.video!.first.width!,
-                widget.videoDetailCtr!.data.dash!.video!.first.height!,
-              ),
-            ),
-          );
+          // FlPiP().enable(
+          //   ios: FlPiPiOSConfig(
+          //       videoPath: widget.videoDetailCtr!.videoUrl,
+          //       audioPath: widget.videoDetailCtr!.audioUrl,
+          //       packageName: null),
+          //   android: FlPiPAndroidConfig(
+          //     aspectRatio: Rational(
+          //       widget.videoDetailCtr!.data.dash!.video!.first.width!,
+          //       widget.videoDetailCtr!.data.dash!.video!.first.height!,
+          //     ),
+          //   ),
+          // );
         },
         icon: Icon(
           MdiIcons.pictureInPictureBottomRight,

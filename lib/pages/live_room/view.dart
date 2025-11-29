@@ -173,7 +173,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                             ),
                             //内置浏览器打开
                             IconButton(
-                              tooltip: '内置浏览器打开',
+                                tooltip: '内置浏览器打开',
                                 onPressed: () {
                                   Get.offNamed(
                                     '/webview',
@@ -202,7 +202,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
               ),
               PopScope(
                 canPop: plPlayerController?.isFullScreen.value != true,
-                onPopInvokedWithResult: (bool didPop, Object? result) {
+                onPopInvoked: (bool didPop) {
                   if (plPlayerController?.isFullScreen.value == true) {
                     plPlayerController!.triggerFullScreen(status: false);
                   }
@@ -232,7 +232,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
     //     floating: floating,
     //   );
     // } else {
-      return childWhenDisabled;
+    return childWhenDisabled;
     // }
   }
 }

@@ -230,7 +230,7 @@ class _MainAppState extends State<MainApp> with SingleTickerProviderStateMixin {
             MediaQuery.of(context).orientation == Orientation.landscape;
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
+      onPopInvoked: (bool didPop) async {
         _mainController.onBackPressed(context);
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(

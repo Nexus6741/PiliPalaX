@@ -67,7 +67,7 @@ Future<void> autoScreen() async {
 }
 
 Future<void> fullAutoModeForceSensor() async {
-  await AutoOrientation.fullAutoMode(forceSensor: true);
+  await AutoOrientation.fullAutoMode();
 }
 
 Future<void> hideStatusBar() async {

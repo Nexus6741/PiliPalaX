@@ -88,22 +88,31 @@ dependencies:
   crypto: ^3.0.3
   encrypt: ^5.0.3
 
-  # 视频播放器
-  media_kit: ^1.1.11
-#    git:
-#      url: https://github.com/media-kit/media-kit.git
-#      ref: main
-#      path: media_kit
-  media_kit_video: ^1.2.5
-#    git:
-#      url: https://github.com/media-kit/media-kit.git
-#      ref: main
-#      path: media_kit_video
-  media_kit_libs_video: ^1.0.5
-#    git:
-#      url: https://github.com/media-kit/media-kit.git
-#      ref: main
-#      path: libs/universal/media_kit_libs_video
+#   # 视频播放器
+#   media_kit: ^1.1.11
+# #    git:
+# #      url: https://github.com/media-kit/media-kit.git
+# #      ref: main
+# #      path: media_kit
+#   media_kit_video: ^1.2.5
+# #    git:
+# #      url: https://github.com/media-kit/media-kit.git
+# #      ref: main
+# #      path: media_kit_video
+#   media_kit_libs_video: ^1.0.5
+# #    git:
+# #      url: https://github.com/media-kit/media-kit.git
+# #      ref: main
+# #      path: libs/universal/media_kit_libs_video
+
+  media_kit: ^1.2.1
+  media_kit_video:
+    path: ./packages/media_kit_video
+  media_kit_libs_video:
+    git:
+      url: https://github.com/ErBWs/media-kit.git
+      ref: feat-ohos
+      path: ./libs/universal/media_kit_libs_video
   # 媒体通知
   audio_service: ^0.18.15
   audio_session: ^0.1.21
@@ -144,10 +153,10 @@ dependencies:
       url: https://github.com/orz12/flutter_floating.git
       ref: master
   # pip
-  fl_pip:
-    git:
-      url: https://github.com/orz12/fl_pip.git
-      ref: main
+  # fl_pip:
+  #   git:
+  #     url: https://github.com/orz12/fl_pip.git
+  #     ref: main
   # html解析
   html: ^0.15.4
   # html渲染
@@ -165,7 +174,7 @@ dependencies:
   #跑马灯
   marquee: ^2.2.3
   #富文本
-  extended_text: ^14.0.1
+  extended_text: ^13.0.0
   # 调色板
   flex_seed_scheme: ^3.4.1
 #  android_window: ^0.4.0
@@ -175,11 +184,74 @@ dependency_overrides:
   fading_edge_scrollview: ^4.1.1
   rxdart: ^0.28.0
   screen_brightness: ^2.0.1
-#  media_kit:
-#    git:
-#      url: https://github.com/media-kit/media-kit.git
-#      ref: main
-#      path: media_kit
+  media_kit:
+    git:
+      url: https://github.com/ErBWs/media-kit.git
+      ref: feat-ohos
+      path: ./media_kit
+  media_kit_libs_ohos:
+    git:
+      url: https://github.com/ErBWs/media-kit.git
+      ref: feat-ohos
+      path: ./libs/ohos/media_kit_libs_ohos
+  path_provider:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_packages.git
+      path: "packages/path_provider/path_provider"
+  # video_player:
+  #   # git:
+  #   #   url: https://gitcode.com/openharmony-sig/flutter_packages.git
+  #   #   path: packages/video_player/video_player
+  #   path: packages/video_player/video_player
+  package_info_plus:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_plus_plugins.git
+      path: packages/package_info_plus/package_info_plus
+  permission_handler:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_permission_handler.git
+      path: permission_handler
+  device_info_plus:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_plus_plugins.git
+      path: packages/device_info_plus/device_info_plus
+  connectivity_plus:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_plus_plugins
+      path: packages/connectivity_plus/connectivity_plus
+  share_plus:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_plus_plugins.git
+      path: packages/share_plus/share_plus
+  webview_flutter:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: "packages/webview_flutter/webview_flutter"
+  # image_picker:
+  #   git:
+  #     url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+  #     path: packages/image_picker/image_picker
+  url_launcher:
+    git:
+      url: https://gitcode.com/openharmony-tpc/flutter_packages.git
+      path: packages/url_launcher/url_launcher
+  audio_service:
+    git:
+      url: https://gitcode.com/openharmony-sig/fluttertpc_audio_service
+      path: audio_service
+  audio_session:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_audio_session.git
+  wakelock_plus:
+    git:
+      url: https://gitcode.com/openharmony-sig/fluttertpc_wakelock_plus
+      path: wakelock_plus
+  auto_orientation:
+    git:
+      url: https://gitcode.com/openharmony-sig/fluttertpc_auto_orientation
+  webview_cookie_manager:
+    git:
+      url: https://gitcode.com/openharmony-sig/fluttertpc_webview_cookie_manager
 
 dev_dependencies:
   flutter_test:
