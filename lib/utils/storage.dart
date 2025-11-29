@@ -141,6 +141,7 @@ class SettingBoxKey {
       enableRcmdDynamic = 'enableRcmdDynamic',
       defaultRcmdType = 'defaultRcmdType',
       enableSaveLastData = 'enableSaveLastData',
+      rcmdKeepLines = 'rcmdKeepLines',
       minDurationForRcmd = 'minDurationForRcmd',
       minLikeRatioForRecommend = 'minLikeRatioForRecommend',
       exemptFilterForFollowed = 'exemptFilterForFollowed',

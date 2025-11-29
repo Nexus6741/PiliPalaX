@@ -51,6 +51,9 @@ class RecVideoItemAppModel {
   List<DislikeReason>? dislikeReasons;
   String? desc;
 
+  // 辅助字段
+  bool isKeep = false;
+
   RecVideoItemAppModel.fromJson(Map<String, dynamic> json) {
     id = json['player_args'] != null
         ? json['player_args']['aid']

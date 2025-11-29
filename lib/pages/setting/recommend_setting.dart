@@ -29,6 +29,8 @@ class _RecommendSettingState extends State<RecommendSetting> {
   late int minDurationForRcmd;
   late int minLikeRatioForRecommend;
   late String banWordForRecommend;
+  late bool enableSaveLastData;
+  late int rcmdKeepLines;
 
   @override
   void initState() {
@@ -47,6 +49,9 @@ class _RecommendSettingState extends State<RecommendSetting> {
         setting.get(SettingBoxKey.minLikeRatioForRecommend, defaultValue: 0);
     banWordForRecommend =
         setting.get(SettingBoxKey.banWordForRecommend, defaultValue: '');
+    enableSaveLastData =
+        setting.get(SettingBoxKey.enableSaveLastData, defaultValue: false);
+    rcmdKeepLines = setting.get(SettingBoxKey.rcmdKeepLines, defaultValue: 2);
   }
 
   @override
@@ -108,13 +113,46 @@ class _RecommendSettingState extends State<RecommendSetting> {
             setKey: SettingBoxKey.enableRcmdDynamic,
             defaultVal: true,
           ),
-          const SetSwitchItem(
+          SetSwitchItem(
             title: '首页推荐刷新',
             subTitle: '下拉刷新时保留上次内容',
-            leading: Icon(Icons.refresh),
+            leading: const Icon(Icons.refresh),
             setKey: SettingBoxKey.enableSaveLastData,
             defaultVal: false,
+            callFn: (val) {
+              enableSaveLastData = val;
+              setState(() {});
+            },
           ),
+          if (enableSaveLastData)
+            ListTile(
+              dense: false,
+              title: Text('保留行数', style: titleStyle),
+              leading: const Icon(Icons.format_list_numbered_outlined),
+              subtitle: Text(
+                '保留「$rcmdKeepLines行」旧内容',
+                style: subTitleStyle,
+              ),
+              onTap: () async {
+                int? result = await showDialog(
+                  context: context,
+                  builder: (context) {
+                    return SelectDialog<int>(
+                        title: '选择保留行数',
+                        value: rcmdKeepLines,
+                        values: List.generate(6, (index) {
+                          int val = index + 1;
+                          return {'title': '$val 行', 'value': val};
+                        }));
+                  },
+                );
+                if (result != null) {
+                  rcmdKeepLines = result;
+                  setting.put(SettingBoxKey.rcmdKeepLines, result);
+                  setState(() {});
+                }
+              },
+            ),
           // 分割线
           const Divider(height: 1),
           ListTile(

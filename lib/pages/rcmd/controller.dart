@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/utils/extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -38,6 +41,9 @@ class RcmdController extends GetxController {
   Future queryRcmdFeed(type) async {
     if (type == 'onRefresh') {
       _currentPage = 0;
+      // 重新读取配置
+      enableSaveLastData =
+          setting.get(SettingBoxKey.enableSaveLastData, defaultValue: false);
     }
     late final Map<String, dynamic> res;
     switch (defaultRcmdType) {
@@ -63,7 +69,41 @@ class RcmdController extends GetxController {
         }
       } else if (type == 'onRefresh') {
         if (enableSaveLastData) {
-          videoList.insertAll(0, res['data']);
+          // 计算列数
+          double maxRowWidth =
+              setting.get(SettingBoxKey.maxRowWidth, defaultValue: 240.0);
+          // 减去左右 margin
+          double screenWidth = Get.width - StyleString.safeSpace * 2;
+          int crossAxisCount = ((screenWidth - StyleString.cardSpace) /
+                  (maxRowWidth + StyleString.cardSpace))
+              .ceil();
+          crossAxisCount = max(1, crossAxisCount);
+
+          // 保留前N行
+          int keepLines =
+              setting.get(SettingBoxKey.rcmdKeepLines, defaultValue: 2);
+          int count = crossAxisCount * keepLines;
+
+          List<dynamic> keptItems = [];
+          if (videoList.length >= count) {
+            keptItems = videoList.sublist(0, count);
+          } else {
+            keptItems = List.from(videoList);
+          }
+
+          // 标记为保留项
+          for (var item in keptItems) {
+            item.isKeep = true;
+          }
+
+          var newItems = res['data'];
+          // 插入到新数据的前两行之后
+          if (newItems.length >= count) {
+            newItems.insertAll(count, keptItems);
+          } else {
+            newItems.addAll(keptItems);
+          }
+          videoList.value = newItems;
         } else {
           videoList.value = res['data'];
         }

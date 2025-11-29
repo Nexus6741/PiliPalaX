@@ -48,6 +48,9 @@ class RecVideoItemModel {
   @HiveField(12)
   String? rcmdReason;
 
+  // 辅助字段，不参与Hive序列化
+  bool isKeep = false;
+
   RecVideoItemModel.fromJson(Map<String, dynamic> json) {
     id = json["id"];
     bvid = json["bvid"];

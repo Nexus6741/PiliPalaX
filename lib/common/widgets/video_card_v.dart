@@ -179,6 +179,14 @@ class VideoCardV extends StatelessWidget {
                                 height: maxHeight,
                               ),
                             ),
+                            if (videoItem.isKeep)
+                              const PBadge(
+                                top: 6,
+                                left: 6,
+                                size: 'small',
+                                type: 'gray',
+                                text: '旧内容',
+                              ),
                             if (videoItem.duration > 0)
                               PBadge(
                                 bottom: 6,
