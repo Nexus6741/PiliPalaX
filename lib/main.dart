@@ -112,7 +112,12 @@ void main() async {
   );
 
   // 小白条、导航栏沉浸
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  if (GStorage.setting
+      .get(SettingBoxKey.alwaysImmersiveStatusBar, defaultValue: false)) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  } else {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     systemNavigationBarColor: Colors.transparent,
     systemNavigationBarDividerColor: Colors.transparent,
@@ -281,5 +286,4 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-
 }

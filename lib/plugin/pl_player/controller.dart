@@ -244,6 +244,9 @@ class PlPlayerController {
   /// 屏幕锁 为true时，关闭控制栏
   Rx<bool> get controlsLock => _controlsLock;
 
+  /// 是否正在跳转下一集
+  Rx<bool> isSkipping = false.obs;
+
   /// 全屏状态
   Rx<bool> get isFullScreen => _isFullScreen;
 
@@ -494,6 +497,7 @@ class PlPlayerController {
       this.dataSource = dataSource;
       _autoPlay = autoplay;
       _looping = looping;
+      isSkipping.value = false;
       // 初始化视频倍速
       // _playbackSpeed.value = speed;
       // 初始化数据加载状态
@@ -785,10 +789,14 @@ class PlPlayerController {
             for (var element in _statusListeners) {
               element(PlayerStatus.completed);
             }
+            makeHeartBeat(positionSeconds.value, type: 'completed');
           } else {
-            // playerStatus.status.value = PlayerStatus.playing;
+            if (playerStatus.status.value == PlayerStatus.completed) {
+              playerStatus.status.value = videoPlayerController!.state.playing
+                  ? PlayerStatus.playing
+                  : PlayerStatus.paused;
+            }
           }
-          makeHeartBeat(positionSeconds.value, type: 'completed');
         }),
         videoPlayerController!.stream.position.listen((event) {
           _position.value = event;
@@ -1447,6 +1455,7 @@ class PlPlayerController {
 
   // 全屏
   Future<void> triggerFullScreen({bool status = true}) async {
+    print('triggerFullScreen: status=$status, current=${isFullScreen.value}');
     stopScreenTimer();
     FullScreenMode mode = FullScreenModeCode.fromCode(
         setting.get(SettingBoxKey.fullScreenMode, defaultValue: 0))!;
@@ -1454,7 +1463,7 @@ class PlPlayerController {
         defaultValue: false);
     if (!isFullScreen.value && status) {
       // StatusBarControl.setHidden(true, animation: StatusBarAnimation.FADE);
-      hideStatusBar();
+      toggleStatusBar(true);
 
       /// 按照视频宽高比决定全屏方向
       toggleFullScreen(true);
@@ -1479,6 +1488,7 @@ class PlPlayerController {
       }
     } else if (isFullScreen.value && !status) {
       // StatusBarControl.setHidden(false, animation: StatusBarAnimation.FADE);
+      print('Exiting fullscreen, removeSafeArea: $removeSafeArea');
       if (!removeSafeArea) showStatusBar();
       toggleFullScreen(false);
       if (mode == FullScreenMode.none) {

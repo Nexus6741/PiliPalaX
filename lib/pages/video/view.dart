@@ -113,7 +113,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
     showStatusBarBackgroundColor = setting.get(
         SettingBoxKey.videoPlayerShowStatusBarBackgroundColor,
         defaultValue: false);
-    if (removeSafeArea) hideStatusBar();
+    if (removeSafeArea) toggleStatusBar(true);
     floatingManager.closeFloating(globalId);
     videoSourceInit();
     appbarStreamListen();
@@ -208,8 +208,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         bool notExitFlag = false;
 
         /// 顺序播放 列表循环
-        if (plPlayerController!.playRepeat != PlayRepeat.pause &&
-            plPlayerController!.playRepeat != PlayRepeat.singleCycle) {
+        if (plPlayerController!.playRepeat != PlayRepeat.singleCycle) {
           if (videoDetailController.videoType == SearchType.video) {
             notExitFlag = videoIntroController.nextPlay();
           }
@@ -224,10 +223,14 @@ class _VideoDetailPageState extends State<VideoDetailPage>
           plPlayerController!.play(repeat: true);
         }
 
-        // 结束播放退出全屏
-        if (!notExitFlag && autoExitFullscreen) {
-          plPlayerController!.triggerFullScreen(status: false);
+        if (notExitFlag) {
+          plPlayerController!.isSkipping.value = true;
         }
+
+        // 结束播放退出全屏
+        // if (!notExitFlag && autoExitFullscreen) {
+        //   plPlayerController!.triggerFullScreen(status: false);
+        // }
         // 播放完展示控制栏
         // if (videoDetailController.floating != null && !notExitFlag) {
         //   PiPStatus currentStatus =
@@ -594,7 +597,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       !isFullScreen.value &&
                       // isShowing &&
                       mounted) {
-                    hideStatusBar();
+                    toggleStatusBar(true);
                   }
                   if (MediaQuery.of(context).orientation ==
                           Orientation.portrait &&

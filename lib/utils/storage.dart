@@ -191,6 +191,7 @@ class SettingBoxKey {
       videoPlayerRemoveSafeArea = 'videoPlayerRemoveSafeArea', // 视频播放器移除安全边距
       videoPlayerShowStatusBarBackgroundColor =
           'videoPlayerShowStatusBarBackgroundColor', // 播放页状态栏显示为背景色
+      alwaysImmersiveStatusBar = 'alwaysImmersiveStatusBar', // 始终隐藏状态栏
       dynamicsWaterfallFlow = 'dynamicsWaterfallFlow', // 动态瀑布流
       upPanelPosition = 'upPanelPosition', // up主面板位置
       dynamicsShowAllFollowedUp = 'dynamicsShowAllFollowedUp', // 动态显示全部关注up

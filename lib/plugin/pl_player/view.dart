@@ -38,6 +38,7 @@ import 'widgets/app_bar_ani.dart';
 import 'widgets/backward_seek.dart';
 import 'widgets/bottom_control.dart';
 import 'widgets/common_btn.dart';
+import 'widgets/completion_overlay.dart';
 import 'widgets/forward_seek.dart';
 import 'widgets/play_pause_btn.dart';
 
@@ -1438,6 +1439,18 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
             ),
           ),
         ),
+        Obx(() {
+          if (_.playerStatus.status.value == PlayerStatus.completed &&
+              _.isFullScreen.value &&
+              !_.isSkipping.value) {
+            return CompletionOverlay(
+              playerController: _,
+              videoIntroController: videoIntroController,
+              bangumiIntroController: bangumiIntroController,
+            );
+          }
+          return const SizedBox();
+        }),
       ],
     );
   }

@@ -177,6 +177,14 @@ class _StyleSettingState extends State<StyleSetting> {
             needReboot: true,
           ),
           const SetSwitchItem(
+            title: '始终隐藏状态栏',
+            subTitle: '开启后，无论是否全屏，状态栏都将保持隐藏（沉浸式）',
+            leading: Icon(Icons.fullscreen_outlined),
+            setKey: SettingBoxKey.alwaysImmersiveStatusBar,
+            defaultVal: false,
+            callFn: toggleStatusBar,
+          ),
+          const SetSwitchItem(
             title: '播放页移除安全边距',
             subTitle: '隐藏状态栏、撑满屏幕，但播放控件仍处于安全域内',
             leading: Icon(Icons.fit_screen_outlined),

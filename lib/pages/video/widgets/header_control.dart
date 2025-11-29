@@ -28,6 +28,8 @@ import '../../../../models/video/play/CDN.dart';
 import '../../../../models/video_detail_res.dart';
 import '../../setting/widgets/select_dialog.dart';
 import 'package:PiliPalaX/pages/video/introduction/detail/index.dart';
+import 'package:PiliPalaX/pages/video/introduction/bangumi/index.dart';
+import 'package:PiliPalaX/models/common/search_type.dart';
 import 'package:marquee/marquee.dart';
 
 class HeaderControl extends StatefulWidget implements PreferredSizeWidget {
@@ -1502,21 +1504,30 @@ class _HeaderControlState extends State<HeaderControl> {
             SmartDialog.showToast('播放器未初始化');
             return;
           }
-          print(widget.controller!.dataSource.videoSource);
-          print(widget.controller!.dataSource.audioSource);
           widget.controller!.controls = false;
-          // FlPiP().enable(
-          //   ios: FlPiPiOSConfig(
-          //       videoPath: widget.videoDetailCtr!.videoUrl,
-          //       audioPath: widget.videoDetailCtr!.audioUrl,
-          //       packageName: null),
-          //   android: FlPiPAndroidConfig(
-          //     aspectRatio: Rational(
-          //       widget.videoDetailCtr!.data.dash!.video!.first.width!,
-          //       widget.videoDetailCtr!.data.dash!.video!.first.height!,
-          //     ),
-          //   ),
-          // );
+          BangumiIntroController? bangumiIntroController;
+          VideoIntroController? videoIntroCtr;
+          if (widget.videoDetailCtr!.videoType == SearchType.media_bangumi) {
+            try {
+              bangumiIntroController =
+                  Get.find<BangumiIntroController>(tag: heroTag);
+            } catch (_) {}
+          } else {
+            videoIntroCtr = videoIntroController;
+          }
+          bool res = widget.controller!
+              .triggerFloatingWindow(videoIntroCtr, bangumiIntroController);
+          if (res) {
+            if (!Get.previousRoute.startsWith('/video') &&
+                !Get.previousRoute.startsWith('/live')) {
+              Get.back();
+              return;
+            }
+            while (Get.rawRoute?.settings.name?.startsWith('/video') == true ||
+                Get.rawRoute?.settings.name?.startsWith('/live') == true) {
+              Get.removeRoute(Get.rawRoute!);
+            }
+          }
         },
         icon: Icon(
           MdiIcons.pictureInPictureBottomRight,
