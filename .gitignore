@@ -137,3 +137,7 @@ app.*.symbols
 
 # FVM Version Cache
 .fvm/
+
+# Ignored folders
+PiliPlus/
+bilibili-API-collect/

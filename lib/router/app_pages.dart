@@ -131,7 +131,8 @@ class Routes {
     //
     CustomGetPage(name: '/blackListPage', page: () => const BlackListPage()),
     CustomGetPage(name: '/colorSetting', page: () => const ColorSelectPage()),
-    CustomGetPage(name: '/gestureSetting', page: () => const GestureSelectPage()),
+    CustomGetPage(
+        name: '/gestureSetting', page: () => const GestureSelectPage()),
     // 开发人员选项
     CustomGetPage(name: '/hiddenSetting', page: () => const HiddenSetting()),
     // 首页tabbar

@@ -1441,13 +1441,31 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         ),
         Obx(() {
           if (_.playerStatus.status.value == PlayerStatus.completed &&
-              _.isFullScreen.value &&
               !_.isSkipping.value) {
-            return CompletionOverlay(
-              playerController: _,
-              videoIntroController: videoIntroController,
-              bangumiIntroController: bangumiIntroController,
-            );
+            if (_.isFullScreen.value) {
+              return CompletionOverlay(
+                playerController: _,
+                videoIntroController: videoIntroController,
+                bangumiIntroController: bangumiIntroController,
+              );
+            } else {
+              return Container(
+                color: Colors.black54,
+                child: Center(
+                  child: IconButton(
+                    iconSize: 50,
+                    onPressed: () {
+                      _.seekTo(Duration.zero);
+                      _.play();
+                    },
+                    icon: const Icon(
+                      Icons.refresh,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              );
+            }
           }
           return const SizedBox();
         }),

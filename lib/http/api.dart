@@ -257,9 +257,9 @@ class Api {
   static const String fans = '/x/relation/fans';
 
   // 直播
-  // ?page=1&page_size=30&platform=web
+  // https://api.live.bilibili.com/xlive/web-interface/v1/webMain/getMoreRecList?platform=web
   static const String liveList =
-      '${HttpString.liveBaseUrl}/xlive/web-interface/v1/second/getUserRecommend';
+      '${HttpString.liveBaseUrl}/xlive/web-interface/v1/webMain/getMoreRecList';
 
   // 直播间详情
   // cid roomId
@@ -270,6 +270,10 @@ class Api {
   // 直播间详情 H5
   static const String liveRoomInfoH5 =
       '${HttpString.liveBaseUrl}/xlive/web-room/v1/index/getH5InfoByRoom';
+
+  // 直播间进入动作
+  static const String roomEntryAction =
+      '${HttpString.liveBaseUrl}/xlive/web-room/v1/index/roomEntryAction';
 
   // 用户信息 需要Wbi签名
   // https://api.bilibili.com/x/space/wbi/acc/info?mid=503427686&token=&platform=web&web_location=1550101&w_rid=d709892496ce93e3d94d6d37c95bde91&wts=1689301482

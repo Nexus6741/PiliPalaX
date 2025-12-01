@@ -130,6 +130,7 @@ class SettingBoxKey {
       // fullScreenGestureReverse = 'fullScreenGestureReverse',
       // enableFloatingWindowGesture = 'enableFloatingWindowGesture',
       enableShowDanmaku = 'enableShowDanmaku',
+      enableShowLiveDanmaku = 'enableShowLiveDanmaku',
       enableBackgroundPlay = 'enableBackgroundPlay',
       continuePlayInBackground = 'continuePlayInBackground',
       setSystemBrightness = 'setSystemBrightness',
@@ -204,7 +205,10 @@ class SettingBoxKey {
       tabbarSort = 'tabbarSort', // 首页tabbar
       dynamicBadgeMode = 'dynamicBadgeMode',
       hiddenSettingUnlocked = 'hiddenSettingUnlocked',
-      enableGradientBg = 'enableGradientBg';
+      enableGradientBg = 'enableGradientBg',
+      liveQuality = 'liveQuality',
+      liveQualityCellular = 'liveQualityCellular',
+      showSuperChat = 'showSuperChat';
 }
 
 class LocalCacheKey {

@@ -508,6 +508,11 @@ class PlPlayerController {
       _cid = cid;
       _enableHeart = enableHeart;
 
+      // 重置全屏状态
+      if (_isFullScreen.value) {
+        await triggerFullScreen(status: false);
+      }
+
       if (_videoPlayerController != null &&
           _videoPlayerController!.state.playing) {
         await pause(notify: false);

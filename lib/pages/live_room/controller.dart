@@ -3,6 +3,7 @@ import 'package:PiliPalaX/http/constants.dart';
 import 'package:PiliPalaX/http/live.dart';
 import 'package:PiliPalaX/models/live/room_info.dart';
 import 'package:PiliPalaX/plugin/pl_player/index.dart';
+import 'package:PiliPalaX/utils/storage.dart';
 import '../../models/live/room_info_h5.dart';
 import '../../utils/video_utils.dart';
 
@@ -18,6 +19,12 @@ class LiveRoomController extends GetxController {
       PlPlayerController.getInstance(videoType: 'live');
   Rx<RoomInfoH5Model> roomInfoH5 = RoomInfoH5Model().obs;
   // late bool enableCDN;
+
+  RxInt currentQn = 10000.obs;
+  RxString currentQnDesc = '原画'.obs;
+  RxList<Map> acceptQnList = <Map>[].obs;
+
+  bool get isLogin => GStorage.userInfo.get('userInfoCache') != null;
 
   @override
   void onInit() {
@@ -56,8 +63,15 @@ class LiveRoomController extends GetxController {
   }
 
   Future queryLiveInfo() async {
-    var res = await LiveHttp.liveRoomInfo(roomId: roomId, qn: 10000);
+    var res = await LiveHttp.liveRoomInfo(roomId: roomId, qn: currentQn.value);
     if (res['status']) {
+      List<GQnDesc> qnDesc = res['data'].playurlInfo.playurl.gQnDesc;
+      acceptQnList.value =
+          qnDesc.map((e) => {'code': e.qn, 'desc': e.desc}).toList();
+      var current = qnDesc.firstWhere((e) => e.qn == currentQn.value,
+          orElse: () => qnDesc.first);
+      currentQnDesc.value = current.desc!;
+
       List<CodecItem> codec =
           res['data'].playurlInfo.playurl.stream.first.format.first.codec;
       CodecItem item = codec.first;
@@ -65,6 +79,11 @@ class LiveRoomController extends GetxController {
       await playerInit(videoUrl);
       return res;
     }
+  }
+
+  void changeQn(int quality) {
+    currentQn.value = quality;
+    queryLiveInfo();
   }
 
   void setVolume(value) {

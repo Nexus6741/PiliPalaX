@@ -287,6 +287,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   // }
 
   void listenFullScreenStatus() {
+    isFullScreen.value = plPlayerController!.isFullScreen.value;
     fullScreenStatusListener =
         plPlayerController!.isFullScreen.listen((bool status) {
       if (status) {

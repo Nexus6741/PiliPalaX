@@ -56,8 +56,12 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
           return PLVideoPlayer(
             controller: plPlayerController!,
             bottomControl: BottomControl(
-              controller: plPlayerController,
+              plPlayerController: plPlayerController!,
               liveRoomCtr: _liveRoomController,
+              onRefresh: () {
+                _futureBuilderFuture = _liveRoomController.queryLiveInfo();
+                setState(() {});
+              },
             ),
           );
         } else {
@@ -91,10 +95,10 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
               right: 0,
               bottom: 0,
               child: _liveRoomController
-                              .roomInfoH5.value.roomInfo?.appBackground !=
+                              .roomInfoH5.value.data?.roomInfo?.background !=
                           '' &&
                       _liveRoomController
-                              .roomInfoH5.value.roomInfo?.appBackground !=
+                              .roomInfoH5.value.data?.roomInfo?.background !=
                           null
                   ? Opacity(
                       opacity: 0.8,
@@ -103,7 +107,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                         height: Get.height,
                         type: 'bg',
                         src: _liveRoomController
-                                .roomInfoH5.value.roomInfo?.appBackground ??
+                                .roomInfoH5.value.data?.roomInfo?.background ??
                             '',
                       ),
                     )
@@ -136,26 +140,26 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                               width: 34,
                               height: 34,
                               type: 'avatar',
-                              src: _liveRoomController
-                                  .roomInfoH5.value.anchorInfo!.baseInfo!.face,
+                              src: _liveRoomController.roomInfoH5.value.data
+                                      ?.anchorInfo?.baseInfo?.face ??
+                                  '',
                             ),
                             const SizedBox(width: 10),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _liveRoomController.roomInfoH5.value
-                                      .anchorInfo!.baseInfo!.uname!,
+                                  _liveRoomController.roomInfoH5.value.data
+                                          ?.anchorInfo?.baseInfo?.uname ??
+                                      '',
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 const SizedBox(height: 1),
-                                if (_liveRoomController
-                                        .roomInfoH5.value.watchedShow !=
+                                if (_liveRoomController.roomInfoH5.value.data
+                                        ?.roomInfo?.online !=
                                     null)
                                   Text(
-                                    _liveRoomController.roomInfoH5.value
-                                            .watchedShow!['text_large'] ??
-                                        '',
+                                    '${_liveRoomController.roomInfoH5.value.data!.roomInfo!.online}人观看',
                                     style: const TextStyle(fontSize: 12),
                                   ),
                               ],
@@ -182,11 +186,13 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                                           'https://live.bilibili.com/h5/${_liveRoomController.roomId}',
                                       'type': 'liveRoom',
                                       'pageTitle': _liveRoomController
-                                          .roomInfoH5
-                                          .value
-                                          .anchorInfo!
-                                          .baseInfo!
-                                          .uname!,
+                                              .roomInfoH5
+                                              .value
+                                              .data
+                                              ?.anchorInfo
+                                              ?.baseInfo
+                                              ?.uname ??
+                                          '',
                                     },
                                   );
                                 },

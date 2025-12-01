@@ -821,4 +821,20 @@ class VideoHttp {
       return {'status': false, 'data': [], 'msg': res.data['message']};
     }
   }
+
+  static Future roomEntryAction({
+    required int roomId,
+    required String platform,
+  }) async {
+    await Request().post(
+      Api.roomEntryAction,
+      queryParameters: {
+        'csrf': await Request.getCsrf(),
+      },
+      data: {
+        'room_id': roomId,
+        'platform': platform,
+      },
+    );
+  }
 }

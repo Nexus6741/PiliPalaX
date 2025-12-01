@@ -7,12 +7,11 @@ import 'init.dart';
 class LiveHttp {
   static Future liveList(
       {int? vmid, int? pn, int? ps, String? orderType}) async {
-    var res = await Request().get(Api.liveList,
-        data: {'page': pn, 'page_size': 30, 'platform': 'web'});
+    var res = await Request().get(Api.liveList, data: {'platform': 'web'});
     if (res.data['code'] == 0) {
       return {
         'status': true,
-        'data': res.data['data']['list']
+        'data': res.data['data']['recommend_room_list']
             .map<LiveItemModel>((e) => LiveItemModel.fromJson(e))
             .toList()
       };

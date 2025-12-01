@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -20,6 +21,16 @@ import '../models/github/latest.dart';
 
 class Utils {
   static final Random random = Random();
+
+  static bool get isMobile => Platform.isAndroid || Platform.isIOS;
+
+  static Future<bool> get isWiFi async {
+    dynamic connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult is List) {
+      return connectivityResult.contains(ConnectivityResult.wifi);
+    }
+    return connectivityResult == ConnectivityResult.wifi;
+  }
 
   static Future<String> getCookiePath() async {
     final Directory tempDir = await getApplicationSupportDirectory();

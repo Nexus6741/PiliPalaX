@@ -99,4 +99,13 @@ class VideoUtils {
 
     return videoUrl;
   }
+
+  static String getLiveCdnUrl(CodecItem item) {
+    if (item.urlInfo != null && item.urlInfo!.isNotEmpty) {
+      return (item.urlInfo!.first.host ?? "") +
+          (item.baseUrl ?? "") +
+          (item.urlInfo!.first.extra ?? "");
+    }
+    return item.baseUrl ?? "";
+  }
 }
