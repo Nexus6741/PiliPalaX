@@ -62,6 +62,16 @@ class _PagesPanelState extends State<PagesPanel> {
   }
 
   @override
+  void didUpdateWidget(PagesPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.cid != oldWidget.cid || widget.pages != oldWidget.pages) {
+      cid = widget.cid!;
+      episodes = widget.pages;
+      currentIndex = episodes.indexWhere((Part e) => e.cid == cid);
+    }
+  }
+
+  @override
   void dispose() {
     _scrollController2.dispose();
     super.dispose();

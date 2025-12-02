@@ -415,6 +415,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
             int currentCid = widget.controller.cid;
             String bvid = widget.controller.bvid;
             final List episodes = [];
+            List<Part>? pages;
             late Function changeFucCall;
             if (isSeason) {
               final List<SectionItem> sections =
@@ -423,10 +424,14 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                 final List<EpisodeItem> episodesList = sections[i].episodes!;
                 episodes.addAll(episodesList);
               }
+              // 即使是合集，也可能有分P，需要传递 pages
+              if (videoIntroController?.videoDetail.value.pages != null &&
+                  videoIntroController!.videoDetail.value.pages!.length > 1) {
+                pages = videoIntroController!.videoDetail.value.pages!;
+              }
               changeFucCall = videoIntroController!.changeSeasonOrbangu;
             } else if (isPage) {
-              final List<Part> pages =
-                  videoIntroController!.videoDetail.value.pages!;
+              pages = videoIntroController!.videoDetail.value.pages!;
               episodes.addAll(pages);
               changeFucCall = videoIntroController!.changeSeasonOrbangu;
             } else if (isBangumi) {
@@ -441,6 +446,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
               currentCid: currentCid,
               changeFucCall: changeFucCall,
               context: context,
+              pages: pages,
             ).buildShowBottomSheet();
           },
         ),

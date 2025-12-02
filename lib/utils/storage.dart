@@ -133,6 +133,7 @@ class SettingBoxKey {
       enableShowLiveDanmaku = 'enableShowLiveDanmaku',
       enableBackgroundPlay = 'enableBackgroundPlay',
       continuePlayInBackground = 'continuePlayInBackground',
+      enableKeepFullScreen = 'enableKeepFullScreen',
       setSystemBrightness = 'setSystemBrightness',
 
       /// 隐私

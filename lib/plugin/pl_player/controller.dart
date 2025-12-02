@@ -509,7 +509,9 @@ class PlPlayerController {
       _enableHeart = enableHeart;
 
       // 重置全屏状态
-      if (_isFullScreen.value) {
+      bool enableKeepFullScreen =
+          setting.get(SettingBoxKey.enableKeepFullScreen, defaultValue: true);
+      if (_isFullScreen.value && !enableKeepFullScreen) {
         await triggerFullScreen(status: false);
       }
 

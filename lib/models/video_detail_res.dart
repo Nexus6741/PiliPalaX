@@ -648,6 +648,8 @@ class EpisodeItem {
   Part? page;
   String? bvid;
   String? badge;
+  String? cover;
+  Stat? stat;
 
   EpisodeItem.fromJson(Map<String, dynamic> json) {
     seasonId = json['season_id'];
@@ -661,5 +663,12 @@ class EpisodeItem {
     page = Part.fromJson(json['page']);
     bvid = json['bvid'];
     badge = json['badge'];
+    if (json['arc'] != null) {
+      cover = json['arc']['pic'];
+      stat = Stat.fromJson(json['arc']['stat']);
+    }
+    if (cover == null && json['cover'] != null) {
+      cover = json['cover'];
+    }
   }
 }
