@@ -122,6 +122,7 @@ class VideoDetailController extends GetxController
     if (autoPlay.value) {
       isShowCover.value = false;
       plPlayerController = PlPlayerController.getInstance();
+      plPlayerController!.controls = false;
       headerControl = HeaderControl(
         controller: plPlayerController,
         videoDetailCtr: this,
@@ -291,7 +292,7 @@ class VideoDetailController extends GetxController
       videoDetailCtr: this,
       heroTag: heroTag,
     );
-    print("resumePlay:${resumePlay},isFirstTime:${isFirstTime}");
+    print("resumePlay:$resumePlay,isFirstTime:$isFirstTime");
     if (!resumePlay) {
       await plPlayerController!.setDataSource(
         DataSource(

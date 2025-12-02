@@ -106,6 +106,9 @@ class PlPlayerController {
 
   final Rx<bool> _onlyPlayAudio = false.obs;
 
+  // 视频是否已加载（第一帧渲染）
+  final Rx<bool> isVideoLoaded = false.obs;
+
   ///
   // ignore: prefer_final_fields
   Rx<bool> _isSliderMoving = false.obs;
@@ -495,6 +498,9 @@ class PlPlayerController {
       // if (playerStatus.status.value == PlayerStatus.disabled) return;
 
       this.dataSource = dataSource;
+      // 重置控制条状态
+      _showControls.value = false;
+      _controlsLock.value = false;
       _autoPlay = autoplay;
       _looping = looping;
       isSkipping.value = false;
@@ -507,6 +513,7 @@ class PlPlayerController {
       _bvid = bvid;
       _cid = cid;
       _enableHeart = enableHeart;
+      isVideoLoaded.value = false;
 
       // 重置全屏状态
       bool enableKeepFullScreen =
@@ -584,7 +591,7 @@ class PlPlayerController {
   ) async {
     // 每次配置时先移除监听
     removeListeners();
-    isBuffering.value = false;
+    isBuffering.value = true;
     buffered.value = Duration.zero;
     _heartDuration = 0;
     _position.value = Duration.zero;
@@ -772,6 +779,9 @@ class PlPlayerController {
         videoPlayerController!.stream.playing.listen((event) {
           if (event) {
             playerStatus.status.value = PlayerStatus.playing;
+            if (!isBuffering.value) {
+              isVideoLoaded.value = true;
+            }
           } else {
             playerStatus.status.value = PlayerStatus.paused;
           }
@@ -830,6 +840,9 @@ class PlPlayerController {
           isBuffering.value = event;
           videoPlayerServiceHandler.onStatusChange(
               playerStatus.status.value, event);
+          if (!event && playerStatus.status.value == PlayerStatus.playing) {
+            isVideoLoaded.value = true;
+          }
         }),
         // videoPlayerController!.stream.log.listen((event) {
         //   print('videoPlayerController!.stream.log.listen');

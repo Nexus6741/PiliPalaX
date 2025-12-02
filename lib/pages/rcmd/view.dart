@@ -12,6 +12,7 @@ import 'package:PiliPalaX/common/widgets/overlay_pop.dart';
 import 'package:PiliPalaX/common/widgets/video_card_v.dart';
 import 'package:PiliPalaX/pages/home/index.dart';
 import 'package:PiliPalaX/pages/main/index.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../../utils/grid.dart';
 import 'controller.dart';
@@ -100,11 +101,16 @@ class _RcmdPageState extends State<RcmdPage>
                     Map data = snapshot.data as Map;
                     if (data['status']) {
                       return Obx(
-                        () => contentGrid(
-                            _rcmdController,
-                            _rcmdController.videoList.isEmpty
-                                ? []
-                                : _rcmdController.videoList),
+                        () => AnimationLimiter(
+                          key: ValueKey(_rcmdController.videoList.isNotEmpty
+                              ? _rcmdController.videoList.first.hashCode
+                              : 0),
+                          child: contentGrid(
+                              _rcmdController,
+                              _rcmdController.videoList.isEmpty
+                                  ? []
+                                  : _rcmdController.videoList),
+                        ),
                       );
                     } else {
                       return HttpError(
@@ -160,18 +166,27 @@ class _RcmdPageState extends State<RcmdPage>
       ),
       delegate: SliverChildBuilderDelegate(
         (BuildContext context, int index) {
-          return videoList!.isNotEmpty
-              ? VideoCardV(
-                  videoItem: videoList[index],
-                  longPress: () {
-                    _rcmdController.popupDialog
-                        .add(_createPopupDialog(videoList[index]));
-                    Overlay.of(context)
-                        .insert(_rcmdController.popupDialog.last!);
-                  },
-                  longPressEnd: _removePopupDialog,
-                )
-              : const VideoCardVSkeleton();
+          return AnimationConfiguration.staggeredList(
+            position: index,
+            duration: const Duration(milliseconds: 375),
+            child: SlideAnimation(
+              verticalOffset: 50.0,
+              child: FadeInAnimation(
+                child: videoList!.isNotEmpty
+                    ? VideoCardV(
+                        videoItem: videoList[index],
+                        longPress: () {
+                          _rcmdController.popupDialog
+                              .add(_createPopupDialog(videoList[index]));
+                          Overlay.of(context)
+                              .insert(_rcmdController.popupDialog.last!);
+                        },
+                        longPressEnd: _removePopupDialog,
+                      )
+                    : const VideoCardVSkeleton(),
+              ),
+            ),
+          );
         },
         childCount: videoList!.isNotEmpty ? videoList!.length : 10,
       ),

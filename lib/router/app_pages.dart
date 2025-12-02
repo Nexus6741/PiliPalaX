@@ -75,7 +75,8 @@ class Routes {
       name: '/video',
       page: () => const VideoDetailPage(),
       transition: Transition.fadeIn,
-      transitionDuration: const Duration(milliseconds: 300),
+      curve: Curves.fastOutSlowIn,
+      transitionDuration: const Duration(milliseconds: 400),
     ),
     // 图片预览
     // GetPage(

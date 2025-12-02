@@ -178,7 +178,10 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   void initState() {
     super.initState();
     animationController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 100));
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: widget.controller.showControls.value ? 0.0 : 1.0,
+    );
     videoController = widget.controller.videoController!;
     videoIntroController = widget.videoIntroController;
     bangumiIntroController = widget.bangumiIntroController;
@@ -813,7 +816,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
               subtitleViewConfiguration: const SubtitleViewConfiguration(
                   style: subTitleStyle, padding: EdgeInsets.all(24.0)),
               fit: _.videoFit.value,
-              fill: Colors.transparent,
+              fill: _.isVideoLoaded.value ? Colors.black : Colors.transparent,
             ),
           ),
         ),

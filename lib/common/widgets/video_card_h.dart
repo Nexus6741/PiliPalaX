@@ -23,6 +23,7 @@ class VideoCardH extends StatelessWidget {
     this.showView = true,
     this.showDanmaku = true,
     this.showPubdate = false,
+    this.enableHero = true,
   });
   // ignore: prefer_typing_uninitialized_variables
   final videoItem;
@@ -33,6 +34,7 @@ class VideoCardH extends StatelessWidget {
   final bool showView;
   final bool showDanmaku;
   final bool showPubdate;
+  final bool enableHero;
 
   @override
   Widget build(BuildContext context) {
@@ -94,14 +96,20 @@ class VideoCardH extends StatelessWidget {
                             final double maxHeight = boxConstraints.maxHeight;
                             return Stack(
                               children: [
-                                Hero(
-                                  tag: heroTag,
-                                  child: NetworkImgLayer(
-                                    src: videoItem.pic as String,
-                                    width: maxWidth,
-                                    height: maxHeight,
-                                  ),
-                                ),
+                                enableHero
+                                    ? Hero(
+                                        tag: heroTag,
+                                        child: NetworkImgLayer(
+                                          src: videoItem.pic as String,
+                                          width: maxWidth,
+                                          height: maxHeight,
+                                        ),
+                                      )
+                                    : NetworkImgLayer(
+                                        src: videoItem.pic as String,
+                                        width: maxWidth,
+                                        height: maxHeight,
+                                      ),
                                 if (videoItem.duration != 0)
                                   PBadge(
                                     text: Utils.timeFormat(videoItem.duration!),

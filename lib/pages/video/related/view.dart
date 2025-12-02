@@ -5,6 +5,7 @@ import 'package:PiliPalaX/common/widgets/animated_dialog.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/common/widgets/overlay_pop.dart';
 import 'package:PiliPalaX/common/widgets/video_card_h.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../../common/constants.dart';
 import '../../../../utils/grid.dart';
 import 'controller.dart';
@@ -47,46 +48,62 @@ class _RelatedVideoPanelState extends State<RelatedVideoPanel>
                 RxList relatedVideoList = _relatedController.relatedVideoList;
                 // 请求成功
                 return Obx(
-                  () => SliverGrid(
-                    gridDelegate: SliverGridDelegateWithExtentAndRatio(
-                        mainAxisSpacing: StyleString.safeSpace,
-                        crossAxisSpacing: StyleString.safeSpace,
-                        maxCrossAxisExtent: Grid.maxRowWidth * 2,
-                        childAspectRatio: StyleString.aspectRatio * 2.4,
-                        mainAxisExtent: 0),
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      if (index == relatedVideoList.length) {
-                        return SizedBox(
-                            height: MediaQuery.of(context).padding.bottom);
-                      } else {
-                        return Material(
-                          child: VideoCardH(
-                            videoItem: relatedVideoList[index],
-                            showPubdate: true,
-                            longPress: () {
-                              try {
-                                _relatedController.popupDialog.add(
-                                    _createPopupDialog(_relatedController
-                                        .relatedVideoList[index]));
-                                Overlay.of(context).insert(
-                                    _relatedController.popupDialog.last!);
-                              } catch (err) {
-                                return {};
-                              }
-                            },
-                            longPressEnd: _removePopupDialog,
-                          ),
-                        );
-                      }
-                    }, childCount: relatedVideoList.length + 1),
+                  () => AnimationLimiter(
+                    child: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithExtentAndRatio(
+                          mainAxisSpacing: StyleString.safeSpace,
+                          crossAxisSpacing: StyleString.safeSpace,
+                          maxCrossAxisExtent: Grid.maxRowWidth * 2,
+                          childAspectRatio: StyleString.aspectRatio * 2.4,
+                          mainAxisExtent: 0),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (index == relatedVideoList.length) {
+                          return SizedBox(
+                              height: MediaQuery.of(context).padding.bottom);
+                        } else {
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: Material(
+                                  child: VideoCardH(
+                                    videoItem: relatedVideoList[index],
+                                    showPubdate: true,
+                                    enableHero: false,
+                                    longPress: () {
+                                      try {
+                                        _relatedController.popupDialog.add(
+                                            _createPopupDialog(
+                                                _relatedController
+                                                    .relatedVideoList[index]));
+                                        Overlay.of(context).insert(
+                                            _relatedController
+                                                .popupDialog.last!);
+                                      } catch (err) {
+                                        return {};
+                                      }
+                                    },
+                                    longPressEnd: _removePopupDialog,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      }, childCount: relatedVideoList.length + 1),
+                    ),
                   ),
                 );
               } else {
                 // 请求错误
-                return HttpError(errMsg: '出错了', fn: () {
-                  _futureBuilder = _relatedController.queryRelatedVideo();
-                  _futureBuilder.then((value) => setState(() {}));
-                });
+                return HttpError(
+                    errMsg: '出错了',
+                    fn: () {
+                      _futureBuilder = _relatedController.queryRelatedVideo();
+                      _futureBuilder.then((value) => setState(() {}));
+                    });
               }
             } else {
               // 骨架屏

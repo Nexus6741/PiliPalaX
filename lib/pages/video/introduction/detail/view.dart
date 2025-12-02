@@ -18,6 +18,7 @@ import 'package:PiliPalaX/pages/video/widgets/ai_detail.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/utils.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 import 'package:PiliPalaX/pages/video/introduction/widgets/action_item.dart';
@@ -222,230 +223,242 @@ class _VideoInfoState extends State<VideoInfo> with TickerProviderStateMixin {
               right: StyleString.safeSpace,
               top: 10),
           sliver: SliverToBoxAdapter(
-              child: Column(
+              child: AnimationLimiter(
+                  child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                Expanded(
-                    child: GestureDetector(
-                  onTap: onPushMember,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 1, horizontal: 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        NetworkImgLayer(
-                          type: 'avatar',
-                          src: loadingStatus
-                              ? videoItem['owner']?.face ?? ""
-                              : widget.videoDetail!.owner!.face,
-                          width: 30,
-                          height: 30,
-                          fadeInDuration: Duration.zero,
-                          fadeOutDuration: Duration.zero,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                            child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              loadingStatus
-                                  ? videoItem['owner']?.name ?? ""
-                                  : widget.videoDetail!.owner!.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 12, color: t.colorScheme.primary),
-                              // semanticsLabel: "Up主：${owner.name}",
-                            ),
-                            const SizedBox(height: 0),
-                            Obx(() => Text(
-                                  Utils.numFormat(videoIntroController
-                                      .userStat.value['follower']),
-                                  semanticsLabel:
-                                      "${Utils.numFormat(videoIntroController.userStat.value['follower'])}粉丝",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: t.colorScheme.outline,
-                                  ),
-                                )),
-                          ],
-                        )),
-                        followButton(context, t),
-                      ],
-                    ),
-                  ),
-                )),
-                if (isHorizontal) ...[
-                  const SizedBox(width: 10),
-                  Expanded(child: actionGrid(context, videoIntroController)),
-                ]
-              ]),
-              ListTileTheme(
-                key: const PageStorageKey<String>('视频信息'),
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                horizontalTitleGap: 0.0,
-                minLeadingWidth: 0,
-                minVerticalPadding: 0,
-                child: ExpansionTile(
-                  initiallyExpanded: isExpanded ?? isHorizontal,
-                  collapsedShape: const RoundedRectangleBorder(),
-                  shape: const RoundedRectangleBorder(),
-                  // showTrailingIcon: false,
-                  onExpansionChanged: (bool expanded) {
-                    feedBack();
-                    print(expanded);
-                    setState(() {
-                      isExpanded = expanded;
-                    });
-                  },
-                  title: GestureDetector(
-                    onLongPress: () {
-                      feedBack();
-                      String title =
-                          widget.videoDetail?.title ?? videoItem['title'] ?? "";
-                      Clipboard.setData(ClipboardData(text: title));
-                      SmartDialog.showToast("已复制标题：「$title」到剪贴板");
-                    },
-                    child: Text(
-                      widget.videoDetail?.title ?? videoItem['title'] ?? "",
-                      // !loadingStatus
-                      //     ? "${widget.videoDetail?.title}"
-                      //     : videoItem['title'] ?? "",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 1.3,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: isExpanded ?? isHorizontal ? 999 : 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  subtitle: Row(
-                    children: <Widget>[
-                      StatView(
-                        theme: 'gray',
-                        view: !loadingStatus
-                            ? widget.videoDetail?.stat?.view ?? '-'
-                            : videoItem['stat']?.view ?? '-',
-                        size: 'medium',
-                      ),
-                      const SizedBox(width: 10),
-                      StatDanMu(
-                        theme: 'gray',
-                        danmu: !loadingStatus
-                            ? widget.videoDetail?.stat?.danmu ?? '-'
-                            : videoItem['stat']?.danmu ?? '-',
-                        size: 'medium',
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        Utils.dateFormat(
-                            !loadingStatus
-                                ? widget.videoDetail?.pubdate
-                                : videoItem['pubdate'],
-                            formatType: 'detail'),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: t.colorScheme.outline,
-                        ),
-                      ),
-                      if (MineController.anonymity) ...<Widget>[
-                        const SizedBox(width: 10),
-                        Icon(
-                          MdiIcons.incognito,
-                          size: 15,
-                          color: t.colorScheme.outline,
-                          semanticLabel: '无痕',
-                        ),
-                      ],
-                      const SizedBox(width: 10),
-                      if (videoIntroController.isShowOnlineTotal)
-                        Obx(
-                          () => Text(
-                            '${videoIntroController.total.value}人在看',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: t.colorScheme.outline,
-                            ),
-                          ),
-                        ),
-                      const Spacer(),
-                      const SizedBox(width: 10),
-                    ],
-                  ),
-                  children: [
-                    Row(children: [
-                      if (widget.videoDetail != null)
-                        Expanded(
-                          child: IntroDetail(
-                            videoDetail: widget.videoDetail,
-                            enableAi: enableAi,
-                            aiConclusion: videoIntroController.aiConclusion,
-                          ),
-                        )
-                    ]),
-                  ],
+            children: AnimationConfiguration.toStaggeredList(
+              duration: const Duration(milliseconds: 600),
+              childAnimationBuilder: (widget) => SlideAnimation(
+                verticalOffset: 20.0,
+                child: FadeInAnimation(
+                  child: widget,
                 ),
               ),
-              Obx(
-                () => videoIntroController.queryVideoIntroData.value["status"]
-                    ? const SizedBox()
-                    : Center(
-                        child: TextButton.icon(
-                          icon: const Icon(Icons.refresh),
-                          onPressed: () {
-                            videoIntroController
-                                .queryVideoIntroData.value["status"] = true;
-                            videoIntroController.queryVideoIntro();
-                          },
-                          label: const Text("点此重新加载"),
-                        ),
+              children: [
+                Row(children: [
+                  Expanded(
+                      child: GestureDetector(
+                    onTap: onPushMember,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 1, horizontal: 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          NetworkImgLayer(
+                            type: 'avatar',
+                            src: loadingStatus
+                                ? videoItem['owner']?.face ?? ""
+                                : widget.videoDetail!.owner!.face,
+                            width: 30,
+                            height: 30,
+                            fadeInDuration: Duration.zero,
+                            fadeOutDuration: Duration.zero,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                loadingStatus
+                                    ? videoItem['owner']?.name ?? ""
+                                    : widget.videoDetail!.owner!.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 12, color: t.colorScheme.primary),
+                                // semanticsLabel: "Up主：${owner.name}",
+                              ),
+                              const SizedBox(height: 0),
+                              Obx(() => Text(
+                                    Utils.numFormat(videoIntroController
+                                        .userStat.value['follower']),
+                                    semanticsLabel:
+                                        "${Utils.numFormat(videoIntroController.userStat.value['follower'])}粉丝",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: t.colorScheme.outline,
+                                    ),
+                                  )),
+                            ],
+                          )),
+                          followButton(context, t),
+                        ],
                       ),
-              ),
-              const SizedBox(height: 8),
-              // 点赞收藏转发 布局样式1
-              // SingleChildScrollView(
-              //   padding: const EdgeInsets.only(top: 7, bottom: 7),
-              //   scrollDirection: Axis.horizontal,
-              //   child: actionRow(
-              //     context,
-              //     videoIntroController,
-              //     videoDetailCtr,
-              //   ),
-              // ),
-              // 点赞收藏转发 布局样式2
-              if (!isHorizontal) actionGrid(context, videoIntroController),
-              // 合集
-              if (!loadingStatus && widget.videoDetail?.ugcSeason != null) ...[
-                Obx(
-                  () => SeasonPanel(
-                    heroTag: heroTag,
-                    ugcSeason: widget.videoDetail!.ugcSeason!,
-                    cid: videoIntroController.lastPlayCid.value != 0
-                        ? videoIntroController.lastPlayCid.value
-                        : widget.videoDetail!.pages!.first.cid,
-                    changeFuc: videoIntroController.changeSeasonOrbangu,
+                    ),
+                  )),
+                  if (isHorizontal) ...[
+                    const SizedBox(width: 10),
+                    Expanded(child: actionGrid(context, videoIntroController)),
+                  ]
+                ]),
+                ListTileTheme(
+                  key: const PageStorageKey<String>('视频信息'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  horizontalTitleGap: 0.0,
+                  minLeadingWidth: 0,
+                  minVerticalPadding: 0,
+                  child: ExpansionTile(
+                    initiallyExpanded: isExpanded ?? isHorizontal,
+                    collapsedShape: const RoundedRectangleBorder(),
+                    shape: const RoundedRectangleBorder(),
+                    // showTrailingIcon: false,
+                    onExpansionChanged: (bool expanded) {
+                      feedBack();
+                      print(expanded);
+                      setState(() {
+                        isExpanded = expanded;
+                      });
+                    },
+                    title: GestureDetector(
+                      onLongPress: () {
+                        feedBack();
+                        String title = widget.videoDetail?.title ??
+                            videoItem['title'] ??
+                            "";
+                        Clipboard.setData(ClipboardData(text: title));
+                        SmartDialog.showToast("已复制标题：「$title」到剪贴板");
+                      },
+                      child: Text(
+                        widget.videoDetail?.title ?? videoItem['title'] ?? "",
+                        // !loadingStatus
+                        //     ? "${widget.videoDetail?.title}"
+                        //     : videoItem['title'] ?? "",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.3,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: isExpanded ?? isHorizontal ? 999 : 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    subtitle: Row(
+                      children: <Widget>[
+                        StatView(
+                          theme: 'gray',
+                          view: !loadingStatus
+                              ? widget.videoDetail?.stat?.view ?? '-'
+                              : videoItem['stat']?.view ?? '-',
+                          size: 'medium',
+                        ),
+                        const SizedBox(width: 10),
+                        StatDanMu(
+                          theme: 'gray',
+                          danmu: !loadingStatus
+                              ? widget.videoDetail?.stat?.danmu ?? '-'
+                              : videoItem['stat']?.danmu ?? '-',
+                          size: 'medium',
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          Utils.dateFormat(
+                              !loadingStatus
+                                  ? widget.videoDetail?.pubdate
+                                  : videoItem['pubdate'],
+                              formatType: 'detail'),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: t.colorScheme.outline,
+                          ),
+                        ),
+                        if (MineController.anonymity) ...<Widget>[
+                          const SizedBox(width: 10),
+                          Icon(
+                            MdiIcons.incognito,
+                            size: 15,
+                            color: t.colorScheme.outline,
+                            semanticLabel: '无痕',
+                          ),
+                        ],
+                        const SizedBox(width: 10),
+                        if (videoIntroController.isShowOnlineTotal)
+                          Obx(
+                            () => Text(
+                              '${videoIntroController.total.value}人在看',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: t.colorScheme.outline,
+                              ),
+                            ),
+                          ),
+                        const Spacer(),
+                        const SizedBox(width: 10),
+                      ],
+                    ),
+                    children: [
+                      Row(children: [
+                        if (widget.videoDetail != null)
+                          Expanded(
+                            child: IntroDetail(
+                              videoDetail: widget.videoDetail,
+                              enableAi: enableAi,
+                              aiConclusion: videoIntroController.aiConclusion,
+                            ),
+                          )
+                      ]),
+                    ],
                   ),
-                )
-              ],
-              if (!loadingStatus &&
-                  widget.videoDetail?.pages != null &&
-                  widget.videoDetail!.pages!.length > 1) ...[
-                Obx(() => PagesPanel(
+                ),
+                Obx(
+                  () => videoIntroController.queryVideoIntroData.value["status"]
+                      ? const SizedBox()
+                      : Center(
+                          child: TextButton.icon(
+                            icon: const Icon(Icons.refresh),
+                            onPressed: () {
+                              videoIntroController
+                                  .queryVideoIntroData.value["status"] = true;
+                              videoIntroController.queryVideoIntro();
+                            },
+                            label: const Text("点此重新加载"),
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 8),
+                // 点赞收藏转发 布局样式1
+                // SingleChildScrollView(
+                //   padding: const EdgeInsets.only(top: 7, bottom: 7),
+                //   scrollDirection: Axis.horizontal,
+                //   child: actionRow(
+                //     context,
+                //     videoIntroController,
+                //     videoDetailCtr,
+                //   ),
+                // ),
+                // 点赞收藏转发 布局样式2
+                if (!isHorizontal) actionGrid(context, videoIntroController),
+                // 合集
+                if (!loadingStatus &&
+                    widget.videoDetail?.ugcSeason != null) ...[
+                  Obx(
+                    () => SeasonPanel(
                       heroTag: heroTag,
-                      pages: widget.videoDetail!.pages!,
-                      cid: videoIntroController.lastPlayCid.value,
-                      bvid: videoIntroController.bvid,
+                      ugcSeason: widget.videoDetail!.ugcSeason!,
+                      cid: videoIntroController.lastPlayCid.value != 0
+                          ? videoIntroController.lastPlayCid.value
+                          : widget.videoDetail!.pages!.first.cid,
                       changeFuc: videoIntroController.changeSeasonOrbangu,
-                    ))
+                    ),
+                  )
+                ],
+                if (!loadingStatus &&
+                    widget.videoDetail?.pages != null &&
+                    widget.videoDetail!.pages!.length > 1) ...[
+                  Obx(() => PagesPanel(
+                        heroTag: heroTag,
+                        pages: widget.videoDetail!.pages!,
+                        cid: videoIntroController.lastPlayCid.value,
+                        bvid: videoIntroController.bvid,
+                        changeFuc: videoIntroController.changeSeasonOrbangu,
+                      ))
+                ],
               ],
-            ],
-          )),
+            ),
+          ))),
         );
       },
     );

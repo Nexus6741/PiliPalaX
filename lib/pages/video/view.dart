@@ -31,6 +31,7 @@ import 'widgets/header_control.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
 import 'package:flutter_floating/floating/floating.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class VideoDetailPage extends StatefulWidget {
   const VideoDetailPage({super.key});
