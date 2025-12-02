@@ -18,3 +18,9 @@ extension ScrollControllerExt on ScrollController {
     }
   }
 }
+
+extension ListCast on List {
+  List<T> fromCast<T>() {
+    return map((e) => e as T).toList();
+  }
+}
