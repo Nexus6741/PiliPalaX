@@ -813,6 +813,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
               subtitleViewConfiguration: const SubtitleViewConfiguration(
                   style: subTitleStyle, padding: EdgeInsets.all(24.0)),
               fit: _.videoFit.value,
+              fill: Colors.transparent,
             ),
           ),
         ),

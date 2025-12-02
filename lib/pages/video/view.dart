@@ -643,6 +643,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                         },
                         child: Stack(
                           children: <Widget>[
+                            Positioned.fill(
+                              child: Hero(
+                                tag: heroTag,
+                                child: NetworkImgLayer(
+                                  src: videoDetailController.videoItem['pic'],
+                                  width: videoWidth,
+                                  height: videoHeight,
+                                ),
+                              ),
+                            ),
                             // if (isShowing) plPlayer,
                             plPlayer,
 
@@ -786,6 +796,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   }
                 },
                 child: Stack(children: <Widget>[
+                  Positioned.fill(
+                    child: Hero(
+                      tag: heroTag,
+                      child: NetworkImgLayer(
+                        src: videoDetailController.videoItem['pic'],
+                        width: videoWidth,
+                        height: videoHeight,
+                      ),
+                    ),
+                  ),
                   // if (isShowing) plPlayer,
                   plPlayer,
 
@@ -1049,6 +1069,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 },
                 child: Stack(
                   children: <Widget>[
+                    Positioned.fill(
+                      child: Hero(
+                        tag: heroTag,
+                        child: NetworkImgLayer(
+                          src: videoDetailController.videoItem['pic'],
+                          width: videoWidth,
+                          height: videoHeight,
+                        ),
+                      ),
+                    ),
                     // if (isShowing) plPlayer,
                     plPlayer,
 
@@ -1152,6 +1182,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   },
                   child: Stack(
                     children: <Widget>[
+                      Positioned.fill(
+                        child: Hero(
+                          tag: heroTag,
+                          child: NetworkImgLayer(
+                            src: videoDetailController.videoItem['pic'],
+                            width: videoWidth,
+                            height: videoHeight,
+                          ),
+                        ),
+                      ),
                       // if (isShowing) plPlayer,
                       plPlayer,
 

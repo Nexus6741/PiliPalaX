@@ -62,24 +62,46 @@ class ListSheet {
         transitionBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
             position: Tween(begin: const Offset(1, 0), end: Offset.zero)
-                .animate(animation),
+                .animate(CurvedAnimation(
+                    parent: animation, curve: Curves.fastOutSlowIn)),
             child: child,
           );
         },
       );
     } else {
       // 竖屏模式：底部弹窗
-      bottomSheetController = showBottomSheet(
-          context: context,
-          builder: (context) => ListSheetContent(
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: 'Dismiss',
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 350),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Align(
+            alignment: Alignment.bottomCenter,
+            child: Material(
+              color: Colors.transparent,
+              child: ListSheetContent(
                 episodes: episodes,
                 bvid: bvid,
                 aid: aid,
                 currentCid: currentCid,
                 changeFucCall: changeFucCall,
-                onClose: bottomSheetController.close,
+                onClose: () => Navigator.of(context).pop(),
                 pages: pages,
-              ));
+              ),
+            ),
+          );
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+                .animate(CurvedAnimation(
+                    parent: animation, curve: Curves.fastOutSlowIn)),
+            child: child,
+          );
+        },
+      );
     }
   }
 }
@@ -231,12 +253,14 @@ class _ListSheetContentState extends State<ListSheetContent> {
                             child: Padding(
                               padding:
                                   const EdgeInsets.only(left: 8, bottom: 8),
-                              child: Icon(
-                                isCurrentExpanded
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                size: 20,
-                                color: Colors.grey,
+                              child: AnimatedRotation(
+                                turns: isCurrentExpanded ? 0.5 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                child: const Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 20,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           ),
@@ -277,80 +301,97 @@ class _ListSheetContentState extends State<ListSheetContent> {
         ),
       );
 
-      if (isCurrentIndex &&
-          widget.pages != null &&
-          widget.pages!.length > 1 &&
-          isCurrentExpanded) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            item,
-            Container(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 3.5,
-                ),
-                itemCount: widget.pages!.length,
-                itemBuilder: (context, index) {
-                  final page = widget.pages![index];
-                  final isCurrent = page.cid == widget.currentCid;
-                  return Material(
-                    color: isCurrent
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(6),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(6),
-                      onTap: () {
-                        widget.onClose();
-                        widget.changeFucCall(widget.bvid, page.cid, widget.aid);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        alignment: Alignment.center,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (isCurrent) ...[
-                              Image.asset(
-                                'assets/images/live.png',
-                                color: Theme.of(context).colorScheme.primary,
-                                height: 12,
-                                semanticLabel: "正在播放：",
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            Expanded(
-                              child: Text(
-                                page.pagePart ?? 'P${index + 1}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isCurrent
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context).colorScheme.onSurface,
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          item,
+          AnimatedSize(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.fastOutSlowIn,
+            child: SizedBox(
+              width: double.infinity,
+              child: (isCurrentIndex &&
+                      widget.pages != null &&
+                      widget.pages!.length > 1 &&
+                      isCurrentExpanded)
+                  ? Container(
+                      padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 3.5,
+                        ),
+                        itemCount: widget.pages!.length,
+                        itemBuilder: (context, index) {
+                          final page = widget.pages![index];
+                          final isCurrent = page.cid == widget.currentCid;
+                          return Material(
+                            color: isCurrent
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(6),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(6),
+                              onTap: () {
+                                widget.onClose();
+                                widget.changeFucCall(
+                                    widget.bvid, page.cid, widget.aid);
+                              },
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                alignment: Alignment.center,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (isCurrent) ...[
+                                      Image.asset(
+                                        'assets/images/live.png',
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        height: 12,
+                                        semanticLabel: "正在播放：",
+                                      ),
+                                      const SizedBox(width: 6),
+                                    ],
+                                    Expanded(
+                                      child: Text(
+                                        page.pagePart ?? 'P${index + 1}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: isCurrent
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
-            )
-          ],
-        );
-      }
-      return item;
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          )
+        ],
+      );
     }
 
     // 旧样式：针对 Part (分P) 或其他

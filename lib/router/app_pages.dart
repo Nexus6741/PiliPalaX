@@ -71,7 +71,12 @@ class Routes {
     // 热门
     CustomGetPage(name: '/hot', page: () => const HotPage()),
     // 视频详情
-    CustomGetPage(name: '/video', page: () => const VideoDetailPage()),
+    GetPage(
+      name: '/video',
+      page: () => const VideoDetailPage(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
     // 图片预览
     // GetPage(
     //   name: '/preview',
