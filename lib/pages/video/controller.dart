@@ -376,6 +376,7 @@ class VideoDetailController extends GetxController
         currentDecodeFormats = VideoDecodeFormatsCode.fromString('avc1')!;
         currentVideoQa = VideoQualityCode.fromCode(data.quality!)!;
         if (autoPlay.value) {
+          if (isClosed) return result;
           isShowCover.value = false;
           await playerInit();
         }
@@ -484,6 +485,7 @@ class VideoDetailController extends GetxController
       //
       defaultST = Duration(milliseconds: data.lastPlayTime!);
       if (autoPlay.value) {
+        if (isClosed) return result;
         isShowCover.value = false;
         await playerInit();
       }

@@ -8,6 +8,7 @@ import 'package:PiliPalaX/pages/video/index.dart';
 import 'package:PiliPalaX/pages/video/reply_new/index.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/id_utils.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'controller.dart';
 import 'widgets/reply_item.dart';
 
@@ -138,117 +139,145 @@ class _VideoReplyPanelState extends State<VideoReplyPanel>
       },
       child: Stack(
         children: [
-          CustomScrollView(
-            controller: scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            key: const PageStorageKey<String>('评论'),
-            slivers: <Widget>[
-              SliverPersistentHeader(
-                pinned: true,
-                floating: false,
-                delegate: _MySliverPersistentHeaderDelegate(
-                  child: Container(
-                    height: 45,
-                    padding: const EdgeInsets.fromLTRB(12, 0, 6, 0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.background,
-                      border: Border(
-                        bottom: BorderSide(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .outline
-                                .withOpacity(0.1)),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Obx(
-                          () => AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 400),
-                            transitionBuilder:
-                                (Widget child, Animation<double> animation) {
-                              return ScaleTransition(
-                                  scale: animation, child: child);
-                            },
-                            child: Text(
-                              '共${_videoReplyController.count.value}条回复',
-                              key: ValueKey<int>(
-                                  _videoReplyController.count.value),
-                            ),
+          Obx(() {
+            final bool isLoading = _videoReplyController.isLoadingMore &&
+                _videoReplyController.replyList.isEmpty &&
+                (_videoReplyController.noMore.value == '' ||
+                    _videoReplyController.noMore.value == '加载中...');
+            // 确保列表变化时重建
+            // ignore: unused_local_variable
+            final int replyCount = _videoReplyController.replyList.length;
+
+            return AnimationLimiter(
+              key: ValueKey(isLoading),
+              child: CustomScrollView(
+                controller: scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                key: const PageStorageKey<String>('评论'),
+                slivers: <Widget>[
+                  SliverPersistentHeader(
+                    pinned: true,
+                    floating: false,
+                    delegate: _MySliverPersistentHeaderDelegate(
+                      child: Container(
+                        height: 45,
+                        padding: const EdgeInsets.fromLTRB(12, 0, 6, 0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outline
+                                    .withOpacity(0.1)),
                           ),
                         ),
-                        SizedBox(
-                          height: 35,
-                          child: TextButton.icon(
-                            onPressed: () =>
-                                _videoReplyController.queryBySort(),
-                            icon: const Icon(Icons.sort, size: 16),
-                            label: Obx(() => Text(
-                                  _videoReplyController.sortTypeLabel.value,
-                                  style: const TextStyle(fontSize: 13),
-                                )),
-                          ),
-                        )
-                      ],
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Obx(
+                              () => AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 400),
+                                transitionBuilder: (Widget child,
+                                    Animation<double> animation) {
+                                  return ScaleTransition(
+                                      scale: animation, child: child);
+                                },
+                                child: Text(
+                                  '共${_videoReplyController.count.value}条回复',
+                                  key: ValueKey<int>(
+                                      _videoReplyController.count.value),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 35,
+                              child: TextButton.icon(
+                                onPressed: () =>
+                                    _videoReplyController.queryBySort(),
+                                icon: const Icon(Icons.sort, size: 16),
+                                label: Obx(() => Text(
+                                      _videoReplyController.sortTypeLabel.value,
+                                      style: const TextStyle(fontSize: 13),
+                                    )),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              Obx(
-                () => _videoReplyController.isLoadingMore &&
-                        _videoReplyController.replyList.isEmpty &&
-                        (_videoReplyController.noMore.value == '' ||
-                            _videoReplyController.noMore.value == '加载中...')
-                    ? SliverList(
-                        delegate: SliverChildBuilderDelegate(
+                  isLoading
+                      ? SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                              (BuildContext context, index) {
+                            return const VideoReplySkeleton();
+                          }, childCount: 5),
+                        )
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate(
                             (BuildContext context, index) {
-                          return const VideoReplySkeleton();
-                        }, childCount: 5),
-                      )
-                    : SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (BuildContext context, index) {
-                            double bottom =
-                                MediaQuery.of(context).padding.bottom;
-                            if (index ==
-                                _videoReplyController.replyList.length) {
-                              return Container(
-                                padding: EdgeInsets.only(bottom: bottom),
-                                height: bottom + 100,
-                                child: Center(
-                                  child: Obx(
-                                    () => Text(
-                                      _videoReplyController.noMore.value,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .outline,
+                              double bottom =
+                                  MediaQuery.of(context).padding.bottom;
+                              if (index ==
+                                  _videoReplyController.replyList.length) {
+                                return AnimationConfiguration.staggeredList(
+                                  position: index,
+                                  duration: const Duration(milliseconds: 375),
+                                  child: SlideAnimation(
+                                    verticalOffset: 50.0,
+                                    child: FadeInAnimation(
+                                      child: Container(
+                                        padding:
+                                            EdgeInsets.only(bottom: bottom),
+                                        height: bottom + 100,
+                                        child: Center(
+                                          child: Obx(
+                                            () => Text(
+                                              _videoReplyController
+                                                  .noMore.value,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .outline,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            } else {
-                              return ReplyItem(
-                                replyItem:
-                                    _videoReplyController.replyList[index],
-                                showReplyRow: true,
-                                replyLevel: replyLevel,
-                                replyReply: (replyItem) =>
-                                    replyReply(replyItem),
-                                replyType: ReplyType.video,
-                              );
-                            }
-                          },
-                          childCount:
-                              _videoReplyController.replyList.length + 1,
+                                );
+                              } else {
+                                return AnimationConfiguration.staggeredList(
+                                  position: index,
+                                  duration: const Duration(milliseconds: 375),
+                                  child: SlideAnimation(
+                                    verticalOffset: 50.0,
+                                    child: FadeInAnimation(
+                                      child: ReplyItem(
+                                        replyItem: _videoReplyController
+                                            .replyList[index],
+                                        showReplyRow: true,
+                                        replyLevel: replyLevel,
+                                        replyReply: (replyItem) =>
+                                            replyReply(replyItem),
+                                        replyType: ReplyType.video,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            childCount:
+                                _videoReplyController.replyList.length + 1,
+                          ),
                         ),
-                      ),
+                ],
               ),
-            ],
-          ),
+            );
+          }),
           Positioned(
             bottom: MediaQuery.of(context).padding.bottom + 14,
             right: 14,

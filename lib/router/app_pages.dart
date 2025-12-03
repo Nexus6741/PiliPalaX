@@ -75,6 +75,7 @@ class Routes {
       name: '/video',
       page: () => const VideoDetailPage(),
       customTransition: EnterFadeInExitNoneTransition(),
+      // transition: Transition.fadeIn,
       curve: Curves.fastOutSlowIn,
       transitionDuration: const Duration(milliseconds: 400),
     ),

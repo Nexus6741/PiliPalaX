@@ -804,19 +804,22 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
               _initialFocalPoint = Offset.zero;
               _gestureType = null;
             },
-            child: Video(
-              key: ValueKey(
-                  '${_.videoFit.value}${_.continuePlayInBackground.value}'),
-              controller: videoController,
-              controls: NoVideoControls,
-              pauseUponEnteringBackgroundMode:
-                  !_.continuePlayInBackground.value,
-              resumeUponEnteringForegroundMode: true,
-              // 字幕尺寸调节
-              subtitleViewConfiguration: const SubtitleViewConfiguration(
-                  style: subTitleStyle, padding: EdgeInsets.all(24.0)),
-              fit: _.videoFit.value,
-              fill: _.isVideoLoaded.value ? Colors.black : Colors.transparent,
+            child: Opacity(
+              opacity: _.isVideoLoaded.value ? 1 : 0,
+              child: Video(
+                key: ValueKey(
+                    '${_.videoFit.value}${_.continuePlayInBackground.value}'),
+                controller: videoController,
+                controls: NoVideoControls,
+                pauseUponEnteringBackgroundMode:
+                    !_.continuePlayInBackground.value,
+                resumeUponEnteringForegroundMode: true,
+                // 字幕尺寸调节
+                subtitleViewConfiguration: const SubtitleViewConfiguration(
+                    style: subTitleStyle, padding: EdgeInsets.all(24.0)),
+                fit: _.videoFit.value,
+                fill: _.isVideoLoaded.value ? Colors.black : Colors.transparent,
+              ),
             ),
           ),
         ),

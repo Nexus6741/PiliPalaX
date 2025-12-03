@@ -288,6 +288,7 @@ class PlPlayerController {
   PlayRepeat playRepeat = PlayRepeat.pause;
 
   List<StreamSubscription> subscriptions = [];
+  String? _currentServiceId;
 
   void updateSliderPositionSecond() {
     int newSecond =
@@ -471,7 +472,7 @@ class PlPlayerController {
   }
 
   // 初始化资源
-  Future<void> setDataSource(
+  Future<bool> setDataSource(
     DataSource dataSource, {
     bool autoplay = true,
     // 默认不循环
@@ -493,9 +494,11 @@ class PlPlayerController {
     int cid = 0,
     // 历史记录开关
     bool enableHeart = true,
+    String? serviceId,
   }) async {
     try {
       // if (playerStatus.status.value == PlayerStatus.disabled) return;
+      _currentServiceId = serviceId;
 
       this.dataSource = dataSource;
       // 重置控制条状态
@@ -533,6 +536,7 @@ class PlPlayerController {
       // 配置Player 音轨、字幕等等
       _videoPlayerController = await _createVideoController(
           dataSource, _looping, enableHA, hwdec, width, height);
+      if (_currentServiceId != serviceId) return false;
       // 获取视频时长 00:00
       _duration.value = duration ?? _videoPlayerController!.state.duration;
       updateDurationSecond();
@@ -544,8 +548,10 @@ class PlPlayerController {
         startListeners();
       }
       await _initializePlayer(seekTo: seekTo);
+      if (_currentServiceId != serviceId) return false;
       if (videoType.value != 'live' && _cid != 0) {
-        refreshSubtitles().then((value) {
+        refreshSubtitles(serviceId).then((value) {
+          if (_currentServiceId != serviceId) return;
           if (_vttSubtitles.isNotEmpty) {
             if (_vttSubtitlesIndex > 0 &&
                 _vttSubtitlesIndex < _vttSubtitles.length) {
@@ -577,7 +583,9 @@ class PlPlayerController {
       dataStatus.status.value = DataStatus.error;
       debugPrint(stackTrace.toString());
       print('plPlayer err:  $err');
+      return false;
     }
+    return true;
   }
 
   // 配置播放器
@@ -1641,16 +1649,20 @@ class PlPlayerController {
     }
   }
 
-  Future refreshSubtitles() async {
+  Future refreshSubtitles([String? serviceId]) async {
+    if (serviceId != null && serviceId != _currentServiceId) return;
     _vttSubtitles.clear();
     Map res = await VideoHttp.subtitlesJson(bvid: _bvid, cid: _cid);
+    if (serviceId != null && serviceId != _currentServiceId) return;
     if (!res["status"]) {
       SmartDialog.showToast('查询字幕错误，${res["msg"]}');
     }
     if (res["data"].length == 0) {
       return;
     }
-    _vttSubtitles.value = await VideoHttp.vttSubtitles(res["data"]);
+    var subs = await VideoHttp.vttSubtitles(res["data"]);
+    if (serviceId != null && serviceId != _currentServiceId) return;
+    _vttSubtitles.value = subs;
     // if (_vttSubtitles.isEmpty) {
     //   SmartDialog.showToast('字幕均加载失败');
     // }

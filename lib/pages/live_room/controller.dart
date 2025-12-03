@@ -59,6 +59,7 @@ class LiveRoomController extends GetxController {
       // 硬解
       enableHA: true,
       autoplay: true,
+      serviceId: heroTag,
     );
   }
 

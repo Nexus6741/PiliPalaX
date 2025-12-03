@@ -74,10 +74,45 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   // StreamSubscription<Duration>? _bufferedListener;
   final RxString _layoutDirection = 'horizontal'.obs;
   StreamSubscription<String>? _directionSubscription;
+  bool _playerInitFinished = false;
+  bool _introInitFinished = false;
+  bool _replyInitFinished = false;
+
+  Widget _buildIntroDelayed(Widget child) {
+    if (!_introInitFinished) return const SizedBox();
+    return child;
+  }
+
+  Widget _buildReplyDelayed(Widget child) {
+    if (!_replyInitFinished) return const SizedBox();
+    return child;
+  }
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) {
+        videoSourceInit();
+        setState(() {
+          _playerInitFinished = true;
+        });
+      }
+    })
+        .then((_) => Future.delayed(const Duration(milliseconds: 50), () {
+              if (mounted) {
+                setState(() {
+                  _introInitFinished = true;
+                });
+              }
+            }))
+        .then((_) => Future.delayed(const Duration(milliseconds: 50), () {
+              if (mounted) {
+                setState(() {
+                  _replyInitFinished = true;
+                });
+              }
+            }));
     if (Get.arguments != null) {
       if (Get.arguments['heroTag'] != null) {
         heroTag = Get.arguments['heroTag'];
@@ -145,7 +180,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         defaultValue: false);
     if (removeSafeArea) toggleStatusBar(true);
     floatingManager.closeFloating(globalId);
-    videoSourceInit();
+    // videoSourceInit();
     appbarStreamListen();
     // lifecycleListener();
     autoScreen();
@@ -189,6 +224,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
       // });
     } else {
       _futureBuilderFuture.then((value) async {
+        if (!mounted) return;
         if (value['status']) {
           // fix: 手动播放首个视频前媒体通知不完整
           videoPlayerServiceHandler.onStatusChange(PlayerStatus.paused, false);
@@ -385,13 +421,20 @@ class _VideoDetailPageState extends State<VideoDetailPage>
     // _bufferedListener?.cancel();
     if (!triggerFloatingWindowWhenLeaving() &&
         !floatingManager.containsFloating(globalId)) {
-      videoDetailController.defaultST = plPlayerController!.position.value;
-      videoIntroController.isPaused = true;
-      plPlayerController!.pause();
-      plPlayerController!.removeStatusLister(playerListener);
-      fullScreenStatusListener.cancel();
-      _directionSubscription?.cancel();
-      plPlayerController!.disable();
+      if (plPlayerController != null) {
+        videoDetailController.defaultST = plPlayerController!.position.value;
+        videoIntroController.isPaused = true;
+        plPlayerController!.pause();
+        plPlayerController!.removeStatusLister(playerListener);
+        fullScreenStatusListener.cancel();
+        _directionSubscription?.cancel();
+        plPlayerController!.disable();
+      }
+      if (mounted) {
+        setState(() {
+          _playerInitFinished = false;
+        });
+      }
     }
     // isShowing = false;
     // if (mounted) {
@@ -403,61 +446,55 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   @override
   // 返回当前页面时
   void didPopNext() async {
-    // isShowing = true;
-    // if (mounted) {
-    //   setState(() => {});
-    // }
+    if (mounted) {
+      setState(() {
+        _playerInitFinished = false;
+      });
+    }
     videoDetailController.isFirstTime = false;
     if (!videoDetailController.autoPlay.value &&
         floatingManager.containsFloating(globalId)) {
       PlPlayerController.pauseIfExists();
     }
     floatingManager.closeFloating(globalId);
-    // final bool autoplay = autoPlayEnable;
-    videoDetailController.playerInit(
-        autoplay: videoDetailController.autoPlay.value);
 
-    videoDetailController.autoPlay.value =
-        !videoDetailController.isShowCover.value;
-    print("autoplay:${videoDetailController.autoPlay.value}");
-    if (videoDetailController.videoType == SearchType.video) {
-      final videoIntroController =
-          Get.find<VideoIntroController>(tag: Get.arguments['heroTag']);
-      videoIntroController.videoDetail.refresh();
-    } else if (videoDetailController.videoType == SearchType.media_bangumi) {
-      final bangumiIntroController =
-          Get.find<BangumiIntroController>(tag: Get.arguments['heroTag']);
-      bangumiIntroController.bangumiDetail.refresh();
-    }
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) {
+        videoDetailController.playerInit(
+            autoplay: videoDetailController.autoPlay.value);
+        plPlayerController = videoDetailController.plPlayerController;
 
-    /// 未开启自动播放时，未播放跳转下一页返回/播放后跳转下一页返回
-    videoIntroController.isPaused = videoDetailController.autoPlay.value;
-    // if (autoplay) {
-    //   // await Future.delayed(const Duration(milliseconds: 300));
-    //   print(plPlayerController);
-    //   if (plPlayerController?.buffered.value == Duration.zero) {
-    //     _bufferedListener = plPlayerController?.buffered.listen((p0) {
-    //       print("p0");
-    //       print(p0);
-    //       if (p0 > Duration.zero) {
-    //         _bufferedListener!.cancel();
-    //         plPlayerController?.seekTo(videoDetailController.defaultST);
-    //         plPlayerController?.play();
-    //       }
-    //     });
-    //   } else {
-    //     plPlayerController?.seekTo(videoDetailController.defaultST);
-    //     plPlayerController?.play();
-    //   }
-    // }
+        videoDetailController.autoPlay.value =
+            !videoDetailController.isShowCover.value;
+
+        if (videoDetailController.videoType == SearchType.video) {
+          final videoIntroController =
+              Get.find<VideoIntroController>(tag: Get.arguments['heroTag']);
+          videoIntroController.videoDetail.refresh();
+        } else if (videoDetailController.videoType ==
+            SearchType.media_bangumi) {
+          final bangumiIntroController =
+              Get.find<BangumiIntroController>(tag: Get.arguments['heroTag']);
+          bangumiIntroController.bangumiDetail.refresh();
+        }
+
+        /// 未开启自动播放时，未播放跳转下一页返回/播放后跳转下一页返回
+        videoIntroController.isPaused = videoDetailController.autoPlay.value;
+
+        plPlayerController?.addStatusLister(playerListener);
+        if (plPlayerController != null) {
+          listenFullScreenStatus();
+          listenDirectionStatus();
+        }
+        setState(() {
+          _playerInitFinished = true;
+        });
+      }
+    });
+
     Future.delayed(const Duration(milliseconds: 600), () {
       AutoOrientation.fullAutoMode();
     });
-    plPlayerController?.addStatusLister(playerListener);
-    if (plPlayerController != null) {
-      listenFullScreenStatus();
-      listenDirectionStatus();
-    }
     super.didPopNext();
   }
 
@@ -510,42 +547,45 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   //   }
   // }
 
-  Widget get plPlayer => FutureBuilder(
-      future: _futureBuilderFuture,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.hasData && snapshot.data['status']) {
-          return Obx(
-            () => (!videoDetailController.autoPlay.value &&
-                        videoDetailController.isShowCover.value) ||
-                    plPlayerController == null ||
-                    plPlayerController!.videoController == null
-                ? nil
-                : PLVideoPlayer(
-                    key: Key(heroTag),
-                    controller: plPlayerController!,
-                    videoIntroController:
-                        videoDetailController.videoType == SearchType.video
-                            ? videoIntroController
-                            : null,
-                    bangumiIntroController: videoDetailController.videoType ==
-                            SearchType.media_bangumi
-                        ? bangumiIntroController
-                        : null,
-                    headerControl: videoDetailController.headerControl,
-                    danmuWidget: Obx(
-                      () => PlDanmaku(
-                        key: Key(
-                            videoDetailController.danmakuCid.value.toString()),
-                        cid: videoDetailController.danmakuCid.value,
-                        playerController: plPlayerController!,
+  Widget get plPlayer {
+    if (!_playerInitFinished) return const SizedBox();
+    return FutureBuilder(
+        future: _futureBuilderFuture,
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasData && snapshot.data['status']) {
+            return Obx(
+              () => (!videoDetailController.autoPlay.value &&
+                          videoDetailController.isShowCover.value) ||
+                      plPlayerController == null ||
+                      plPlayerController!.videoController == null
+                  ? nil
+                  : PLVideoPlayer(
+                      key: Key(heroTag),
+                      controller: plPlayerController!,
+                      videoIntroController:
+                          videoDetailController.videoType == SearchType.video
+                              ? videoIntroController
+                              : null,
+                      bangumiIntroController: videoDetailController.videoType ==
+                              SearchType.media_bangumi
+                          ? bangumiIntroController
+                          : null,
+                      headerControl: videoDetailController.headerControl,
+                      danmuWidget: Obx(
+                        () => PlDanmaku(
+                          key: Key(videoDetailController.danmakuCid.value
+                              .toString()),
+                          cid: videoDetailController.danmakuCid.value,
+                          playerController: plPlayerController!,
+                        ),
                       ),
                     ),
-                  ),
-          );
-        } else {
-          return const SizedBox();
-        }
-      });
+            );
+          } else {
+            return const SizedBox();
+          }
+        });
+  }
 
   Widget get manualPlayerWidget => Obx(() => Visibility(
       visible: videoDetailController.isShowCover.value &&
@@ -764,7 +804,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             physics: const CustomTabBarViewScrollPhysics(),
                             controller: videoDetailController.tabCtr,
                             children: <Widget>[
-                              CustomScrollView(
+                              _buildIntroDelayed(CustomScrollView(
                                 key: const PageStorageKey<String>('简介'),
                                 slivers: <Widget>[
                                   if (videoDetailController.videoType ==
@@ -787,15 +827,15 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                   ),
                                   RelatedVideoPanel(heroTag: heroTag),
                                 ],
-                              ),
-                              Obx(
+                              )),
+                              _buildReplyDelayed(Obx(
                                 () => VideoReplyPanel(
                                   key: const PageStorageKey<String>('评论'),
                                   bvid: videoDetailController.bvid,
                                   oid: videoDetailController.oid.value,
                                   heroTag: heroTag,
                                 ),
-                              )
+                              ))
                             ],
                           ),
                         ),
@@ -898,7 +938,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                         physics: const CustomTabBarViewScrollPhysics(),
                         controller: videoDetailController.tabCtr,
                         children: <Widget>[
-                          CustomScrollView(
+                          _buildIntroDelayed(CustomScrollView(
                             key: const PageStorageKey<String>('简介'),
                             slivers: <Widget>[
                               if (videoDetailController.videoType ==
@@ -921,15 +961,15 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                               ),
                               RelatedVideoPanel(heroTag: heroTag),
                             ],
-                          ),
-                          Obx(
+                          )),
+                          _buildReplyDelayed(Obx(
                             () => VideoReplyPanel(
                               key: const PageStorageKey<String>('评论'),
                               bvid: videoDetailController.bvid,
                               oid: videoDetailController.oid.value,
                               heroTag: heroTag,
                             ),
-                          )
+                          ))
                         ],
                       ),
                     ),
@@ -1012,7 +1052,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   height: bottomHeight,
                   child: Row(children: [
                     Expanded(
-                        child: CustomScrollView(
+                        child: _buildIntroDelayed(CustomScrollView(
                       key: PageStorageKey<String>(
                           '简介${videoDetailController.bvid}'),
                       slivers: <Widget>[
@@ -1027,16 +1067,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                               cid: videoDetailController.cid.value)),
                         ]
                       ],
-                    )),
+                    ))),
                     Expanded(
-                      child: Obx(
+                      child: _buildReplyDelayed(Obx(
                         () => VideoReplyPanel(
                           key: const PageStorageKey<String>('评论'),
                           bvid: videoDetailController.bvid,
                           oid: videoDetailController.oid.value,
                           heroTag: heroTag,
                         ),
-                      ),
+                      )),
                     )
                   ]),
                 ),
@@ -1068,7 +1108,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     child: SizedBox(
                       width: sidePanelWidth,
                       height: videoHeight,
-                      child: CustomScrollView(
+                      child: _buildIntroDelayed(CustomScrollView(
                         key: PageStorageKey<String>(
                             '简介${videoDetailController.bvid}'),
                         slivers: <Widget>[
@@ -1083,7 +1123,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                 cid: videoDetailController.cid.value)),
                           ]
                         ],
-                      ),
+                      )),
                     ),
                   ),
                 ),
@@ -1167,14 +1207,14 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     child: SizedBox(
                       width: sidePanelWidth,
                       height: videoHeight,
-                      child: Obx(
+                      child: _buildReplyDelayed(Obx(
                         () => VideoReplyPanel(
                           key: const PageStorageKey<String>('评论'),
                           bvid: videoDetailController.bvid,
                           oid: videoDetailController.oid.value,
                           heroTag: heroTag,
                         ),
-                      ),
+                      )),
                     ),
                   ),
                 ),
@@ -1280,7 +1320,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       child: SizedBox(
                         width: videoWidth,
                         height: bottomHeight,
-                        child: CustomScrollView(
+                        child: _buildIntroDelayed(CustomScrollView(
                           key: PageStorageKey<String>(
                               '简介${videoDetailController.bvid}'),
                           slivers: <Widget>[
@@ -1295,7 +1335,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                   cid: videoDetailController.cid.value)),
                             ]
                           ],
-                        ),
+                        )),
                       ),
                     ),
                   ),
@@ -1324,19 +1364,19 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       controller: videoDetailController.tabCtr,
                       children: <Widget>[
                         if (videoDetailController.videoType == SearchType.video)
-                          CustomScrollView(
+                          _buildIntroDelayed(CustomScrollView(
                             slivers: [
                               RelatedVideoPanel(heroTag: heroTag),
                             ],
-                          ),
-                        Obx(
+                          )),
+                        _buildReplyDelayed(Obx(
                           () => VideoReplyPanel(
                             key: const PageStorageKey<String>('评论'),
                             bvid: videoDetailController.bvid,
                             oid: videoDetailController.oid.value,
                             heroTag: heroTag,
                           ),
-                        )
+                        ))
                       ],
                     ),
                   ),
