@@ -765,6 +765,9 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                         }
                         Get.offAllNamed('/');
                         break;
+                      case PlayerGestureAction.back:
+                        Get.back();
+                        break;
                     }
                   });
                 }
