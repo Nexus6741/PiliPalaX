@@ -18,21 +18,21 @@ class MemberDynamicsPage extends StatefulWidget {
   State<MemberDynamicsPage> createState() => _MemberDynamicsPageState();
 }
 
-class _MemberDynamicsPageState extends State<MemberDynamicsPage> {
+class _MemberDynamicsPageState extends State<MemberDynamicsPage>
+    with AutomaticKeepAliveClientMixin {
   late MemberDynamicsController _memberDynamicController;
-  late Future _futureBuilderFuture;
-  late ScrollController scrollController;
   late bool dynamicsWaterfallFlow;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    // mid = int.parse(Get.parameters['mid']!);
     final int mid = widget.mid;
     final String heroTag = Utils.makeHeroTag(mid);
     _memberDynamicController =
         Get.put(MemberDynamicsController(mid: mid), tag: heroTag);
-    _futureBuilderFuture = _memberDynamicController.getMemberDynamic('init');
     dynamicsWaterfallFlow = GStorage.setting
         .get(SettingBoxKey.dynamicsWaterfallFlow, defaultValue: true);
   }
@@ -44,6 +44,7 @@ class _MemberDynamicsPageState extends State<MemberDynamicsPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return NotificationListener<ScrollNotification>(
       onNotification: (scrollNotification) {
         if ((scrollNotification is ScrollEndNotification &&
@@ -63,82 +64,72 @@ class _MemberDynamicsPageState extends State<MemberDynamicsPage> {
       child: RefreshIndicator(
         displacement: 10.0,
         edgeOffset: 10.0,
-        onRefresh: _memberDynamicController.onRefresh, // 下拉刷新时触发的异步操作
+        onRefresh: _memberDynamicController.onRefresh,
         child: CustomScrollView(
-          physics: const ClampingScrollPhysics(),
-          // 不能设置controller，否则NestedScrollView的联动会失效
-          // controller: _memberDynamicController.scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            FutureBuilder(
-              future: _futureBuilderFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.data != null) {
-                    Map data = snapshot.data as Map;
-                    List list = _memberDynamicController.dynamicsList;
-                    if (data['status']) {
-                      return Obx(() {
-                        if (list.isEmpty) {
-                          return const SliverToBoxAdapter();
-                        }
-                        if (!dynamicsWaterfallFlow) {
-                          return SliverCrossAxisGroup(
-                            slivers: [
-                              const SliverFillRemaining(),
-                              SliverConstrainedCrossAxis(
-                                  maxExtent: Grid.maxRowWidth * 2,
-                                  sliver: SliverList(
-                                    delegate: SliverChildBuilderDelegate(
-                                      (context, index) {
-                                        return DynamicPanel(item: list[index]);
-                                      },
-                                      childCount: list.length,
-                                    ),
-                                  )),
-                              const SliverFillRemaining(),
-                            ],
-                          );
-                        }
-                        return SliverWaterfallFlow.extent(
-                            maxCrossAxisExtent: Grid.maxRowWidth * 2,
-                            //cacheExtent: 0.0,
-                            crossAxisSpacing: StyleString.safeSpace,
-                            mainAxisSpacing: StyleString.safeSpace,
+            Obx(() {
+              final loadingState = _memberDynamicController.loadingState.value;
+              final list = _memberDynamicController.dynamicsList;
 
-                            /// follow max child trailing layout offset and layout with full cross axis extend
-                            /// last child as loadmore item/no more item in [GridView] and [WaterfallFlow]
-                            /// with full cross axis extend
-                            //  LastChildLayoutType.fullCrossAxisExtend,
+              if (loadingState.isLoading && list.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                );
+              }
 
-                            /// as foot at trailing and layout with full cross axis extend
-                            /// show no more item at trailing when children are not full of viewport
-                            /// if children is full of viewport, it's the same as fullCrossAxisExtend
-                            //  LastChildLayoutType.foot,
-                            lastChildLayoutTypeBuilder: (index) =>
-                                index == list.length
-                                    ? LastChildLayoutType.foot
-                                    : LastChildLayoutType.none,
-                            children: [
-                              for (var i in list) DynamicPanel(item: i),
-                            ]);
-                      });
-                    } else {
-                      return HttpError(
-                        errMsg: snapshot.data['msg'],
-                        fn: () {},
-                      );
-                    }
-                  } else {
-                    return HttpError(
-                      errMsg: snapshot.data['msg'],
-                      fn: () {},
-                    );
-                  }
-                } else {
-                  return const SliverToBoxAdapter();
-                }
-              },
-            ),
+              if (loadingState.isError && list.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: HttpError(
+                    errMsg: loadingState.errMsg ?? '请求失败',
+                    fn: _memberDynamicController.onReload,
+                  ),
+                );
+              }
+
+              if (list.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 200,
+                    child: Center(child: Text('暂无动态')),
+                  ),
+                );
+              }
+
+              if (!dynamicsWaterfallFlow) {
+                return SliverCrossAxisGroup(
+                  slivers: [
+                    const SliverFillRemaining(),
+                    SliverConstrainedCrossAxis(
+                        maxExtent: Grid.maxRowWidth * 2,
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              return DynamicPanel(item: list[index]);
+                            },
+                            childCount: list.length,
+                          ),
+                        )),
+                    const SliverFillRemaining(),
+                  ],
+                );
+              }
+
+              return SliverWaterfallFlow.extent(
+                maxCrossAxisExtent: Grid.maxRowWidth * 2,
+                crossAxisSpacing: StyleString.safeSpace,
+                mainAxisSpacing: StyleString.safeSpace,
+                lastChildLayoutTypeBuilder: (index) => index == list.length
+                    ? LastChildLayoutType.foot
+                    : LastChildLayoutType.none,
+                children: [
+                  for (var i in list) DynamicPanel(item: i),
+                ],
+              );
+            }),
           ],
         ),
       ),

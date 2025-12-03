@@ -66,13 +66,17 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
 
   Future getWwebid() async {
     try {
-      dynamic response =
-      await Request().get('${HttpString.spaceBaseUrl}/$mid/dynamic');
+      dynamic response = await Request().get(
+        '${HttpString.spaceBaseUrl}/$mid',
+        extra: {'ua': 'pc'},
+      );
       dom.Document document = html_parser.parse(response.data);
       dom.Element? scriptElement =
-      document.querySelector('script#__RENDER_DATA__');
-      wwebid = jsonDecode(
-          Uri.decodeComponent(scriptElement?.text ?? ''))['access_id'];
+          document.querySelector('script#__RENDER_DATA__');
+      if (scriptElement != null) {
+        wwebid =
+            jsonDecode(Uri.decodeComponent(scriptElement.text))['access_id'];
+      }
     } catch (e) {
       print('failed to get wwebid: $e');
     }

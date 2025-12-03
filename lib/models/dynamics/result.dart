@@ -1,5 +1,14 @@
 import 'dart:convert';
 
+// 辅助函数：安全地将动态类型转换为int
+int? _safeToInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is String) return int.tryParse(value);
+  if (value is double) return value.toInt();
+  return null;
+}
+
 class DynamicsDataModel {
   DynamicsDataModel({
     this.hasMore,
@@ -11,11 +20,19 @@ class DynamicsDataModel {
   String? offset;
 
   DynamicsDataModel.fromJson(Map<String, dynamic> json) {
-    hasMore = json['has_more'];
-    items = json['items']
-        .map<DynamicItemModel>((e) => DynamicItemModel.fromJson(e))
-        .toList();
-    offset = json['offset'];
+    try {
+      hasMore = json['has_more'] ?? false;
+      items = json['items'] != null
+          ? (json['items'] as List)
+              .map<DynamicItemModel>((e) => DynamicItemModel.fromJson(e))
+              .toList()
+          : [];
+      offset = json['offset'] ?? '';
+    } catch (e) {
+      hasMore = false;
+      items = [];
+      offset = '';
+    }
   }
 }
 
@@ -140,11 +157,11 @@ class ModuleAuthorModel {
     following = json['following'];
     jumpUrl = json['jump_url'];
     label = json['label'];
-    mid = json['mid'];
+    mid = _safeToInt(json['mid']);
     name = json['name'];
     pubAction = json['pub_action'];
     pubTime = json['pub_time'];
-    pubTs = json['pub_ts'] == 0 ? null : json['pub_ts'];
+    pubTs = _safeToInt(json['pub_ts']);
     type = json['type'];
     vip = json['vip'];
   }
@@ -244,17 +261,15 @@ class Vote {
   int? voteId;
 
   Vote.fromJson(Map<String, dynamic> json) {
-    choiceCnt = json['choice_cnt'];
+    choiceCnt = _safeToInt(json['choice_cnt']);
     share = json['share'];
-    defaultShare = json['default_share'];
-    endTime = json['end_time'] is int
-        ? json['end_time']
-        : int.parse(json['end_time']);
-    joinNum = json['join_num'];
-    status = json['status'];
-    type = json['type'];
-    uid = json['uid'];
-    voteId = json['vote_id'];
+    defaultShare = _safeToInt(json['default_share']);
+    endTime = _safeToInt(json['end_time']);
+    joinNum = _safeToInt(json['join_num']);
+    status = _safeToInt(json['status']);
+    type = _safeToInt(json['type']);
+    uid = _safeToInt(json['uid']);
+    voteId = _safeToInt(json['vote_id']);
   }
 }
 
@@ -321,13 +336,13 @@ class Reserve {
     desc1 = json['desc1'];
     desc2 = json['desc2'];
     jumpUrl = json['jump_url'];
-    reserveTotal = json['reserve_total'];
-    rid = json['rid'];
-    state = json['state'];
-    state = json['state'];
-    stype = json['stype'];
+    reserveTotal = _safeToInt(json['reserve_total']);
+    rid = _safeToInt(json['rid']);
+    state = _safeToInt(json['state']);
+    state = _safeToInt(json['state']);
+    stype = _safeToInt(json['stype']);
     title = json['title'];
-    upMid = json['up_mid'];
+    upMid = _safeToInt(json['up_mid']);
   }
 }
 
@@ -374,7 +389,7 @@ class GoodItem {
   GoodItem.fromJson(Map<String, dynamic> json) {
     brief = json['brief'];
     cover = json['cover'];
-    id = json['id'];
+    id = _safeToInt(json['id']);
     jumpDesc = json['jump_desc'];
     jumpUrl = json['jump_url'];
     name = json['name'];
@@ -471,7 +486,7 @@ class DynamicTopicModel {
   String? name;
 
   DynamicTopicModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    id = json['id'] is String ? int.tryParse(json['id']) : json['id'];
     jumpUrl = json['jump_url'];
     name = json['name'];
   }
@@ -509,18 +524,18 @@ class DynamicArchiveModel {
   int? seasonId;
 
   DynamicArchiveModel.fromJson(Map<String, dynamic> json) {
-    aid = json['aid'] is String ? int.parse(json['aid']) : json['aid'];
+    aid = _safeToInt(json['aid']);
     badge = json['badge'];
-    bvid = json['bvid'] ?? json['epid'].toString() ?? ' ';
+    bvid = json['bvid'] ?? json['epid']?.toString() ?? ' ';
     cover = json['cover'];
     disablePreview = json['disable_preview'];
     durationText = json['duration_text'];
     jumpUrl = json['jump_url'];
     stat = json['stat'] != null ? Stat.fromJson(json['stat']) : null;
     title = json['title'];
-    type = json['type'];
-    epid = json['epid'];
-    seasonId = json['season_id'];
+    type = _safeToInt(json['type']);
+    epid = _safeToInt(json['epid']);
+    seasonId = _safeToInt(json['season_id']);
   }
 }
 
@@ -534,7 +549,7 @@ class DynamicDrawModel {
   List<DynamicDrawItemModel>? items;
 
   DynamicDrawModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    id = _safeToInt(json['id']);
     // ignore: prefer_null_aware_operators
     items = json['items'] != null
         ? json['items']
@@ -659,9 +674,11 @@ class Emoji {
   int? type;
   Emoji.fromJson(Map<String, dynamic> json) {
     iconUrl = json['icon_url'];
-    size = json['size'].toDouble();
+    size = json['size'] != null
+        ? (json['size'] is num ? json['size'].toDouble() : null)
+        : null;
     text = json['text'];
-    type = json['type'];
+    type = json['type'] is String ? int.tryParse(json['type']) : json['type'];
   }
 }
 
@@ -693,7 +710,11 @@ class OpusPicsModel {
   OpusPicsModel.fromJson(Map<String, dynamic> json) {
     width = json['width'];
     height = json['height'];
-    size = json['size'] != null ? json['size'].toInt() : 0;
+    if (json['size'] is String) {
+      size = int.tryParse(json['size']) ?? 0;
+    } else {
+      size = json['size'] != null ? json['size'].toInt() : 0;
+    }
     src = json['src'];
     url = json['url'];
   }
@@ -714,7 +735,11 @@ class DynamicDrawItemModel {
   int? width;
   DynamicDrawItemModel.fromJson(Map<String, dynamic> json) {
     height = json['height'];
-    size = json['size'].toInt();
+    if (json['size'] is String) {
+      size = int.tryParse(json['size']) ?? 0;
+    } else {
+      size = json['size'] != null ? json['size'].toInt() : 0;
+    }
     src = json['src'];
     tags = json['tags'];
     width = json['width'];
@@ -748,16 +773,28 @@ class DynamicLiveModel {
 
       type = data['type'];
       Map livePlayInfo = data['live_play_info'];
-      uid = livePlayInfo['uid'];
+      uid = livePlayInfo['uid'] is String
+          ? int.tryParse(livePlayInfo['uid'])
+          : livePlayInfo['uid'];
       parentAreaName = livePlayInfo['parent_area_name'];
-      roomId = livePlayInfo['room_id'];
-      liveId = livePlayInfo['live_id'];
-      liveStatus = livePlayInfo['live_status'];
+      roomId = livePlayInfo['room_id'] is String
+          ? int.tryParse(livePlayInfo['room_id'])
+          : livePlayInfo['room_id'];
+      liveId = livePlayInfo['live_id'] is String
+          ? livePlayInfo['live_id']
+          : livePlayInfo['live_id'].toString();
+      liveStatus = livePlayInfo['live_status'] is String
+          ? int.tryParse(livePlayInfo['live_status'])
+          : livePlayInfo['live_status'];
       cover = livePlayInfo['cover'];
-      online = livePlayInfo['online'];
+      online = livePlayInfo['online'] is String
+          ? int.tryParse(livePlayInfo['online'])
+          : livePlayInfo['online'];
       areaName = livePlayInfo['area_name'];
       title = livePlayInfo['title'];
-      liveStartTime = livePlayInfo['live_start_time'];
+      liveStartTime = livePlayInfo['live_start_time'] is String
+          ? int.tryParse(livePlayInfo['live_start_time'])
+          : livePlayInfo['live_start_time'];
       watchedShow = livePlayInfo['watched_show'];
     }
   }
@@ -791,10 +828,14 @@ class DynamicLive2Model {
     cover = json['cover'];
     descFirst = json['desc_first'];
     descSecond = json['desc_second'];
-    id = json['id'];
+    id = json['id'] is String ? int.tryParse(json['id']) : json['id'];
     jumpUrl = json['jump_url'];
-    liveState = json['liv_state'];
-    reserveType = json['reserve_type'];
+    liveState = json['liv_state'] is String
+        ? int.tryParse(json['liv_state'])
+        : json['liv_state'];
+    reserveType = json['reserve_type'] is String
+        ? int.tryParse(json['reserve_type'])
+        : json['reserve_type'];
     title = json['title'];
   }
 }

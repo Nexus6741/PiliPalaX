@@ -6,36 +6,97 @@ class MemberDynamicsController extends GetxController {
   MemberDynamicsController({required this.mid});
   final int mid;
   String offset = '';
-  int count = 0;
-  bool hasMore = true;
+  bool isEnd = false;
+  bool isLoading = false;
   RxList<DynamicItemModel> dynamicsList = <DynamicItemModel>[].obs;
+  Rx<LoadingState> loadingState = Rx<LoadingState>(LoadingState.loading());
 
-  Future getMemberDynamic(type) async {
-    if (type == 'onRefresh') {
-      offset = '';
-      dynamicsList.clear();
-    }
-    if (offset == '-1') {
+  @override
+  void onInit() {
+    super.onInit();
+    queryData();
+  }
+
+  Future<void> queryData([bool isRefresh = true]) async {
+    if (isLoading || (!isRefresh && isEnd)) {
       return;
     }
+
+    isLoading = true;
+
+    if (isRefresh) {
+      offset = '';
+      isEnd = false;
+    }
+
+    if (offset == '-1') {
+      isEnd = true;
+      isLoading = false;
+      return;
+    }
+
     var res = await MemberHttp.memberDynamic(
       offset: offset,
       mid: mid,
     );
+
     if (res['status']) {
-      dynamicsList.addAll(res['data'].items);
-      offset = res['data'].offset != '' ? res['data'].offset : '-1';
-      hasMore = res['data'].hasMore;
+      DynamicsDataModel data = res['data'];
+      List<DynamicItemModel> items = data.items ?? [];
+
+      if (isRefresh) {
+        dynamicsList.value = items;
+      } else {
+        dynamicsList.addAll(items);
+      }
+
+      offset = data.offset?.isNotEmpty == true ? data.offset! : '-1';
+      isEnd = !(data.hasMore ?? false) || offset == '-1';
+      loadingState.value = LoadingState.success();
+    } else {
+      if (isRefresh) {
+        loadingState.value = LoadingState.error(res['msg']);
+      }
     }
-    return res;
+
+    isLoading = false;
   }
 
   // 上拉加载
-  Future onLoad() async {
-    await getMemberDynamic('onLoad');
+  Future<void> onLoad() async {
+    await queryData(false);
   }
 
-  Future onRefresh() async {
-    await getMemberDynamic('onRefresh');
+  // 下拉刷新
+  Future<void> onRefresh() async {
+    await queryData(true);
   }
+
+  Future<void> onReload() async {
+    loadingState.value = LoadingState.loading();
+    await queryData(true);
+  }
+}
+
+class LoadingState {
+  final LoadingStateType type;
+  final String? errMsg;
+
+  LoadingState.loading()
+      : type = LoadingStateType.loading,
+        errMsg = null;
+  LoadingState.success()
+      : type = LoadingStateType.success,
+        errMsg = null;
+  LoadingState.error(this.errMsg) : type = LoadingStateType.error;
+
+  bool get isLoading => type == LoadingStateType.loading;
+  bool get isSuccess => type == LoadingStateType.success;
+  bool get isError => type == LoadingStateType.error;
+}
+
+enum LoadingStateType {
+  loading,
+  success,
+  error,
 }
