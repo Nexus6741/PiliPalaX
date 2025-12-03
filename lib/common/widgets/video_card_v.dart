@@ -205,14 +205,18 @@ class VideoCardV extends StatelessWidget {
                                   isVertical = true;
                                 }
                               } catch (_) {
-                                if ((videoItem.dimension != null &&
-                                        videoItem.dimension.width != null &&
-                                        videoItem.dimension.height != null &&
-                                        videoItem.dimension.width <
-                                            videoItem.dimension.height) ||
-                                    (videoItem.rcmdReason != null &&
-                                        videoItem.rcmdReason.contains('竖屏'))) {
-                                  isVertical = true;
+                                try {
+                                  if (videoItem.dimension.width <
+                                      videoItem.dimension.height) {
+                                    isVertical = true;
+                                  }
+                                } catch (_) {
+                                  try {
+                                    if (videoItem['dimension']['width'] <
+                                        videoItem['dimension']['height']) {
+                                      isVertical = true;
+                                    }
+                                  } catch (_) {}
                                 }
                               }
                               if (isVertical) {

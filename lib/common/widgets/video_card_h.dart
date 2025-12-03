@@ -136,20 +136,15 @@ class VideoCardH extends StatelessWidget {
                                     } catch (_) {
                                       // 兼容旧逻辑
                                       try {
-                                        if (videoItem.dimension != null &&
-                                            videoItem.dimension.width <
-                                                videoItem.dimension.height) {
+                                        if (videoItem.dimension.width <
+                                            videoItem.dimension.height) {
                                           isVertical = true;
                                         }
-                                      } catch (_) {}
-
-                                      if (!isVertical) {
+                                      } catch (_) {
                                         try {
-                                          if (videoItem.rcmdReason != null &&
-                                              videoItem.rcmdReason.content !=
-                                                  null &&
-                                              videoItem.rcmdReason.content
-                                                  .contains('竖屏')) {
+                                          if (videoItem['dimension']['width'] <
+                                              videoItem['dimension']
+                                                  ['height']) {
                                             isVertical = true;
                                           }
                                         } catch (_) {}
