@@ -74,7 +74,7 @@ class Routes {
     GetPage(
       name: '/video',
       page: () => const VideoDetailPage(),
-      transition: Transition.fadeIn,
+      customTransition: EnterFadeInExitNoneTransition(),
       curve: Curves.fastOutSlowIn,
       transitionDuration: const Duration(milliseconds: 400),
     ),
@@ -217,4 +217,25 @@ class CustomGetPage extends GetPage<dynamic> {
           fullscreenDialog: fullscreen != null && fullscreen,
         );
   bool? fullscreen = false;
+}
+
+class EnterFadeInExitNoneTransition extends CustomTransition {
+  @override
+  Widget buildTransition(
+    BuildContext context,
+    Curve? curve,
+    Alignment? alignment,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: animation,
+        curve: curve ?? Curves.linear,
+        reverseCurve: const Threshold(1.0),
+      ),
+      child: child,
+    );
+  }
 }

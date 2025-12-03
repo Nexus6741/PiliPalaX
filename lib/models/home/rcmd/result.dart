@@ -53,6 +53,7 @@ class RecVideoItemAppModel {
 
   // 辅助字段
   bool isKeep = false;
+  Dimension? dimension;
 
   RecVideoItemAppModel.fromJson(Map<String, dynamic> json) {
     id = json['player_args'] != null
@@ -99,6 +100,56 @@ class RecVideoItemAppModel {
       }
     });
     desc = json['desc'];
+    // print("RecVideoItemAppModel json: $json");
+    if (json['player_args'] != null &&
+        json['player_args']['dimension'] != null) {
+      dimension = Dimension.fromJson(json['player_args']['dimension']);
+    }
+
+    // 尝试从uri中获取宽高
+    if (dimension == null && uri != null) {
+      try {
+        final Uri u = Uri.parse(uri!);
+        if (u.queryParameters.containsKey('player_width') &&
+            u.queryParameters.containsKey('player_height')) {
+          dimension = Dimension(
+            width: int.tryParse(u.queryParameters['player_width']!),
+            height: int.tryParse(u.queryParameters['player_height']!),
+            rotate: int.tryParse(u.queryParameters['player_rotate'] ?? '0'),
+          );
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+
+  bool get isVertical {
+    if (dimension != null &&
+        dimension!.width != null &&
+        dimension!.height != null) {
+      if (dimension!.width! < dimension!.height!) {
+        return true;
+      }
+    }
+    if (rcmdReason != null && rcmdReason!.contains('竖屏')) {
+      return true;
+    }
+    return false;
+  }
+}
+
+class Dimension {
+  Dimension({this.width, this.height, this.rotate});
+
+  int? width;
+  int? height;
+  int? rotate;
+
+  Dimension.fromJson(Map<String, dynamic> json) {
+    width = json["width"];
+    height = json["height"];
+    rotate = json["rotate"];
   }
 }
 

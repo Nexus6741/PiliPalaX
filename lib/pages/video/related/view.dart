@@ -71,7 +71,9 @@ class _RelatedVideoPanelState extends State<RelatedVideoPanel>
                                   child: VideoCardH(
                                     videoItem: relatedVideoList[index],
                                     showPubdate: true,
-                                    enableHero: false,
+                                    enableHero: true,
+                                    heroTag:
+                                        "${widget.heroTag}_${relatedVideoList[index].aid}",
                                     longPress: () {
                                       try {
                                         _relatedController.popupDialog.add(

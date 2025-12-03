@@ -72,12 +72,41 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   late StreamSubscription<bool> fullScreenStatusListener;
   // late final MethodChannel onUserLeaveHintListener;
   // StreamSubscription<Duration>? _bufferedListener;
+  final RxString _layoutDirection = 'horizontal'.obs;
+  StreamSubscription<String>? _directionSubscription;
 
   @override
   void initState() {
     super.initState();
-    if (Get.arguments != null && Get.arguments['heroTag'] != null) {
-      heroTag = Get.arguments['heroTag'];
+    if (Get.arguments != null) {
+      if (Get.arguments['heroTag'] != null) {
+        heroTag = Get.arguments['heroTag'];
+      }
+      if (Get.arguments['videoItem'] != null) {
+        var videoItem = Get.arguments['videoItem'];
+        try {
+          if (videoItem.isVertical) {
+            _layoutDirection.value = 'vertical';
+          }
+        } catch (e) {
+          // 兼容旧逻辑或未实现isVertical的模型
+          try {
+            var dimension = videoItem.dimension;
+            if (dimension != null) {
+              if (dimension.width < dimension.height) {
+                _layoutDirection.value = 'vertical';
+              }
+            } else {
+              try {
+                if (videoItem.rcmdReason != null &&
+                    videoItem.rcmdReason.contains('竖屏')) {
+                  _layoutDirection.value = 'vertical';
+                }
+              } catch (_) {}
+            }
+          } catch (_) {}
+        }
+      }
     }
     videoDetailController = Get.put(VideoDetailController(), tag: heroTag);
     if (!videoDetailController.autoPlay.value &&
@@ -153,6 +182,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
       plPlayerController = videoDetailController.plPlayerController;
       plPlayerController!.addStatusLister(playerListener);
       listenFullScreenStatus();
+      listenDirectionStatus();
       await plPlayerController!.autoEnterFullScreen();
       // Future.wait([_futureBuilderFuture]).then((result) {
       //   autoEnterPip();
@@ -166,7 +196,17 @@ class _VideoDetailPageState extends State<VideoDetailPage>
           plPlayerController = videoDetailController.plPlayerController;
           plPlayerController!.addStatusLister(playerListener);
           listenFullScreenStatus();
+          listenDirectionStatus();
         }
+      });
+    }
+  }
+
+  void listenDirectionStatus() {
+    if (plPlayerController != null) {
+      _layoutDirection.value = plPlayerController!.direction.value;
+      _directionSubscription = plPlayerController!.direction.listen((value) {
+        _layoutDirection.value = value;
       });
     }
   }
@@ -326,6 +366,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         bangumiIntroController.bangumiDetail.close();
         plPlayerController!.removeStatusLister(playerListener);
         fullScreenStatusListener.cancel();
+        _directionSubscription?.cancel();
         plPlayerController!.disable();
         // plPlayerController!.dispose();
       }
@@ -349,6 +390,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
       plPlayerController!.pause();
       plPlayerController!.removeStatusLister(playerListener);
       fullScreenStatusListener.cancel();
+      _directionSubscription?.cancel();
       plPlayerController!.disable();
     }
     // isShowing = false;
@@ -414,6 +456,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
     plPlayerController?.addStatusLister(playerListener);
     if (plPlayerController != null) {
       listenFullScreenStatus();
+      listenDirectionStatus();
     }
     super.didPopNext();
   }
@@ -590,7 +633,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   final double videoWidth = context.width;
                   // print(videoDetailController.tabCtr.index);
                   if (enableVerticalExpand &&
-                      plPlayerController?.direction.value == 'vertical') {
+                      _layoutDirection.value == 'vertical') {
                     videoHeight = context.width;
                   }
                   if (MediaQuery.of(context).orientation ==
@@ -766,8 +809,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         ),
       );
   Widget get childWhenDisabledAlmostSquareInner => Obx(() {
-        if (enableVerticalExpand &&
-            plPlayerController?.direction.value == 'vertical') {
+        if (enableVerticalExpand && _layoutDirection.value == 'vertical') {
           final double videoHeight = context.height -
               (removeSafeArea
                   ? 0
@@ -1004,8 +1046,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         ]);
       });
   Widget get childWhenDisabledLandscapeInner => Obx(() {
-        if (enableVerticalExpand &&
-            plPlayerController?.direction.value == 'vertical') {
+        if (enableVerticalExpand && _layoutDirection.value == 'vertical') {
           final double videoHeight = context.height -
               (removeSafeArea ? 0 : MediaQuery.of(context).padding.top);
           final double videoWidth = videoHeight * 9 / 16;

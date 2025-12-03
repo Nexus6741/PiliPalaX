@@ -24,6 +24,7 @@ class VideoCardH extends StatelessWidget {
     this.showDanmaku = true,
     this.showPubdate = false,
     this.enableHero = true,
+    this.heroTag,
   });
   // ignore: prefer_typing_uninitialized_variables
   final videoItem;
@@ -35,6 +36,7 @@ class VideoCardH extends StatelessWidget {
   final bool showDanmaku;
   final bool showPubdate;
   final bool enableHero;
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +48,7 @@ class VideoCardH extends StatelessWidget {
     } catch (_) {}
     List<VideoCustomAction> actions =
         VideoCustomActions(videoItem, context).actions;
-    final String heroTag = Utils.makeHeroTag(aid);
+    final String heroTag = this.heroTag ?? Utils.makeHeroTag(aid);
     return Stack(children: [
       Semantics(
           label: Utils.videoItemSemantics(videoItem),
@@ -124,6 +126,48 @@ class VideoCardH extends StatelessWidget {
                                     bottom: 6.0,
                                     type: 'primary',
                                   ),
+                                Builder(
+                                  builder: (context) {
+                                    bool isVertical = false;
+                                    try {
+                                      if (videoItem.isVertical) {
+                                        isVertical = true;
+                                      }
+                                    } catch (_) {
+                                      // 兼容旧逻辑
+                                      try {
+                                        if (videoItem.dimension != null &&
+                                            videoItem.dimension.width <
+                                                videoItem.dimension.height) {
+                                          isVertical = true;
+                                        }
+                                      } catch (_) {}
+
+                                      if (!isVertical) {
+                                        try {
+                                          if (videoItem.rcmdReason != null &&
+                                              videoItem.rcmdReason.content !=
+                                                  null &&
+                                              videoItem.rcmdReason.content
+                                                  .contains('竖屏')) {
+                                            isVertical = true;
+                                          }
+                                        } catch (_) {}
+                                      }
+                                    }
+
+                                    if (isVertical) {
+                                      return const PBadge(
+                                        text: '竖屏',
+                                        top: 6.0,
+                                        left: 6.0,
+                                        size: 'small',
+                                        type: 'gray',
+                                      );
+                                    }
+                                    return const SizedBox();
+                                  },
+                                ),
                                 // if (videoItem.rcmdReason != null &&
                                 //     videoItem.rcmdReason.content != '')
                                 //   pBadge(videoItem.rcmdReason.content, context,

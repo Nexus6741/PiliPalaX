@@ -50,6 +50,7 @@ class RecVideoItemModel {
 
   // 辅助字段，不参与Hive序列化
   bool isKeep = false;
+  Dimension? dimension;
 
   RecVideoItemModel.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -68,6 +69,37 @@ class RecVideoItemModel {
     //     ? RcmdReason.fromJson(json["rcmd_reason"])
     //     : RcmdReason(content: '');
     rcmdReason = json["rcmd_reason"]?['content'];
+    if (json['dimension'] != null) {
+      dimension = Dimension.fromJson(json['dimension']);
+    }
+  }
+
+  bool get isVertical {
+    if (dimension != null &&
+        dimension!.width != null &&
+        dimension!.height != null) {
+      if (dimension!.width! < dimension!.height!) {
+        return true;
+      }
+    }
+    if (rcmdReason != null && rcmdReason!.contains('竖屏')) {
+      return true;
+    }
+    return false;
+  }
+}
+
+class Dimension {
+  Dimension({this.width, this.height, this.rotate});
+
+  int? width;
+  int? height;
+  int? rotate;
+
+  Dimension.fromJson(Map<String, dynamic> json) {
+    width = json["width"];
+    height = json["height"];
+    rotate = json["rotate"];
   }
 }
 

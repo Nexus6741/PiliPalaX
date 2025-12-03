@@ -98,6 +98,7 @@ class VideoDetailController extends GetxController
   void onInit() async {
     super.onInit();
     final Map argMap = Get.arguments;
+    print("VideoDetailController args: $argMap");
     userInfo = userInfoCache.get('userInfoCache');
     var keys = argMap.keys.toList();
     if (keys.isNotEmpty) {
@@ -106,6 +107,16 @@ class VideoDetailController extends GetxController
         if (args.pic != null && args.pic != '') {
           videoItem['pic'] = args.pic;
         }
+        try {
+          if (args.dimension != null) {
+            videoItem['dimension'] = args.dimension;
+          }
+        } catch (_) {}
+        try {
+          if (args.rcmdReason != null) {
+            videoItem['rcmdReason'] = args.rcmdReason;
+          }
+        } catch (_) {}
       }
       if (keys.contains('pic')) {
         if (argMap['pic'] != null && argMap['pic'] != '') {
@@ -123,6 +134,17 @@ class VideoDetailController extends GetxController
       isShowCover.value = false;
       plPlayerController = PlPlayerController.getInstance();
       plPlayerController!.controls = false;
+      if (!resumePlay) {
+        plPlayerController!.direction.value = 'horizontal';
+        if (videoItem['dimension'] != null) {
+          if (videoItem['dimension'].width < videoItem['dimension'].height) {
+            plPlayerController!.direction.value = 'vertical';
+          }
+        } else if (videoItem['rcmdReason'] != null &&
+            videoItem['rcmdReason'].contains('竖屏')) {
+          plPlayerController!.direction.value = 'vertical';
+        }
+      }
       headerControl = HeaderControl(
         controller: plPlayerController,
         videoDetailCtr: this,

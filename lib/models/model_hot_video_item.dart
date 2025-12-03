@@ -84,6 +84,22 @@ class HotVideoItemModel {
         ? RcmdReason.fromJson(json['rcmd_reason'])
         : null;
   }
+
+  bool get isVertical {
+    if (dimension != null &&
+        dimension!.width != null &&
+        dimension!.height != null) {
+      if (dimension!.width! < dimension!.height!) {
+        return true;
+      }
+    }
+    if (rcmdReason != null &&
+        rcmdReason!.content != null &&
+        rcmdReason!.content!.contains('竖屏')) {
+      return true;
+    }
+    return false;
+  }
 }
 
 class Stat {

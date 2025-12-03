@@ -69,7 +69,7 @@ class VideoCardV extends StatelessWidget {
         Get.toNamed(
           '/video?bvid=$bvid&cid=${videoItem.cid}',
           arguments: {
-            // 'videoItem': videoItem,
+            'videoItem': videoItem,
             'pic': videoItem.pic,
             'heroTag': heroTag,
           },
@@ -137,6 +137,17 @@ class VideoCardV extends StatelessWidget {
     String heroTag = Utils.makeHeroTag(videoItem.id);
     List<VideoCustomAction> actions =
         VideoCustomActions(videoItem, context).actions;
+    // print("VideoCardV build: ${videoItem.title}, type: ${videoItem.runtimeType}");
+    // try {
+    //   if (videoItem.dimension != null) {
+    //     print("VideoCardV dimension: ${videoItem.dimension.width}x${videoItem.dimension.height}");
+    //   } else {
+    //     print("VideoCardV dimension is null");
+    //   }
+    // } catch (e) {
+    //   print("VideoCardV dimension error: $e");
+    // }
+
     return Stack(children: [
       Semantics(
         label: Utils.videoItemSemantics(videoItem),
@@ -187,6 +198,34 @@ class VideoCardV extends StatelessWidget {
                                 type: 'gray',
                                 text: '旧内容',
                               ),
+                            Builder(builder: (context) {
+                              bool isVertical = false;
+                              try {
+                                if (videoItem.isVertical) {
+                                  isVertical = true;
+                                }
+                              } catch (_) {
+                                if ((videoItem.dimension != null &&
+                                        videoItem.dimension.width != null &&
+                                        videoItem.dimension.height != null &&
+                                        videoItem.dimension.width <
+                                            videoItem.dimension.height) ||
+                                    (videoItem.rcmdReason != null &&
+                                        videoItem.rcmdReason.contains('竖屏'))) {
+                                  isVertical = true;
+                                }
+                              }
+                              if (isVertical) {
+                                return PBadge(
+                                  top: 6,
+                                  left: videoItem.isKeep ? 46 : 6,
+                                  size: 'small',
+                                  type: 'gray',
+                                  text: '竖屏',
+                                );
+                              }
+                              return const SizedBox();
+                            }),
                             if (videoItem.duration > 0)
                               PBadge(
                                 bottom: 6,
