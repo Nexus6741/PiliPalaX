@@ -12,6 +12,7 @@ import 'package:PiliPalaX/common/widgets/video_card_h.dart';
 import 'package:PiliPalaX/pages/home/index.dart';
 import 'package:PiliPalaX/pages/hot/controller.dart';
 import 'package:PiliPalaX/pages/main/index.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../../utils/grid.dart';
 
@@ -73,8 +74,6 @@ class _HotPageState extends State<HotPage> with AutomaticKeepAliveClientMixin {
   Widget build(BuildContext context) {
     super.build(context);
     return RefreshIndicator(
-      displacement: 10.0,
-      edgeOffset: 10.0,
       onRefresh: () async {
         return await _hotController.onRefresh();
       },
@@ -82,41 +81,55 @@ class _HotPageState extends State<HotPage> with AutomaticKeepAliveClientMixin {
         physics: const AlwaysScrollableScrollPhysics(),
         controller: _hotController.scrollController,
         slivers: [
-          SliverPadding(
-            // 单列布局 EdgeInsets.zero
-            padding: const EdgeInsets.fromLTRB(
-                StyleString.safeSpace, StyleString.safeSpace - 5, 0, 0),
-            sliver: FutureBuilder(
-              future: _futureBuilderFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  Map data = snapshot.data as Map;
-                  if (data['status']) {
-                    return Obx(
-                      () => SliverGrid(
-                        gridDelegate: SliverGridDelegateWithExtentAndRatio(
-                            mainAxisSpacing: StyleString.safeSpace,
-                            crossAxisSpacing: StyleString.safeSpace,
-                            maxCrossAxisExtent: Grid.maxRowWidth * 2,
-                            childAspectRatio: StyleString.aspectRatio * 2.4,
-                            mainAxisExtent: 0),
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          return VideoCardH(
-                            videoItem: _hotController.videoList[index],
-                            showPubdate: true,
-                            longPress: () {
-                              _hotController.popupDialog.add(_createPopupDialog(
-                                  _hotController.videoList[index]));
-                              Overlay.of(context)
-                                  .insert(_hotController.popupDialog.last!);
-                            },
-                            longPressEnd: _removePopupDialog,
-                          );
-                        }, childCount: _hotController.videoList.length),
+          FutureBuilder(
+            future: _futureBuilderFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                Map data = snapshot.data as Map;
+                if (data['status']) {
+                  return Obx(
+                    () => SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(StyleString.safeSpace,
+                          StyleString.safeSpace - 5, 0, 0),
+                      sliver: AnimationLimiter(
+                        child: SliverGrid(
+                          gridDelegate: SliverGridDelegateWithExtentAndRatio(
+                              mainAxisSpacing: StyleString.safeSpace,
+                              crossAxisSpacing: StyleString.safeSpace,
+                              maxCrossAxisExtent: Grid.maxRowWidth * 2,
+                              childAspectRatio: StyleString.aspectRatio * 2.4,
+                              mainAxisExtent: 0),
+                          delegate:
+                              SliverChildBuilderDelegate((context, index) {
+                            return AnimationConfiguration.staggeredList(
+                              position: index,
+                              duration: const Duration(milliseconds: 375),
+                              child: SlideAnimation(
+                                verticalOffset: 50.0,
+                                child: FadeInAnimation(
+                                  child: VideoCardH(
+                                    videoItem: _hotController.videoList[index],
+                                    showPubdate: true,
+                                    longPress: () {
+                                      _hotController.popupDialog.add(
+                                          _createPopupDialog(
+                                              _hotController.videoList[index]));
+                                      Overlay.of(context).insert(
+                                          _hotController.popupDialog.last!);
+                                    },
+                                    longPressEnd: _removePopupDialog,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }, childCount: _hotController.videoList.length),
+                        ),
                       ),
-                    );
-                  } else {
-                    return HttpError(
+                    ),
+                  );
+                } else {
+                  return SliverToBoxAdapter(
+                    child: HttpError(
                       errMsg: data['msg'],
                       fn: () {
                         setState(() {
@@ -124,11 +137,15 @@ class _HotPageState extends State<HotPage> with AutomaticKeepAliveClientMixin {
                               _hotController.queryHotFeed('init');
                         });
                       },
-                    );
-                  }
-                } else {
-                  // 骨架屏
-                  return SliverGrid(
+                    ),
+                  );
+                }
+              } else {
+                // 骨架屏
+                return SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                      StyleString.safeSpace, StyleString.safeSpace - 5, 0, 0),
+                  sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                         mainAxisSpacing: StyleString.cardSpace,
                         crossAxisSpacing: StyleString.cardSpace,
@@ -137,10 +154,10 @@ class _HotPageState extends State<HotPage> with AutomaticKeepAliveClientMixin {
                     delegate: SliverChildBuilderDelegate((context, index) {
                       return const VideoCardHSkeleton();
                     }, childCount: 10),
-                  );
-                }
-              },
-            ),
+                  ),
+                );
+              }
+            },
           ),
           SliverToBoxAdapter(
             child: SizedBox(
