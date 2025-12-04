@@ -61,6 +61,13 @@ Android相关版本：
 > targetSdk: 34
 > compileSdk: 34
 
+## HarmonyOS 适配说明
+
+- 亮度控制使用 `aaassseee/screen_brightness` 的 HarmonyOS fork，并通过 `dependency_overrides` 将 `screen_brightness` 与 `screen_brightness_ohos` 指向同一仓库。保持默认配置即可获得系统亮度手势、亮度恢复等逻辑。
+- 音量控制依赖 `packages/flutter_volume_controller` 本地 fork，其中新增的 `ohos` 模块基于 `@kit.AudioKit` 的 `AudioVolumeManager` 完成 MethodChannel 与 EventChannel 的桥接，可处理手势音量、静音与监听。
+- 新环境拉取代码后执行 `flutter pub get`，确保 `dependency_overrides` 正确解析到本地插件；HarmonyOS 编译链会自动将 ArkTS Har 包一起打包。
+- 若单独参考插件用法，可阅读 `packages/flutter_volume_controller/README.md` 中的 HarmonyOS 章节，了解如何在其他项目启用同样的实现。
+
 下载后，如果Android编译失败并报了签名相关的问题（例如缺少jks文件等），请保证项目目录下的Android文件夹内存在key.properties，且里面的内容类似于
 ```text
 storePassword=aaaaaaaa

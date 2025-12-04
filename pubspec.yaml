@@ -190,6 +190,10 @@ dependency_overrides:
     git:
       url: https://github.com/aaassseee/screen_brightness.git
       path: screen_brightness_ohos
+  flutter_volume_controller:
+    git:
+      url: https://github.com/Nexus6741/flutter_volume_controller_oh.git
+      ref: main
   mime:
     git: https://github.com/orz12/mime.git
   fading_edge_scrollview: ^4.1.1
