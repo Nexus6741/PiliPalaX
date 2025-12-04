@@ -102,6 +102,76 @@ class SettingController extends GetxController {
     setting.put(SettingBoxKey.feedBackEnable, feedBackEnable.value);
   }
 
+  // 设置震动反馈类型
+  setFeedBackType(BuildContext context) async {
+    int currentType = setting.get(SettingBoxKey.feedBackType, defaultValue: 0);
+    int? result = await showDialog(
+      context: context,
+      builder: (context) {
+        return SelectDialog<int>(
+          title: '震动反馈类型',
+          value: currentType,
+          values: FeedBackType.values.map((e) {
+            return {'title': e.description, 'value': e.code};
+          }).toList(),
+        );
+      },
+    );
+    if (result != null) {
+      setting.put(SettingBoxKey.feedBackType, result);
+      feedBack();
+      SmartDialog.showToast('设置成功');
+    }
+  }
+
+  // 设置自定义震动时长
+  setFeedBackDuration(BuildContext context) async {
+    int currentDuration =
+        setting.get(SettingBoxKey.feedBackDuration, defaultValue: 50);
+    TextEditingController textController =
+        TextEditingController(text: currentDuration.toString());
+
+    int? result = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('自定义震动时长'),
+          content: TextField(
+            controller: textController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: '时长（毫秒）',
+              hintText: '建议 20-200',
+              suffixText: 'ms',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                int? duration = int.tryParse(textController.text);
+                if (duration != null && duration > 0 && duration <= 1000) {
+                  Get.back(result: duration);
+                } else {
+                  SmartDialog.showToast('请输入 1-1000 之间的数值');
+                }
+              },
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result != null) {
+      setting.put(SettingBoxKey.feedBackDuration, result);
+      feedBack();
+      SmartDialog.showToast('设置成功：${result}ms');
+    }
+  }
+
   // 设置动态未读标记
   setDynamicBadgeMode(BuildContext context) async {
     DynamicBadgeMode? result = await showDialog(

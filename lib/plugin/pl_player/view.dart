@@ -887,6 +887,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
 
                 if (cumulativeDy > threshold) {
                   _gestureType = 'middle_down';
+                  feedBack();
                   actionTrigger(middleGestureAction[_.isFullScreen.value
                       ? PlayerMiddleGesture.fullScreenDown
                       : PlayerMiddleGesture.nonFullScreenDown]!);
@@ -894,6 +895,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                   // print('middle_down:$cumulativeDy');
                 } else if (cumulativeDy < -threshold) {
                   _gestureType = 'middle_up';
+                  feedBack();
                   actionTrigger(middleGestureAction[_.isFullScreen.value
                       ? PlayerMiddleGesture.fullScreenUp
                       : PlayerMiddleGesture.nonFullScreenUp]!);

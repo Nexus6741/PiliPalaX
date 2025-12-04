@@ -93,6 +93,8 @@ class SettingBoxKey {
       defaultVideoSpeed = 'defaultVideoSpeed',
       autoUpgradeEnable = 'autoUpgradeEnable',
       feedBackEnable = 'feedBackEnable',
+      feedBackType = 'feedBackType',
+      feedBackDuration = 'feedBackDuration',
       defaultVideoQa = 'defaultVideoQa',
       defaultAudioQa = 'defaultAudioQa',
       autoPlayEnable = 'autoPlayEnable',

@@ -774,6 +774,15 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.0"
+  haptic_feedback_ohos:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: "61e39e19ce62c2e675e5addc54a67a36413558ed"
+      url: "https://github.com/Nexus6741/haptic_feedback_ohos.git"
+    source: git
+    version: "1.0.0"
   hive:
     dependency: "direct main"
     description:

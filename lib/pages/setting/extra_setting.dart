@@ -152,9 +152,9 @@ class _ExtraSettingState extends State<ExtraSetting> {
                 scale: 0.8,
                 child: Switch(
                     thumbIcon: WidgetStateProperty.resolveWith<Icon?>(
-                        (Set<MaterialState> states) {
+                        (Set<WidgetState> states) {
                       if (states.isNotEmpty &&
-                          states.first == MaterialState.selected) {
+                          states.first == WidgetState.selected) {
                         return const Icon(Icons.done);
                       }
                       return null; // All other states will use the default thumbIcon.
@@ -163,6 +163,30 @@ class _ExtraSettingState extends State<ExtraSetting> {
                     onChanged: (value) => settingController.onOpenFeedBack()),
               ),
             ),
+          ),
+          Obx(
+            () => settingController.feedBackEnable.value
+                ? ListTile(
+                    enableFeedback: true,
+                    onTap: () => settingController.setFeedBackType(context),
+                    leading: const Icon(Icons.touch_app_outlined),
+                    title: Text('震动类型', style: titleStyle),
+                    subtitle: Text('选择震动反馈的强度类型', style: subTitleStyle),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          Obx(
+            () => settingController.feedBackEnable.value
+                ? ListTile(
+                    enableFeedback: true,
+                    onTap: () => settingController.setFeedBackDuration(context),
+                    leading: const Icon(Icons.timer_outlined),
+                    title: Text('自定义震动时长', style: titleStyle),
+                    subtitle: Text('设置自定义震动的持续时长（毫秒）', style: subTitleStyle),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  )
+                : const SizedBox.shrink(),
           ),
           const SetSwitchItem(
             title: '大家都在搜',
@@ -288,9 +312,9 @@ class _ExtraSettingState extends State<ExtraSetting> {
               scale: 0.8,
               child: Switch(
                 thumbIcon: WidgetStateProperty.resolveWith<Icon?>(
-                    (Set<MaterialState> states) {
+                    (Set<WidgetState> states) {
                   if (states.isNotEmpty &&
-                      states.first == MaterialState.selected) {
+                      states.first == WidgetState.selected) {
                     return const Icon(Icons.done);
                   }
                   return null; // All other states will use the default thumbIcon.

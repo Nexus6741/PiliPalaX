@@ -119,6 +119,11 @@ dependencies:
 
   # 音量、亮度、屏幕控制
   flutter_volume_controller: ^1.3.3
+  # 震动反馈
+  haptic_feedback_ohos:
+    git:
+      url: https://github.com/Nexus6741/haptic_feedback_ohos.git
+      ref: main
   wakelock_plus: ^1.2.10
   universal_platform: ^1.0.0+1
   auto_orientation:
