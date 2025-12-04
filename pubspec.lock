@@ -1382,11 +1382,11 @@ packages:
     source: hosted
     version: "4.0.1"
   screen_brightness:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: screen_brightness
-      ref: master
-      resolved-ref: "944b857cc62fc0de0a4028b9f95022748edbab31"
+      ref: HEAD
+      resolved-ref: "7e8a7e362af3a3aeab6cbafe8db3c3bac7ff3f63"
       url: "https://github.com/aaassseee/screen_brightness.git"
     source: git
     version: "2.1.7"
@@ -1415,12 +1415,13 @@ packages:
     source: hosted
     version: "2.1.1"
   screen_brightness_ohos:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: screen_brightness_ohos
-      sha256: a93a263dcd39b5c56e589eb495bcd001ce65cdd96ff12ab1350683559d5c5bb7
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: screen_brightness_ohos
+      ref: HEAD
+      resolved-ref: "7e8a7e362af3a3aeab6cbafe8db3c3bac7ff3f63"
+      url: "https://github.com/aaassseee/screen_brightness.git"
+    source: git
     version: "2.1.2"
   screen_brightness_platform_interface:
     dependency: transitive

@@ -1119,6 +1119,9 @@ class PlPlayerController {
     } catch (err) {
       print(err);
     }
+    try {
+      await _videoPlayerController?.setVolume(volumeNew * 100);
+    } catch (_) {}
   }
 
   void volumeUpdated() {

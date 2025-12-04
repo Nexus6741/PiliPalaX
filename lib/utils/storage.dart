@@ -135,6 +135,7 @@ class SettingBoxKey {
       continuePlayInBackground = 'continuePlayInBackground',
       enableKeepFullScreen = 'enableKeepFullScreen',
       setSystemBrightness = 'setSystemBrightness',
+      restoreBrightnessOnExit = 'restoreBrightnessOnExit',
 
       /// 隐私
       anonymity = 'anonymity',

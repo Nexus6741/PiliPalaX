@@ -294,6 +294,13 @@ class _PlaySettingState extends State<PlaySetting> {
             defaultVal: false,
           ),
           const SetSwitchItem(
+            title: '退出视频后恢复亮度',
+            subTitle: '退出播放页时将亮度恢复为首次调节前的值',
+            leading: Icon(Icons.light_mode_outlined),
+            setKey: SettingBoxKey.restoreBrightnessOnExit,
+            defaultVal: true,
+          ),
+          const SetSwitchItem(
             title: '后台音频服务',
             subTitle: '避免画中画没有播放暂停功能',
             leading: Icon(Icons.volume_up_outlined),

@@ -127,6 +127,8 @@ dependencies:
       ref: master
   protobuf: ^3.0.0
   animations: ^2.0.8
+  screen_brightness: ^2.1.6
+
 
   # 获取appx信息
   package_info_plus: ^8.0.2
@@ -180,6 +182,14 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
 #  android_window: ^0.4.0
 dependency_overrides:
+  screen_brightness:
+    git:
+      url: https://github.com/aaassseee/screen_brightness.git
+      path: screen_brightness
+  screen_brightness_ohos:
+    git:
+      url: https://github.com/aaassseee/screen_brightness.git
+      path: screen_brightness_ohos
   mime:
     git: https://github.com/orz12/mime.git
   fading_edge_scrollview: ^4.1.1
@@ -198,11 +208,6 @@ dependency_overrides:
     git:
       url: https://gitcode.com/openharmony-sig/flutter_packages.git
       path: "packages/path_provider/path_provider"
-  screen_brightness:
-    git:
-      url: https://github.com/aaassseee/screen_brightness.git
-      ref: master
-      path: ./screen_brightness
   # video_player:
   #   # git:
   #   #   url: https://gitcode.com/openharmony-sig/flutter_packages.git

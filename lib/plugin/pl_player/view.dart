@@ -7,6 +7,7 @@ import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
 import 'package:PiliPalaX/utils/id_utils.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 // import 'package:fl_pip/fl_pip.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
@@ -18,7 +19,6 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:PiliPalaX/plugin/pl_player/controller.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/duration.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/fullscreen_mode.dart';
-import 'package:PiliPalaX/plugin/pl_player/utils.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:saver_gallery/saver_gallery.dart';
@@ -82,11 +82,16 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   final RxDouble _brightnessValue = 0.0.obs;
   final RxBool _brightnessIndicator = false.obs;
   Timer? _brightnessTimer;
+  StreamSubscription<double>? _brightnessSubscription;
+  bool _forceApplicationBrightness = false;
+  double? _initialBrightnessSnapshot;
+  bool _snapshotUsesSystemBrightness = false;
 
   final RxDouble _volumeValue = 0.0.obs;
   final RxBool _volumeIndicator = false.obs;
   Timer? _volumeTimer;
 
+  // ignore: unused_field
   final RxDouble _distance = 0.0.obs;
   final RxBool _volumeInterceptEventStream = false.obs;
 
@@ -98,6 +103,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   // late bool enableFloatingWindowGesture;
   late Map<PlayerMiddleGesture, PlayerGestureAction> middleGestureAction;
   late bool setSystemBrightness;
+  late bool restoreBrightnessOnExit;
   late bool enableExtraButtonOnFullScreen;
 
   Offset _initialFocalPoint = Offset.zero;
@@ -108,10 +114,100 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   // 是否在调整固定进度条
   RxBool draggingFixedProgressBar = false.obs;
   // 阅读器限制
+  // ignore: unused_field
   Timer? _accessibilityDebounce;
+  // ignore: unused_field
   final double _lastAnnouncedValue = -1;
 
   bool onlyPlayAudioUponEnteringBackgroundMode = false;
+
+  void _updateBrightnessValue(double value) {
+    _brightnessValue.value = value;
+    widget.controller.brightness.value = value;
+  }
+
+  void _handleSystemBrightnessFailure(Object? error) {
+    if (_forceApplicationBrightness || !setSystemBrightness) {
+      return;
+    }
+    _forceApplicationBrightness = true;
+    _snapshotUsesSystemBrightness = false;
+    _bindBrightnessStream();
+    debugPrint('System brightness adjustment failed: $error');
+  }
+
+  void _bindBrightnessStream() {
+    _brightnessSubscription?.cancel();
+    try {
+      final stream = setSystemBrightness && !_forceApplicationBrightness
+          ? ScreenBrightness.instance.onSystemScreenBrightnessChanged
+          : ScreenBrightness.instance.onApplicationScreenBrightnessChanged;
+      _brightnessSubscription = stream.listen(
+        (value) {
+          if (mounted) {
+            _updateBrightnessValue(value);
+          }
+        },
+        onError: (error) => debugPrint('Brightness stream error: $error'),
+      );
+    } catch (error) {
+      debugPrint('Failed to bind brightness listener: $error');
+    }
+  }
+
+  Future<bool> _shouldFallbackToApplication(double target) async {
+    try {
+      final current = await ScreenBrightness.instance.current;
+      _updateBrightnessValue(current);
+      return (current - target).abs() > 0.02;
+    } catch (error) {
+      debugPrint('Brightness verification failed: $error');
+      return true;
+    }
+  }
+
+  void _captureBrightnessSnapshot() {
+    if (!restoreBrightnessOnExit || _initialBrightnessSnapshot != null) {
+      return;
+    }
+    _initialBrightnessSnapshot = _brightnessValue.value;
+    _snapshotUsesSystemBrightness =
+        setSystemBrightness && !_forceApplicationBrightness;
+  }
+
+  Future<void> _restoreBrightnessIfNeeded() async {
+    if (!restoreBrightnessOnExit || _initialBrightnessSnapshot == null) {
+      return;
+    }
+    final bool useSystem =
+        _snapshotUsesSystemBrightness && !_forceApplicationBrightness;
+    try {
+      if (useSystem) {
+        await ScreenBrightness.instance
+            .setSystemScreenBrightness(_initialBrightnessSnapshot!);
+      } else {
+        await ScreenBrightness.instance
+            .setApplicationScreenBrightness(_initialBrightnessSnapshot!);
+      }
+    } catch (error) {
+      debugPrint('Failed to restore brightness: $error');
+    }
+  }
+
+  void _initializeBrightnessState() {
+    try {
+      ScreenBrightness.instance.current.then((value) {
+        if (mounted) {
+          _updateBrightnessValue(value);
+        }
+      }).catchError((error) {
+        debugPrint('Failed to read current brightness: $error');
+      });
+    } catch (error) {
+      debugPrint('Brightness initialization error: $error');
+    }
+    _bindBrightnessStream();
+  }
 
   void onDoubleTapSeekBackward() {
     _mountSeekBackwardButton.value = true;
@@ -198,8 +294,23 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     //     .get(SettingBoxKey.enableFloatingWindowGesture, defaultValue: true);
     setSystemBrightness =
         setting.get(SettingBoxKey.setSystemBrightness, defaultValue: false);
+    restoreBrightnessOnExit =
+        setting.get(SettingBoxKey.restoreBrightnessOnExit, defaultValue: true);
     enableExtraButtonOnFullScreen = setting
         .get(SettingBoxKey.enableExtraButtonOnFullScreen, defaultValue: true);
+
+    _initializeBrightnessState();
+
+    // 初始化音量
+    try {
+      FlutterVolumeController.getVolume().then((value) {
+        _volumeValue.value = value ?? 0.0;
+        widget.controller.volume.value = value ?? 0.0;
+      });
+    } catch (e) {
+      print(e);
+    }
+
     Map<int, int> gestureCodeMap = Map<int, int>.from(
         setting.get(SettingBoxKey.playerGestureActionMap, defaultValue: {
       PlayerMiddleGesture.nonFullScreenUp.code:
@@ -229,33 +340,15 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         });
       } catch (_) {}
     });
-
-    Future.microtask(() async {
-      try {
-        _brightnessValue.value = await ScreenBrightness.instance.system;
-        if (setSystemBrightness) {
-          ScreenBrightness.instance.onSystemScreenBrightnessChanged
-              .listen((value) {
-            if (mounted) {
-              _brightnessValue.value = value;
-            }
-          });
-        } else {
-          ScreenBrightness.instance.onApplicationScreenBrightnessChanged
-              .listen((value) {
-            if (mounted) {
-              _brightnessValue.value = value;
-            }
-          });
-        }
-      } catch (_) {}
-    });
   }
 
   Future<void> setVolume(double value) async {
     try {
       FlutterVolumeController.updateShowSystemUI(false);
       await FlutterVolumeController.setVolume(value);
+    } catch (_) {}
+    try {
+      await widget.controller.videoPlayerController?.setVolume(value * 100);
     } catch (_) {}
     _volumeValue.value = value;
     _volumeIndicator.value = true;
@@ -270,15 +363,34 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   }
 
   Future<void> setBrightness(double value) async {
-    try {
-      // await ScreenBrightness().setScreenBrightness(value);
-      if (setSystemBrightness) {
+    _captureBrightnessSnapshot();
+    bool applied = false;
+    final bool useSystem = setSystemBrightness && !_forceApplicationBrightness;
+    if (useSystem) {
+      try {
         await ScreenBrightness.instance.setSystemScreenBrightness(value);
-      } else {
-        await ScreenBrightness.instance.setApplicationScreenBrightness(value);
+        applied = true;
+      } catch (error) {
+        final bool fallbackNeeded = await _shouldFallbackToApplication(value);
+        if (fallbackNeeded) {
+          _handleSystemBrightnessFailure(error);
+        } else {
+          applied = true;
+        }
       }
-    } catch (e) {
-      print(e);
+    }
+
+    if (!applied) {
+      try {
+        await ScreenBrightness.instance.setApplicationScreenBrightness(value);
+        applied = true;
+      } catch (error) {
+        debugPrint('Application brightness adjustment failed: $error');
+      }
+    }
+
+    if (applied) {
+      _updateBrightnessValue(value);
     }
     _brightnessIndicator.value = true;
     _brightnessTimer?.cancel();
@@ -287,7 +399,6 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         _brightnessIndicator.value = false;
       }
     });
-    widget.controller.brightness.value = value;
   }
 
   @override
@@ -295,6 +406,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     animationController.dispose();
     widget.controller.disable();
     FlutterVolumeController.removeListener();
+    _brightnessSubscription?.cancel();
+    _restoreBrightnessIfNeeded();
     super.dispose();
   }
 
