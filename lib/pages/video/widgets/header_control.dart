@@ -24,6 +24,7 @@ import 'package:PiliPalaX/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/http/danmaku.dart';
 import 'package:PiliPalaX/services/shutdown_timer_service.dart';
+import 'package:device_info_ohos/device_info_ohos.dart';
 import '../../../../models/video/play/CDN.dart';
 import '../../../../models/video_detail_res.dart';
 import '../../setting/widgets/select_dialog.dart';
@@ -69,6 +70,11 @@ class _HeaderControlState extends State<HeaderControl> {
   late Timer clock;
   late String defaultCDNService;
 
+  // 电量信息
+  RxnInt batteryLevel = RxnInt();
+  RxBool isCharging = false.obs;
+  Timer? _batteryTimer;
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +90,7 @@ class _HeaderControlState extends State<HeaderControl> {
     defaultCDNService = setting.get(SettingBoxKey.CDNService,
         defaultValue: CDNService.backupUrl.code);
     startClock();
+    _updateBattery(); // 初始化时获取电量
   }
 
   // void listenFullScreenStatus() {
@@ -105,7 +112,32 @@ class _HeaderControlState extends State<HeaderControl> {
     // widget.floating?.dispose();
     // fullScreenStatusListener.cancel();
     clock.cancel();
+    _batteryTimer?.cancel();
     super.dispose();
+  }
+
+  /// 更新电量信息
+  Future<void> _updateBattery() async {
+    // 仅在鸿蒙系统上获取电量
+    if (Platform.operatingSystem == 'ohos') {
+      try {
+        final info = await DeviceInfoOhos.getBatteryInfo();
+        if (info != null && mounted) {
+          batteryLevel.value = info.level;
+          isCharging.value = info.isCharging;
+        }
+      } catch (e) {
+        debugPrint('Failed to get battery info: $e');
+      }
+    }
+
+    // 启动定时器，每30秒更新一次电量
+    _batteryTimer?.cancel();
+    _batteryTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted && Platform.operatingSystem == 'ohos') {
+        _updateBattery();
+      }
+    });
   }
 
   /// 设置面板
@@ -1439,6 +1471,45 @@ class _HeaderControlState extends State<HeaderControl> {
     });
   }
 
+  /// 获取电池图标
+  IconData _getBatteryIcon() {
+    if (isCharging.value) {
+      return Icons.battery_charging_full;
+    }
+    final level = batteryLevel.value ?? 0;
+    if (level >= 95) {
+      return Icons.battery_full;
+    } else if (level >= 80) {
+      return Icons.battery_6_bar;
+    } else if (level >= 60) {
+      return Icons.battery_5_bar;
+    } else if (level >= 40) {
+      return Icons.battery_4_bar;
+    } else if (level >= 25) {
+      return Icons.battery_3_bar;
+    } else if (level >= 15) {
+      return Icons.battery_2_bar;
+    } else if (level >= 5) {
+      return Icons.battery_1_bar;
+    } else {
+      return Icons.battery_0_bar;
+    }
+  }
+
+  /// 获取电池颜色
+  Color _getBatteryColor() {
+    if (isCharging.value) {
+      return Colors.green;
+    }
+    final level = batteryLevel.value ?? 100;
+    if (level <= 15) {
+      return Colors.red;
+    } else if (level <= 30) {
+      return Colors.orange;
+    }
+    return Colors.white;
+  }
+
   Widget shootDanmakuButton() {
     return SizedBox(
       width: 42,
@@ -1718,6 +1789,42 @@ class _HeaderControlState extends State<HeaderControl> {
                 danmakuSwitcher(),
                 pipButton(),
               ],
+              // 电量和时间显示（右上角，三个点旁边）
+              if (Platform.operatingSystem == 'ohos')
+                Obx(() {
+                  final level = batteryLevel.value;
+                  if (level == null) return const SizedBox.shrink();
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getBatteryIcon(),
+                        color: _getBatteryColor(),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '$level%',
+                        style: TextStyle(
+                          color: _getBatteryColor(),
+                          fontSize: 14,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              const SizedBox(width: 8),
+              Obx(
+                () => Text(
+                  now.value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
               SizedBox(
                 width: 42,
                 height: 34,
@@ -1743,23 +1850,10 @@ class _HeaderControlState extends State<HeaderControl> {
                       : 15),
           // if ((isFullScreen || !horizontalScreen))
           // const Spacer(),
-          // show current datetime
+          // show fullscreen action buttons
           if (widget.controller!.isFullScreen.value || equivalentFullScreen())
             Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-              Obx(
-                () => Text(
-                  "   ${now.value}",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                  semanticsLabel: '当前时间：'
-                      '${now.value.split(':')[0]}点'
-                      '${now.value.split(':')[1]}分',
-                ),
-              ),
-              const SizedBox(width: 1.5),
+              const SizedBox(width: 10),
               if (widget.controller!.isFullScreen.value)
                 const SizedBox(width: 42),
               for (var i = 0; i < 11; i++) const SizedBox(width: 0),

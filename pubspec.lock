@@ -399,6 +399,15 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.7.10"
+  device_info_ohos:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: ed0ab5aad26b457011f811bd9dbc3ae302568101
+      url: "https://github.com/Nexus6741/device_info_ohos.git"
+    source: git
+    version: "1.0.0"
   device_info_plus:
     dependency: "direct main"
     description:
