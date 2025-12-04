@@ -26,6 +26,10 @@ class Api {
   // aid, cid
   static const String subtitleUrl = '/x/player/wbi/v2';
 
+  // 视频缩略图（进度条预览）
+  // https://api.bilibili.com/x/player/videoshot?bvid=xxx&cid=xxx&index=1
+  static const String videoShot = '/x/player/videoshot';
+
   // 视频详情
   // 竖屏 https://api.bilibili.com/x/web-interface/view?aid=527403921
   // https://api.bilibili.com/x/web-interface/view/detail  获取视频超详细信息(web端)

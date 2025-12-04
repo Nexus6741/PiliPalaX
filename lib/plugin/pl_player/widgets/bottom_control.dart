@@ -70,6 +70,10 @@ class BottomControl extends StatelessWidget implements PreferredSizeWidget {
                         _.onChangedSliderStart();
                       },
                       onDragUpdate: (duration) {
+                        // 更新预览缩略图索引（非直播模式）
+                        if (_.showSeekPreview && _.videoType.value != 'live') {
+                          _.updatePreviewIndex(duration.timeStamp.inSeconds);
+                        }
                         double newProgress = duration.timeStamp.inSeconds / max;
                         if ((newProgress - lastAnnouncedValue).abs() > 0.02) {
                           accessibilityDebounce?.cancel();
@@ -84,6 +88,10 @@ class BottomControl extends StatelessWidget implements PreferredSizeWidget {
                         _.onUpdatedSliderProgress(duration.timeStamp);
                       },
                       onSeek: (duration) {
+                        // 隐藏预览
+                        if (_.showSeekPreview) {
+                          _.showPreview.value = false;
+                        }
                         _.onChangedSliderEnd();
                         _.onChangedSlider(duration.inSeconds.toDouble());
                         _.seekTo(Duration(seconds: duration.inSeconds),

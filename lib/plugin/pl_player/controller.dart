@@ -5,7 +5,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
+import 'package:dio/dio.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 // import 'package:fl_pip/fl_pip.dart';
 import 'package:flutter/material.dart';
@@ -24,12 +26,15 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:canvas_danmaku/canvas_danmaku.dart';
 import 'package:PiliPalaX/http/video.dart';
+import 'package:PiliPalaX/http/init.dart';
+import 'package:PiliPalaX/http/api.dart';
 import 'package:PiliPalaX/pages/mine/controller.dart';
 import 'package:PiliPalaX/plugin/pl_player/index.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPalaX/services/service_locator.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/storage.dart';
+import 'package:PiliPalaX/models/video/video_shot_data.dart';
 // import 'package:screen_brightness/screen_brightness.dart';
 import 'package:universal_platform/universal_platform.dart';
 import '../../models/video/play/subtitle.dart';
@@ -37,7 +42,7 @@ import '../../pages/video/controller.dart';
 import '../../pages/video/introduction/bangumi/controller.dart';
 import '../../pages/video/introduction/detail/controller.dart';
 // import '../../pages/video/controller.dart';
-// import 'package:wakelock_plus/wakelock_plus.dart';
+// import 'package:wakelock_plus/wakelock_plus.dart;';
 
 Box videoStorage = GStorage.video;
 Box setting = GStorage.setting;
@@ -243,6 +248,19 @@ class PlPlayerController {
   Rx<bool> get doubleSpeedStatus => _doubleSpeedStatus;
 
   Rx<bool> isBuffering = true.obs;
+
+  /// 进度条预览相关
+  Map<String, WeakReference<ui.Image>>? previewCache;
+  VideoShotData? _videoShotData;
+  bool _videoShotLoading = false;
+  bool _videoShotError = false;
+  final RxBool showPreview = false.obs;
+  late final bool showSeekPreview =
+      setting.get(SettingBoxKey.showSeekPreview, defaultValue: true);
+  final RxnInt previewIndex = RxnInt();
+
+  /// 视频截图数据
+  VideoShotData? get videoShotData => _videoShotData;
 
   /// 屏幕锁 为true时，关闭控制栏
   Rx<bool> get controlsLock => _controlsLock;
@@ -517,6 +535,11 @@ class PlPlayerController {
       _cid = cid;
       _enableHeart = enableHeart;
       isVideoLoaded.value = false;
+
+      // 切换视频时清除预览缓存
+      if (showSeekPreview) {
+        _clearPreview();
+      }
 
       // 重置全屏状态
       bool enableKeepFullScreen =
@@ -1606,6 +1629,90 @@ class PlPlayerController {
     setting.put(SettingBoxKey.danmakuMassiveMode, massiveMode);
   }
 
+  /// 上次请求预览时的秒数
+  int _lastPreviewSeconds = 0;
+
+  /// 更新预览索引
+  void updatePreviewIndex(int seconds) {
+    _lastPreviewSeconds = seconds;
+    if (_videoShotError) return;
+    if (_videoShotData == null) {
+      if (!_videoShotLoading) {
+        _videoShotLoading = true;
+        getVideoShot().then((_) {
+          // 数据加载完成后，如果仍在拖动进度条，重新调用更新预览索引
+          if (_videoShotData != null && _isSliderMoving.value) {
+            updatePreviewIndex(_lastPreviewSeconds);
+          }
+        });
+      }
+      return;
+    }
+    if (!showPreview.value) {
+      showPreview.value = true;
+    }
+    previewIndex.value = max(
+      0,
+      (_videoShotData!.index.where((item) => item <= seconds).length - 2),
+    );
+  }
+
+  /// 清除预览缓存
+  void _clearPreview() {
+    showPreview.value = false;
+    previewIndex.value = null;
+    _videoShotData = null;
+    _videoShotLoading = false;
+    _videoShotError = false;
+    previewCache
+      ?..forEach((_, ref) {
+        try {
+          ref.target?.dispose();
+        } catch (_) {}
+      })
+      ..clear();
+    previewCache = null;
+  }
+
+  /// 获取视频截图数据
+  Future<void> getVideoShot() async {
+    if (_bvid.isEmpty || _cid == 0) {
+      _videoShotError = true;
+      _videoShotLoading = false;
+      return;
+    }
+    try {
+      var res = await Request().get(
+        Api.videoShot,
+        data: {
+          'bvid': _bvid,
+          'cid': _cid,
+          'index': 1,
+        },
+        options: Options(
+          headers: {
+            'user-agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'referer': 'https://www.bilibili.com/video/$_bvid',
+          },
+        ),
+      );
+      if (res.data['code'] == 0) {
+        final data = VideoShotData.fromJson(res.data['data']);
+        if (data.index.isNotEmpty) {
+          _videoShotData = data;
+          _videoShotLoading = false;
+          return;
+        }
+      }
+      _videoShotError = true;
+      _videoShotLoading = false;
+    } catch (_) {
+      _videoShotError = true;
+      _videoShotLoading = false;
+    }
+  }
+
   Future<void> dispose() async {
     // 每次减1，最后销毁
     // if (type == 'single' && playerCount.value > 1) {
@@ -1617,6 +1724,7 @@ class PlPlayerController {
     // _playerCount.value = 0;
     pause();
     try {
+      _clearPreview();
       _timer?.cancel();
       _timerForVolume?.cancel();
       _timerForGettingVolume?.cancel();

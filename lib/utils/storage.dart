@@ -135,6 +135,7 @@ class SettingBoxKey {
       enableShowLiveDanmaku = 'enableShowLiveDanmaku',
       enableBackgroundPlay = 'enableBackgroundPlay',
       continuePlayInBackground = 'continuePlayInBackground',
+      showSeekPreview = 'showSeekPreview',
       enableKeepFullScreen = 'enableKeepFullScreen',
       setSystemBrightness = 'setSystemBrightness',
       restoreBrightnessOnExit = 'restoreBrightnessOnExit',

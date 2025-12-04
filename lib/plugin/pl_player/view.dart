@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui';
+import 'dart:ui' as ui;
 
 import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
 import 'package:PiliPalaX/utils/id_utils.dart';
+import 'package:PiliPalaX/models/video/video_shot_data.dart';
+import 'package:PiliPalaX/http/init.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 // import 'package:fl_pip/fl_pip.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_volume_controller/flutter_volume_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -972,50 +976,72 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           ),
         ),
 
-        /// 时间进度 toast
+        /// 时间进度 toast 和预览缩略图
         IgnorePointer(
           ignoring: true,
           child: Align(
-            alignment: Alignment.topCenter,
+            alignment: Alignment.center,
             child: FractionalTranslation(
-              translation: const Offset(0.0, 1.0), // 上下偏移量（负数向上偏移）
-              child: Obx(
-                () => AnimatedOpacity(
-                  curve: Curves.easeInOut,
-                  opacity: _.isSliderMoving.value ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: IntrinsicWidth(
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: const Color(0x88000000),
-                        borderRadius: BorderRadius.circular(64.0),
-                      ),
-                      height: 34.0,
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Obx(() {
-                            return Text(
-                              Utils.timeFormat(_.sliderPositionSeconds.value),
-                              style: textStyle,
-                            );
-                          }),
-                          const SizedBox(width: 2),
-                          const Text('/', style: textStyle),
-                          const SizedBox(width: 2),
-                          Obx(
-                            () => Text(
-                              Utils.timeFormat(_.durationSeconds.value),
-                              style: textStyle,
-                            ),
+              translation: const Offset(0.0, -0.3), // 向上偏移一点，使其位于屏幕中间偏上
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 预览缩略图
+                  if (_.showSeekPreview)
+                    Obx(() {
+                      final isVisible =
+                          _.showPreview.value && _.isSliderMoving.value;
+                      return AnimatedOpacity(
+                        curve: Curves.easeInOut,
+                        opacity: isVisible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 150),
+                        child: isVisible && _.videoShotData != null
+                            ? _buildPreviewImageWidget(_, context)
+                            : const SizedBox.shrink(),
+                      );
+                    }),
+                  const SizedBox(height: 8),
+                  // 时间显示
+                  Obx(
+                    () => AnimatedOpacity(
+                      curve: Curves.easeInOut,
+                      opacity: _.isSliderMoving.value ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 150),
+                      child: IntrinsicWidth(
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0x88000000),
+                            borderRadius: BorderRadius.circular(64.0),
                           ),
-                        ],
+                          height: 34.0,
+                          padding: const EdgeInsets.only(left: 10, right: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Obx(() {
+                                return Text(
+                                  Utils.timeFormat(
+                                      _.sliderPositionSeconds.value),
+                                  style: textStyle,
+                                );
+                              }),
+                              const SizedBox(width: 2),
+                              const Text('/', style: textStyle),
+                              const SizedBox(width: 2),
+                              Obx(
+                                () => Text(
+                                  Utils.timeFormat(_.durationSeconds.value),
+                                  style: textStyle,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -1602,5 +1628,256 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         }),
       ],
     );
+  }
+}
+
+/// 构建预览图像 Widget
+Widget _buildPreviewImageWidget(
+    PlPlayerController controller, BuildContext context) {
+  final data = controller.videoShotData!;
+  // 根据全屏状态调整预览图大小
+  final double scale = controller.isFullScreen.value ? 6 : 5;
+  final double height = 27 * scale;
+  final int totalPerImage = data.totalPerImage;
+  double imgXSize = data.imgXSize;
+  double imgYSize = data.imgYSize;
+
+  return Obx(() {
+    final index = controller.previewIndex.value;
+    if (index == null) return const SizedBox.shrink();
+
+    // 计算雪碧图位置
+    final pageIndex = (index ~/ totalPerImage).clamp(0, data.image.length - 1);
+    final align = index % totalPerImage;
+    final x = align % data.imgXLen;
+    final y = align ~/ data.imgXLen;
+    final url = data.image[pageIndex];
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: VideoShotImage(
+        url: url,
+        x: x,
+        y: y,
+        imgXSize: imgXSize,
+        imgYSize: imgYSize,
+        height: height,
+        image: controller.previewCache?[url]?.target,
+        onCacheImg: (img) =>
+            (controller.previewCache ??= {})[url] ??= WeakReference(img),
+        onSetSize: (xSize, ySize) => data
+          ..imgXSize = imgXSize = xSize
+          ..imgYSize = imgYSize = ySize,
+      ),
+    );
+  });
+}
+
+/// 视频预览缩略图组件
+class VideoShotImage extends StatefulWidget {
+  const VideoShotImage({
+    super.key,
+    this.image,
+    required this.url,
+    required this.x,
+    required this.y,
+    required this.imgXSize,
+    required this.imgYSize,
+    required this.height,
+    required this.onCacheImg,
+    required this.onSetSize,
+  });
+
+  final ui.Image? image;
+  final String url;
+  final int x;
+  final int y;
+  final double imgXSize;
+  final double imgYSize;
+  final double height;
+  final ValueChanged<ui.Image> onCacheImg;
+  final Function(double imgXSize, double imgYSize) onSetSize;
+
+  @override
+  State<VideoShotImage> createState() => _VideoShotImageState();
+}
+
+class _VideoShotImageState extends State<VideoShotImage> {
+  late Size _size;
+  late Rect _dstRect;
+  late RRect _rrect;
+  ui.Image? _image;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSize();
+    _loadImg();
+  }
+
+  void _initSizeIfNeeded() {
+    if (_size.width.isNaN) {
+      _initSize();
+    }
+  }
+
+  void _initSize() {
+    if (widget.imgXSize == 0) {
+      if (_image != null) {
+        final imgXSize = _image!.width / 10;
+        final imgYSize = _image!.height / 10;
+        final height = widget.height;
+        final width = height * imgXSize / imgYSize;
+        _setRect(width, height);
+        widget.onSetSize(imgXSize, imgYSize);
+      } else {
+        _setRect(double.nan, double.nan);
+      }
+    } else {
+      final height = widget.height;
+      final width = height * widget.imgXSize / widget.imgYSize;
+      _setRect(width, height);
+    }
+  }
+
+  void _setRect(double width, double height) {
+    _size = Size(width, height);
+    _dstRect = Rect.fromLTWH(0, 0, width, height);
+    _rrect = RRect.fromRectAndRadius(_dstRect, const Radius.circular(8));
+  }
+
+  Future<void> _loadImg() async {
+    _image = widget.image;
+    if (_image != null) {
+      _initSizeIfNeeded();
+      if (mounted) setState(() {});
+    } else {
+      final image = await _getImg(widget.url);
+      if (mounted && image != null) {
+        _image = image;
+        widget.onCacheImg(image);
+        _initSizeIfNeeded();
+        setState(() {});
+      }
+    }
+  }
+
+  Future<ui.Image?> _getImg(String url) async {
+    try {
+      final cacheManager = DefaultCacheManager();
+      final cacheKey = _getFileName(url);
+      final fileInfo = await cacheManager.getFileFromCache(cacheKey);
+      if (fileInfo != null) {
+        final bytes = await fileInfo.file.readAsBytes();
+        return _loadImgFromBytes(bytes);
+      } else {
+        final res = await Request().get(
+          url,
+          extra: {'resType': ResponseType.bytes},
+        );
+        if (res.statusCode == 200) {
+          final Uint8List data = res.data;
+          cacheManager.putFile(cacheKey, data, fileExtension: 'jpg');
+          return _loadImgFromBytes(data);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String _getFileName(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.pathSegments.isNotEmpty) {
+      final fileName = uri.pathSegments.last;
+      final dotIndex = fileName.lastIndexOf('.');
+      if (dotIndex > 0) {
+        return fileName.substring(0, dotIndex);
+      }
+      return fileName;
+    }
+    return url.hashCode.toString();
+  }
+
+  Future<ui.Image?> _loadImgFromBytes(Uint8List bytes) async {
+    try {
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      codec.dispose();
+      return frame.image;
+    } catch (e) {
+      debugPrint('_loadImgFromBytes error: $e');
+      return null;
+    }
+  }
+
+  @override
+  void didUpdateWidget(VideoShotImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _loadImg();
+    }
+  }
+
+  final _imgPaint = Paint()..filterQuality = FilterQuality.medium;
+  final _borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.5;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_image != null && !_size.width.isNaN) {
+      return RepaintBoundary(
+        child: CustomPaint(
+          painter: _CroppedImagePainter(
+            image: _image!,
+            x: widget.x,
+            y: widget.y,
+            imgXSize: widget.imgXSize,
+            imgYSize: widget.imgYSize,
+            dstRect: _dstRect,
+            rrect: _rrect,
+            imgPaint: _imgPaint,
+            borderPaint: _borderPaint,
+          ),
+          size: _size,
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+}
+
+/// 裁剪雪碧图的 CustomPainter
+class _CroppedImagePainter extends CustomPainter {
+  final ui.Image image;
+  final Rect srcRect;
+  final Rect dstRect;
+  final RRect rrect;
+  final Paint imgPaint;
+  final Paint borderPaint;
+
+  _CroppedImagePainter({
+    required this.image,
+    required int x,
+    required int y,
+    required double imgXSize,
+    required double imgYSize,
+    required this.dstRect,
+    required this.rrect,
+    required this.imgPaint,
+    required this.borderPaint,
+  }) : srcRect = Rect.fromLTWH(x * imgXSize, y * imgYSize, imgXSize, imgYSize);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas
+      ..drawImageRect(image, srcRect, dstRect, imgPaint)
+      ..drawRRect(rrect, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(_CroppedImagePainter oldDelegate) {
+    return oldDelegate.image != image || oldDelegate.srcRect != srcRect;
   }
 }
