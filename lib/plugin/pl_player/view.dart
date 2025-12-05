@@ -90,6 +90,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   bool _forceApplicationBrightness = false;
   double? _initialBrightnessSnapshot;
   bool _snapshotUsesSystemBrightness = false;
+  bool _hasAdjustedBrightness = false; // 追踪是否使用了应用内亮度调节
 
   final RxDouble _volumeValue = 0.0.obs;
   final RxBool _volumeIndicator = false.obs;
@@ -180,6 +181,18 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   }
 
   Future<void> _restoreBrightnessIfNeeded() async {
+    // 如果使用了应用级别亮度，需要重置以让系统亮度调节重新生效
+    final bool usedApplicationBrightness =
+        _forceApplicationBrightness || !setSystemBrightness;
+    if (usedApplicationBrightness && _hasAdjustedBrightness) {
+      try {
+        // 重置应用级别的亮度覆盖，让系统亮度调节重新生效
+        await ScreenBrightness.instance.resetApplicationScreenBrightness();
+      } catch (error) {
+        debugPrint('Failed to reset application brightness: $error');
+      }
+    }
+
     if (!restoreBrightnessOnExit || _initialBrightnessSnapshot == null) {
       return;
     }
@@ -189,10 +202,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       if (useSystem) {
         await ScreenBrightness.instance
             .setSystemScreenBrightness(_initialBrightnessSnapshot!);
-      } else {
-        await ScreenBrightness.instance
-            .setApplicationScreenBrightness(_initialBrightnessSnapshot!);
       }
+      // 注意：对于应用亮度，我们已经调用了 reset，不需要再设置值
     } catch (error) {
       debugPrint('Failed to restore brightness: $error');
     }
@@ -368,6 +379,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
 
   Future<void> setBrightness(double value) async {
     _captureBrightnessSnapshot();
+    _hasAdjustedBrightness = true; // 标记已使用了应用内亮度调节
     bool applied = false;
     final bool useSystem = setSystemBrightness && !_forceApplicationBrightness;
     if (useSystem) {
