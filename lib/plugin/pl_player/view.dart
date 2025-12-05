@@ -792,6 +792,12 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                   } else {
                     // 右边区域
                     _gestureType = 'right';
+                    // 先获取设备真实音量值进行校准
+                    FlutterVolumeController.getVolume().then((value) {
+                      if (value != null) {
+                        _volumeValue.value = value;
+                      }
+                    });
                   }
                 } else {
                   return;
