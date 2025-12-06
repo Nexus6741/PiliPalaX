@@ -98,7 +98,7 @@ class VideoDetailController extends GetxController
   void onInit() async {
     super.onInit();
     final Map argMap = Get.arguments;
-    print("VideoDetailController args: $argMap");
+    // print("VideoDetailController args: $argMap");
     userInfo = userInfoCache.get('userInfoCache');
     var keys = argMap.keys.toList();
     if (keys.isNotEmpty) {
@@ -314,7 +314,7 @@ class VideoDetailController extends GetxController
       videoDetailCtr: this,
       heroTag: heroTag,
     );
-    print("resumePlay:$resumePlay,isFirstTime:$isFirstTime");
+    // print("resumePlay:$resumePlay,isFirstTime:$isFirstTime");
     if (!resumePlay) {
       await plPlayerController!.setDataSource(
         DataSource(
@@ -517,6 +517,6 @@ class VideoDetailController extends GetxController
   hiddenReplyReplyPanel() {
     replyReplyBottomSheetCtr != null
         ? replyReplyBottomSheetCtr!.close()
-        : print('replyReplyBottomSheetCtr is null');
+        : null; // print('replyReplyBottomSheetCtr is null');
   }
 }

@@ -38,7 +38,7 @@ class LiveHttp {
   }
 
   static Future liveRoomInfo({roomId, qn}) async {
-    debugPrint('[LiveHttp] liveRoomInfo: roomId=$roomId, qn=$qn');
+    // debugPrint('[LiveHttp] liveRoomInfo: roomId=$roomId, qn=$qn');
     final wbiSign = WbiSign();
     final params = await wbiSign.makSign({
       'room_id': roomId,
@@ -51,10 +51,10 @@ class LiveHttp {
       'dolby': 5,
       'panorama': 1,
     });
-    debugPrint('[LiveHttp] liveRoomInfo params: $params');
+    // debugPrint('[LiveHttp] liveRoomInfo params: $params');
     var res = await Request().get(Api.liveRoomInfo, data: params);
-    debugPrint(
-        '[LiveHttp] liveRoomInfo response code: ${res.data['code']}, msg: ${res.data['message']}');
+    // debugPrint(
+    //     '[LiveHttp] liveRoomInfo response code: ${res.data['code']}, msg: ${res.data['message']}');
     if (res.data['code'] == 0) {
       return {'status': true, 'data': RoomInfoModel.fromJson(res.data['data'])};
     } else {

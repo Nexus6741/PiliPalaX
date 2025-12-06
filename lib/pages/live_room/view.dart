@@ -21,7 +21,7 @@ class LiveRoomPage extends StatefulWidget {
 }
 
 class _LiveRoomPageState extends State<LiveRoomPage> {
-  final LiveRoomController _liveRoomController = Get.put(LiveRoomController());
+  late final LiveRoomController _liveRoomController;
   PlPlayerController? plPlayerController;
   late Future? _futureBuilder;
   late Future? _futureBuilderFuture;
@@ -32,6 +32,9 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
   @override
   void initState() {
     super.initState();
+    // 使用 roomId 作为 tag，确保每个直播间有独立的 controller
+    final roomId = Get.parameters['roomid']!;
+    _liveRoomController = Get.put(LiveRoomController(), tag: roomId);
     videoSourceInit();
     _futureBuilderFuture = _liveRoomController.queryLiveInfo();
     // 初始化直播弹幕显示状态
@@ -50,7 +53,25 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
 
   @override
   void dispose() {
-    plPlayerController!.disable();
+    // 检查是否有浮窗存在，如果有则不停止播放器
+    final hasFloatingWindow = floatingManager.containsFloating(globalId);
+    
+    if (!hasFloatingWindow) {
+      // 没有浮窗时，正常清理资源
+      final roomId = Get.parameters['roomid'];
+      if (roomId != null) {
+        Get.delete<LiveRoomController>(tag: roomId);
+      }
+      plPlayerController?.disable();
+    } else {
+      // 有浮窗时，只清理 controller 但不停止播放器
+      final roomId = Get.parameters['roomid'];
+      if (roomId != null) {
+        // 先标记不要停止播放器
+        _liveRoomController.shouldStopPlayerOnClose = false;
+        Get.delete<LiveRoomController>(tag: roomId);
+      }
+    }
     super.dispose();
   }
 

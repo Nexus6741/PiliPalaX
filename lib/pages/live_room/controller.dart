@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:canvas_danmaku/canvas_danmaku.dart';
 import 'package:PiliPalaX/http/constants.dart';
 import 'package:PiliPalaX/http/live.dart';
+import 'package:PiliPalaX/http/video.dart';
 import 'package:PiliPalaX/models/live/room_info.dart';
 import 'package:PiliPalaX/models/live/live_dm_info/data.dart';
 import 'package:PiliPalaX/models/live/live_danmaku/danmaku_msg.dart';
@@ -40,6 +41,9 @@ class LiveRoomController extends GetxController {
   RxInt currentQn = 10000.obs;
   RxString currentQnDesc = '原画'.obs;
   RxList<Map> acceptQnList = <Map>[].obs;
+
+  // 标志：是否在 onClose 时停止播放器（小窗模式下不停止）
+  bool shouldStopPlayerOnClose = true;
 
   bool get isLogin => GStorage.userInfo.get('userInfoCache') != null;
   int get myMid => GStorage.userInfo.get('userInfoCache')?.mid ?? 0;
@@ -165,6 +169,14 @@ class LiveRoomController extends GetxController {
     }
     // CDN优化
     // enableCDN = setting.get(SettingBoxKey.enableCDN, defaultValue: true);
+    
+    // 设置直播间 roomId 到播放器控制器（用于小窗恢复）
+    plPlayerController.setLiveRoomId(roomId);
+    
+    // 上报直播历史记录
+    if (isLogin && !GStorage.localCache.get(LocalCacheKey.historyPause, defaultValue: false)) {
+      VideoHttp.roomEntryAction(roomId: roomId, platform: 'web');
+    }
   }
 
   playerInit(source) async {
@@ -187,25 +199,18 @@ class LiveRoomController extends GetxController {
   }
 
   Future queryLiveInfo() async {
-    debugPrint(
-        '[LiveRoom] queryLiveInfo called, roomId: $roomId, qn: ${currentQn.value}');
     var res = await LiveHttp.liveRoomInfo(roomId: roomId, qn: currentQn.value);
-    debugPrint(
-        '[LiveRoom] liveRoomInfo result: status=${res['status']}, msg=${res['msg']}');
     if (res['status']) {
       try {
         RoomInfoModel data = res['data'];
 
         // 检查直播状态
         if (data.liveStatus != 1) {
-          debugPrint(
-              '[LiveRoom] Live is not streaming, status: ${data.liveStatus}');
           return res;
         }
 
         // 检查 playurlInfo
         if (data.playurlInfo?.playurl == null) {
-          debugPrint('[LiveRoom] playurlInfo or playurl is null');
           return res;
         }
 
@@ -218,7 +223,6 @@ class LiveRoomController extends GetxController {
         // 解析画质描述
         List<GQnDesc>? qnDesc = playurl.gQnDesc;
         if (qnDesc != null && qnDesc.isNotEmpty) {
-          debugPrint('[LiveRoom] qnDesc count: ${qnDesc.length}');
           acceptQnList.value =
               qnDesc.map((e) => {'code': e.qn, 'desc': e.desc}).toList();
           var current = qnDesc.firstWhere((e) => e.qn == currentQn.value,
@@ -228,37 +232,30 @@ class LiveRoomController extends GetxController {
 
         // 解析视频流
         if (playurl.stream == null || playurl.stream!.isEmpty) {
-          debugPrint('[LiveRoom] stream is null or empty');
           return res;
         }
 
         final stream = playurl.stream!.first;
         if (stream.format == null || stream.format!.isEmpty) {
-          debugPrint('[LiveRoom] format is null or empty');
           return res;
         }
 
         final format = stream.format!.first;
         if (format.codec == null || format.codec!.isEmpty) {
-          debugPrint('[LiveRoom] codec is null or empty');
           return res;
         }
 
         List<CodecItem> codec = format.codec!;
-        debugPrint('[LiveRoom] codec count: ${codec.length}');
         CodecItem item = codec.first;
 
         // 使用 getLiveCdnUrl 获取直播流 URL
         String videoUrl = VideoUtils.getLiveCdnUrl(item);
-        debugPrint('[LiveRoom] videoUrl: $videoUrl');
 
         if (videoUrl.isEmpty) {
-          debugPrint('[LiveRoom] videoUrl is empty');
           return res;
         }
 
         await playerInit(videoUrl);
-        debugPrint('[LiveRoom] playerInit completed');
 
         // 延迟初始化弹幕，确保 DanmakuScreen 已渲染
         Future.delayed(const Duration(milliseconds: 500), () {
@@ -267,11 +264,8 @@ class LiveRoomController extends GetxController {
 
         return res;
       } catch (e, stackTrace) {
-        debugPrint('[LiveRoom] Error parsing response: $e');
-        debugPrint('[LiveRoom] StackTrace: $stackTrace');
+        // 错误处理
       }
-    } else {
-      debugPrint('[LiveRoom] liveRoomInfo failed: ${res['msg']}');
     }
   }
 
@@ -354,47 +348,33 @@ class LiveRoomController extends GetxController {
   }
 
   void startLiveMsg() {
-    debugPrint('[LiveDanmaku] startLiveMsg called, roomId: $roomId');
     if (messages.isEmpty) {
       prefetch();
     }
     if (_msgStream != null) {
-      debugPrint('[LiveDanmaku] _msgStream already exists, skipping');
       return;
     }
     if (dmInfo != null) {
-      debugPrint('[LiveDanmaku] dmInfo exists, calling initDm');
       initDm(dmInfo!);
       return;
     }
-    debugPrint('[LiveDanmaku] Fetching danmaku token...');
     LiveHttp.liveRoomGetDanmakuToken(roomId: roomId).then((res) {
-      debugPrint(
-          '[LiveDanmaku] Token response: status=${res['status']}, msg=${res['msg']}');
       if (res['status']) {
         dmInfo = res['data'];
-        debugPrint(
-            '[LiveDanmaku] Token: ${dmInfo?.token?.substring(0, 20)}..., hosts: ${dmInfo?.hostList?.length}');
         initDm(dmInfo!);
-      } else {
-        debugPrint('[LiveDanmaku] Failed to get token: ${res['msg']}');
       }
     }).catchError((e) {
-      debugPrint('[LiveDanmaku] Error getting token: $e');
+      // 错误处理
     });
   }
 
   void initDm(LiveDmInfoData info) {
-    debugPrint('[LiveDanmaku] initDm called');
     if (info.hostList == null || info.hostList!.isEmpty) {
-      debugPrint('[LiveDanmaku] hostList is null or empty');
       return;
     }
     final servers = info.hostList!
         .map((host) => 'wss://${host.host}:${host.wssPort}/sub')
         .toList();
-    debugPrint('[LiveDanmaku] Connecting to servers: $servers');
-    debugPrint('[LiveDanmaku] uid: $myMid, roomId: $roomId');
     _msgStream = LiveMessageStream(
       streamToken: info.token ?? '',
       roomId: roomId,
@@ -403,14 +383,12 @@ class LiveRoomController extends GetxController {
     )
       ..addEventListener(_danmakuListener)
       ..init();
-    debugPrint('[LiveDanmaku] LiveMessageStream created and initialized');
   }
 
   void _handleDanmuMsg(dynamic obj) {
     try {
       final info = obj['info'];
       if (info == null || info.isEmpty) {
-        debugPrint('[LiveDanmaku] DANMU_MSG: info is null or empty');
         return;
       }
 
@@ -489,8 +467,6 @@ class LiveRoomController extends GetxController {
       name = name ?? '匿名用户';
       uid = uid ?? 0;
 
-      debugPrint('[LiveDanmaku] DANMU_MSG: $name: $msg');
-
       messages.add(
         DanmakuMsg(
           name: name,
@@ -502,33 +478,25 @@ class LiveRoomController extends GetxController {
       );
 
       // 添加到弹幕控制器
-      debugPrint(
-          '[LiveDanmaku] showDanmaku: ${showDanmaku.value}, danmakuController: $danmakuController');
       if (showDanmaku.value && danmakuController != null) {
         final danmakuColor = _decimalToColor(color);
         danmakuController!.addDanmaku(DanmakuContentItem(
           msg,
           color: danmakuColor,
         ));
-        debugPrint('[LiveDanmaku] Added danmaku to controller: $msg');
-      } else {
-        debugPrint(
-            '[LiveDanmaku] Skipped adding danmaku: showDanmaku=${showDanmaku.value}, controller=${danmakuController != null}');
       }
 
       if (!disableAutoScroll.value) {
         Future.delayed(const Duration(milliseconds: 100), scrollToBottom);
       }
     } catch (e, stackTrace) {
-      debugPrint('[LiveDanmaku] Error parsing DANMU_MSG: $e');
-      debugPrint('[LiveDanmaku] StackTrace: $stackTrace');
+      // 错误处理
     }
   }
 
   void _danmakuListener(dynamic obj) {
     try {
       final String cmd = obj['cmd'] ?? '';
-      debugPrint('[LiveDanmaku] Received cmd: $cmd');
 
       // 处理弹幕消息（支持带版本后缀的格式，如 DANMU_MSG:4:0:2:2:2:0）
       if (cmd == 'DANMU_MSG' || cmd.startsWith('DANMU_MSG:')) {
@@ -546,8 +514,6 @@ class LiveRoomController extends GetxController {
 
           final uname = data['uname'] ?? '';
           final userUid = data['uid'] ?? 0;
-
-          debugPrint('[LiveDanmaku] INTERACT_WORD: uname=$uname, uid=$userUid');
 
           if (uname.toString().isEmpty) break;
 
@@ -630,9 +596,6 @@ class LiveRoomController extends GetxController {
               if (userUid > 0 && uname.isNotEmpty) break;
             }
 
-            debugPrint(
-                '[LiveDanmaku] INTERACT_WORD_V2 parsed: uname=$uname, uid=$userUid');
-
             if (uname.isEmpty) break;
 
             // 先移除已有的进入直播间消息
@@ -648,7 +611,7 @@ class LiveRoomController extends GetxController {
               ),
             );
           } catch (e) {
-            debugPrint('[LiveDanmaku] INTERACT_WORD_V2 parse error: $e');
+            // 错误处理
           }
           break;
 
@@ -693,8 +656,7 @@ class LiveRoomController extends GetxController {
           break;
       }
     } catch (e, stackTrace) {
-      debugPrint('[LiveDanmaku] 弹幕解析错误: $e');
-      debugPrint('[LiveDanmaku] StackTrace: $stackTrace');
+      // 错误处理
     }
   }
 
@@ -769,6 +731,10 @@ class LiveRoomController extends GetxController {
       ..removeListener(_scrollListener)
       ..dispose();
     danmakuController?.clear();
+    // 只有在非小窗模式下才停止播放器
+    if (shouldStopPlayerOnClose) {
+      plPlayerController.videoPlayerController?.stop();
+    }
     super.onClose();
   }
 }

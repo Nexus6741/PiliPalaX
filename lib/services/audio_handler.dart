@@ -87,7 +87,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
     } else {
       processingState = AudioProcessingState.ready;
     }
-    print("processingState: $processingState");
+    // print("processingState: $processingState");
 
     playbackState.add(playbackState.value.copyWith(
       processingState: processingState,
@@ -121,7 +121,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
     // print('当前调用栈为：');
     // print(StackTrace.current);
     if (!PlPlayerController.instanceExists()) return;
-    print("artUri: $artUri");
+    // print("artUri: $artUri");
     MediaItem mediaItem = MediaItem(
       id: UniqueKey().toString(),
       title: title ?? "",
@@ -208,7 +208,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
 
   bool checkTop() {
     String top = Get.currentRoute;
-    print("top:$top");
+    // print("top:$top");
     return top.startsWith('/video') || top.startsWith('/live');
   }
 

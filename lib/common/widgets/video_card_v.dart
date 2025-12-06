@@ -64,7 +64,7 @@ class VideoCardV extends StatelessWidget {
         }
         break;
       case 'av':
-        print("currentRoute: ${Get.currentRoute}");
+        // print("currentRoute: ${Get.currentRoute}");
         String bvid = videoItem.bvid ?? IdUtils.av2bv(videoItem.aid);
         Get.toNamed(
           '/video?bvid=$bvid&cid=${videoItem.cid}',

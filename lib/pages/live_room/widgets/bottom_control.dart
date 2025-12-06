@@ -169,6 +169,25 @@ class _BottomControlState extends State<BottomControl> {
               ),
             ),
           ),
+          // 小窗按钮
+          ComBtn(
+            height: 30,
+            tooltip: '小窗播放',
+            icon: const Icon(
+              Icons.picture_in_picture_alt,
+              size: 20,
+              color: Colors.white,
+            ),
+            onTap: () {
+              bool res = plPlayerController.triggerFloatingWindow(null, null);
+              if (res) {
+                // 延迟一下确保小窗已经创建完成
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  Get.back();
+                });
+              }
+            },
+          ),
           // if (!plPlayerController.isDesktopPip)
           ComBtn(
             height: 30,

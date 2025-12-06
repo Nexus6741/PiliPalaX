@@ -97,6 +97,8 @@ class PlPlayerController {
   final Rx<bool> _isFullScreen = false.obs;
   // 默认投稿视频格式
   static Rx<String> _videoType = 'archive'.obs;
+  // 直播间 roomId（用于小窗恢复）
+  int? _liveRoomId;
 
   final Rx<String> _direction = 'horizontal'.obs;
 
@@ -197,6 +199,11 @@ class PlPlayerController {
 
   /// [videoController] instance of Player
   VideoController? get videoController => _videoController;
+
+  /// 设置直播间 roomId
+  void setLiveRoomId(int roomId) {
+    _liveRoomId = roomId;
+  }
 
   Rx<bool> get isSliderMoving => _isSliderMoving;
 
@@ -1060,7 +1067,7 @@ class PlPlayerController {
   void disable() async {
     if (floatingManager.containsFloating(globalId)) return;
     String top = Get.currentRoute;
-    print("top:$top");
+    // print("top:$top");
     if (!top.startsWith('/video') && !top.startsWith('/live')) {
       // playerStatus.status.value = PlayerStatus.disabled;
       _heartDuration = 0;
@@ -1357,9 +1364,7 @@ class PlPlayerController {
       backgroundColor: Color(0xaa000000),
     );
 
-    print("enterPip");
-    print(videoIntroController);
-    print(bangumiIntroController);
+
     bool isLive =
         videoIntroController == null && bangumiIntroController == null;
     double? videoHeight = videoPlayerController?.state.height?.toDouble();
@@ -1374,10 +1379,7 @@ class PlPlayerController {
         aspectRatio = videoHeight / videoWidth;
       }
     }
-    print('videoHeight: $videoHeight');
-    print('videoWidth: $videoWidth');
-    print('direction.value: ${direction.value}');
-    print('aspectRatio: $aspectRatio');
+
     double floatingWidth = aspectRatio > 1 ? 150.0 : 240.0;
     double extentHeight = 40.0;
     double floatingHeight = floatingWidth * aspectRatio + extentHeight;
@@ -1392,14 +1394,19 @@ class PlPlayerController {
             height: floatingHeight - extentHeight,
             child: InkWell(
               onTap: () {
+                floatingManager.closeFloating(globalId);
                 if (videoIntroController != null) {
                   videoIntroController.openVideoDetail();
                 } else if (bangumiIntroController != null) {
                   bangumiIntroController.openVideoDetail();
                 } else {
-                  pauseIfExists();
+                  // 直播模式：重新打开直播间
+                  if (videoType.value == 'live' && _liveRoomId != null) {
+                    Get.toNamed('/liveRoom?roomid=$_liveRoomId');
+                  } else {
+                    pauseIfExists();
+                  }
                 }
-                floatingManager.closeFloating(globalId);
               },
               child: Video(
                 controller: videoController!,
@@ -1435,13 +1442,13 @@ class PlPlayerController {
                   () => seekTo(position.value - const Duration(seconds: 10),
                       type: 'slide'),
                 ),
-              if (!isLive)
-                Obx(
-                  () => iconButton(
-                    playerStatus.playing ? Icons.pause : Icons.play_arrow,
-                    () => togglePlay(),
-                  ),
+              // 直播和视频都显示播放/暂停按钮
+              Obx(
+                () => iconButton(
+                  playerStatus.playing ? Icons.pause : Icons.play_arrow,
+                  () => togglePlay(),
                 ),
+              ),
               if (!isLive)
                 iconButton(
                   MdiIcons.fastForward10,
@@ -1488,6 +1495,14 @@ class PlPlayerController {
     //   floatingWindow!.close();
     // }
     // floatingManager.closeFloating(globalId);
+    // 对于直播流，确保播放器状态正常
+    if (videoType.value == 'live') {
+      // 如果播放器已暂停，尝试恢复播放
+      if (videoPlayerController?.state.playing == false) {
+        playIfExists();
+      }
+    }
+    
     floatingWindow = floatingManager.createFloating(
       globalId,
       Floating(
@@ -1509,7 +1524,7 @@ class PlPlayerController {
 
   // 全屏
   Future<void> triggerFullScreen({bool status = true}) async {
-    print('triggerFullScreen: status=$status, current=${isFullScreen.value}');
+    // print('triggerFullScreen: status=$status, current=${isFullScreen.value}');
     stopScreenTimer();
     FullScreenMode mode = FullScreenModeCode.fromCode(
         setting.get(SettingBoxKey.fullScreenMode, defaultValue: 0))!;
@@ -1542,7 +1557,7 @@ class PlPlayerController {
       }
     } else if (isFullScreen.value && !status) {
       // StatusBarControl.setHidden(false, animation: StatusBarAnimation.FADE);
-      print('Exiting fullscreen, removeSafeArea: $removeSafeArea');
+      // print('Exiting fullscreen, removeSafeArea: $removeSafeArea');
       if (!removeSafeArea) showStatusBar();
       toggleFullScreen(false);
       if (mode == FullScreenMode.none) {

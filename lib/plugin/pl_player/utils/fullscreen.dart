@@ -105,7 +105,7 @@ Future<void> toggleStatusBar(bool val) async {
 Future<void> showStatusBar() async {
   if (GStorage.setting
       .get(SettingBoxKey.alwaysImmersiveStatusBar, defaultValue: false)) {
-    print('Always immersive status bar enabled, skipping showStatusBar');
+    // print('Always immersive status bar enabled, skipping showStatusBar');
     return;
   }
   print('showStatusBar start. OS: ${Platform.operatingSystem}');

@@ -160,7 +160,6 @@ class LiveMessageStream {
   final String logTag = "LiveStreamService";
 
   Future<void> init() async {
-    debugPrint('[$logTag] init called, servers: $servers');
     final authPackage = AuthPackage(
       header: const PackageHeader(
         protocolVer: 1,
@@ -181,13 +180,11 @@ class LiveMessageStream {
       Future<WebSocketChannel> getSocket() async {
         for (final server in servers) {
           try {
-            debugPrint('[$logTag] Trying to connect to: $server');
             final channel = WebSocketChannel.connect(Uri.parse(server));
             await channel.ready;
-            debugPrint('[$logTag] Connected to: $server');
             return channel;
           } catch (e) {
-            debugPrint('[$logTag] Failed to connect to $server: $e');
+            // 连接失败，尝试下一个服务器
           }
         }
         throw Exception("all servers connect failed");
@@ -195,19 +192,15 @@ class LiveMessageStream {
 
       _channel = await getSocket();
       if (!_active) {
-        debugPrint('[$logTag] Not active, closing');
         close();
         return;
       }
-      debugPrint('[$logTag] Sending auth package');
       _socketSubscription = _channel?.stream.listen(
         onData,
         onDone: () {
-          debugPrint('[$logTag] WebSocket done');
           close();
         },
         onError: (e) {
-          debugPrint('[$logTag] WebSocket error: $e');
           close();
         },
       );
@@ -226,10 +219,7 @@ class LiveMessageStream {
         final msgBody = utf8.decode(
           data.sublist(subHeader.headerSize, subHeader.totalSize),
         );
-        debugPrint(
-            '[$logTag] Message body: ${msgBody.length > 200 ? "${msgBody.substring(0, 200)}..." : msgBody}');
         final decoded = jsonDecode(msgBody);
-        debugPrint('[$logTag] Decoded cmd: ${decoded['cmd']}');
         for (var f in _eventListeners) {
           f(decoded);
         }
@@ -238,7 +228,7 @@ class LiveMessageStream {
         }
       }
     } catch (e) {
-      debugPrint('[$logTag] Error in _processingData: $e');
+      // 错误处理
     }
   }
 
@@ -276,41 +266,32 @@ class LiveMessageStream {
 
   void onData(dynamic data) {
     final header = PackageHeaderRes.fromBytesData(data as Uint8List);
-    debugPrint('[$logTag] onData: header=$header, dataLen=${data.length}');
     if (header != null) {
       List<int> decompressedData = [];
       //心跳包回复不用处理
       if (header.operationCode == 3) {
-        debugPrint('[$logTag] Heartbeat response received');
         return;
       }
       if (header.operationCode == 8) {
-        debugPrint('[$logTag] Auth success, starting heartbeat');
         _heartBeat();
       }
       try {
         switch (header.protocolVer) {
           case 0:
           case 1:
-            debugPrint(
-                '[$logTag] Processing raw data (protocolVer: ${header.protocolVer})');
             _processingData(data);
             return;
           case 2:
-            debugPrint('[$logTag] Decompressing with ZLib (protocolVer: 2)');
             decompressedData = ZLibDecoder().convert(data.sublist(0x10));
             break;
           case 3:
-            debugPrint('[$logTag] Decompressing with Brotli (protocolVer: 3)');
             decompressedData =
                 const BrotliDecoder().convert(data.sublist(0x10));
             break;
         }
-        debugPrint(
-            '[$logTag] Decompressed data length: ${decompressedData.length}');
         _processingData(decompressedData);
       } catch (e) {
-        debugPrint('[$logTag] Error processing data: $e');
+        // 错误处理
       }
     }
   }

@@ -845,19 +845,23 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                 // }
 
                 void floatingWindowTrigger() {
-                  _.triggerFloatingWindow(
+                  bool res = _.triggerFloatingWindow(
                       videoIntroController, bangumiIntroController);
-                  // Future.delayed(const Duration(milliseconds: 10), () {
-                  if (!Get.previousRoute.startsWith('/video') &&
-                      !Get.previousRoute.startsWith('/live')) {
-                    Get.back();
-                    return;
-                  }
-                  while (Get.rawRoute?.settings.name?.startsWith('/video') ==
-                          true ||
-                      Get.rawRoute?.settings.name?.startsWith('/live') ==
-                          true) {
-                    Get.removeRoute(Get.rawRoute!);
+                  if (res) {
+                    // 延迟一下确保小窗已经创建完成
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      if (!Get.previousRoute.startsWith('/video') &&
+                          !Get.previousRoute.startsWith('/live')) {
+                        Get.back();
+                        return;
+                      }
+                      while (Get.rawRoute?.settings.name?.startsWith('/video') ==
+                              true ||
+                          Get.rawRoute?.settings.name?.startsWith('/live') ==
+                              true) {
+                        Get.removeRoute(Get.rawRoute!);
+                      }
+                    });
                   }
                 }
 
