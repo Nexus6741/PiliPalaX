@@ -303,13 +303,29 @@ class BangumiIntroController extends GetxController {
   }
 
   // 修改分P或番剧分集
-  Future changeSeasonOrbangu(bvid, cid, aid) async {
+  Future changeSeasonOrbangu(bvid, cid, aid, {int? epid}) async {
     // 重新获取视频资源
     VideoDetailController videoDetailCtr =
         Get.find<VideoDetailController>(tag: heroTag);
+    
+    // 暂停当前播放
+    if (videoDetailCtr.plPlayerController != null) {
+      videoDetailCtr.plPlayerController!.pause();
+    }
+    
     videoDetailCtr.bvid = bvid;
     videoDetailCtr.cid.value = cid;
     videoDetailCtr.danmakuCid.value = cid;
+    
+    // 更新 epId（如果提供了）
+    if (epid != null) {
+      epId = epid;
+      print('🔄 更新 epId: $epId');
+    }
+    
+    // 清空当前播放位置，让queryVideoUrl使用新选集的lastPlayTime
+    videoDetailCtr.defaultST = null;
+    
     videoDetailCtr.queryVideoUrl();
     lastPlayCid.value = cid;
     // 触发媒体通知更新
@@ -365,7 +381,8 @@ class BangumiIntroController extends GetxController {
     int cid = episodes[prevIndex].cid!;
     String bvid = episodes[prevIndex].bvid!;
     int aid = episodes[prevIndex].aid!;
-    changeSeasonOrbangu(bvid, cid, aid);
+    int? epid = episodes[prevIndex].id;
+    changeSeasonOrbangu(bvid, cid, aid, epid: epid);
     return true;
   }
 
@@ -410,7 +427,8 @@ class BangumiIntroController extends GetxController {
     int cid = episodes[nextIndex].cid!;
     String bvid = episodes[nextIndex].bvid!;
     int aid = episodes[nextIndex].aid!;
-    changeSeasonOrbangu(bvid, cid, aid);
+    int? epid = episodes[nextIndex].id;
+    changeSeasonOrbangu(bvid, cid, aid, epid: epid);
     return true;
   }
 

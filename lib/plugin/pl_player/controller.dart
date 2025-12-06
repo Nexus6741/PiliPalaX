@@ -126,6 +126,8 @@ class PlPlayerController {
   // 记录历史记录
   String _bvid = '';
   int _cid = 0;
+  int? _epid;
+  int? _seasonId;
   int _heartDuration = 0;
   bool _enableHeart = true;
 
@@ -517,6 +519,8 @@ class PlPlayerController {
     // 记录历史记录
     String bvid = '',
     int cid = 0,
+    int? epid,
+    int? seasonId,
     // 历史记录开关
     bool enableHeart = true,
     String? serviceId,
@@ -540,6 +544,8 @@ class PlPlayerController {
       _direction.value = direction ?? 'horizontal';
       _bvid = bvid;
       _cid = cid;
+      _epid = epid;
+      _seasonId = seasonId;
       _enableHeart = enableHeart;
       isVideoLoaded.value = false;
 
@@ -1613,6 +1619,8 @@ class PlPlayerController {
         bvid: _bvid,
         cid: _cid,
         progress: isComplete ? -1 : progress,
+        epid: _epid,
+        seasonId: _seasonId,
       );
       return;
     }
@@ -1623,6 +1631,8 @@ class PlPlayerController {
         bvid: _bvid,
         cid: _cid,
         progress: progress,
+        epid: _epid,
+        seasonId: _seasonId,
       );
     }
   }

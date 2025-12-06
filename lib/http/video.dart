@@ -240,6 +240,30 @@ class VideoHttp {
     }
   }
 
+  // 获取播放信息（包含last_play_cid等）
+  static Future playInfo({required String bvid, required int cid}) async {
+    Map params = await WbiSign().makSign({
+      'bvid': bvid,
+      'cid': cid,
+    });
+    try {
+      var res = await Request().get(Api.subtitleUrl, data: params);
+      if (res.data['code'] == 0) {
+        return {
+          'status': true,
+          'data': res.data['data'],
+        };
+      } else {
+        return {
+          'status': false,
+          'msg': res.data['message'],
+        };
+      }
+    } catch (err) {
+      return {'status': false, 'msg': err};
+    }
+  }
+
   // 视频信息 标题、简介
   static Future videoIntro({required String bvid}) async {
     var res = await Request().get(Api.videoIntro, data: {'bvid': bvid});
@@ -569,18 +593,35 @@ class VideoHttp {
   }
 
   // 视频播放进度
-  static Future heartBeat({bvid, cid, progress, realtime}) async {
+  static Future heartBeat({
+    bvid, 
+    cid, 
+    progress, 
+    realtime,
+    int? epid,
+    int? seasonId,
+  }) async {
+    print('💓 heartBeat上报:');
+    print('  bvid: $bvid');
+    print('  cid: $cid');
+    print('  epid: $epid');
+    print('  seasonId: $seasonId');
+    print('  played_time: $progress');
+    
+    // 判断是否为番剧（有 epid 和 seasonId）
+    bool isBangumi = epid != null && seasonId != null;
+    
     await Request().post(Api.heartBeat, queryParameters: {
       // 'aid': aid,
       'bvid': bvid,
       'cid': cid,
-      // 'epid': '',
-      // 'sid': '',
+      if (isBangumi) 'epid': epid,
+      if (isBangumi) 'sid': seasonId,
+      if (isBangumi) 'type': 4,        // 番剧类型
+      if (isBangumi) 'sub_type': 4,    // 番剧子类型
       // 'mid': '',
       'played_time': progress,
       // 'realtime': realtime,
-      // 'type': '',
-      // 'sub_type': '',
       'csrf': await Request.getCsrf(),
     });
   }

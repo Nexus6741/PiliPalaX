@@ -341,6 +341,7 @@ class _ListSheetContentState extends State<ListSheetContent> {
                               borderRadius: BorderRadius.circular(6),
                               onTap: () {
                                 widget.onClose();
+                                // 这里是分P，不是番剧集数，所以不需要传递epid
                                 widget.changeFucCall(
                                     widget.bvid, page.cid, widget.aid);
                               },
@@ -451,7 +452,7 @@ class _ListSheetContentState extends State<ListSheetContent> {
     SmartDialog.showToast('切换到：$title');
     widget.onClose();
     if (episode.runtimeType.toString() == "EpisodeItem") {
-      widget.changeFucCall(episode.bvid, episode.cid, episode.aid);
+      widget.changeFucCall(episode.bvid, episode.cid, episode.aid, epid: episode.id);
     } else {
       widget.changeFucCall(widget.bvid!, episode.cid, widget.aid!);
     }

@@ -478,10 +478,20 @@ class VideoIntroController extends GetxController {
     // 重新获取视频资源
     final VideoDetailController videoDetailCtr =
         Get.find<VideoDetailController>(tag: heroTag);
+    
+    // 暂停当前播放
+    if (videoDetailCtr.plPlayerController != null) {
+      videoDetailCtr.plPlayerController!.pause();
+    }
+    
     videoDetailCtr.bvid = bvid;
     videoDetailCtr.oid.value = aid ?? IdUtils.bv2av(bvid);
     videoDetailCtr.cid.value = cid;
     videoDetailCtr.danmakuCid.value = cid;
+    
+    // 清空当前播放位置，让queryVideoUrl使用新选集的lastPlayTime
+    videoDetailCtr.defaultST = null;
+    
     videoDetailCtr.queryVideoUrl();
     // 重新请求相关视频
     try {

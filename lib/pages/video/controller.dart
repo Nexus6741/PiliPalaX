@@ -12,6 +12,8 @@ import 'package:PiliPalaX/models/video/play/quality.dart';
 import 'package:PiliPalaX/models/video/play/url.dart';
 import 'package:PiliPalaX/models/video/reply/item.dart';
 import 'package:PiliPalaX/pages/video/reply_reply/index.dart';
+import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
+import 'package:PiliPalaX/pages/video/introduction/bangumi/controller.dart';
 import 'package:PiliPalaX/plugin/pl_player/index.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/utils.dart';
@@ -77,7 +79,7 @@ class VideoDetailController extends GetxController
   late AudioItem firstAudio;
   late String videoUrl;
   late String audioUrl;
-  late Duration defaultST;
+  Duration? defaultST;
   // 亮度
   double? brightness;
   // 默认记录历史记录
@@ -93,6 +95,9 @@ class VideoDetailController extends GetxController
   late int cacheAudioQa;
 
   PersistentBottomSheetController? replyReplyBottomSheetCtr;
+
+  // 继续播放自动跳转
+  bool showContinuePlayTip = true;
 
   @override
   void onInit() async {
@@ -316,6 +321,19 @@ class VideoDetailController extends GetxController
     );
     // print("resumePlay:$resumePlay,isFirstTime:$isFirstTime");
     if (!resumePlay) {
+      // 获取番剧参数（如果是番剧的话）
+      int? epid;
+      int? seasonId;
+      if (videoType == SearchType.media_bangumi) {
+        try {
+          final bangumiCtr = Get.find<BangumiIntroController>(tag: heroTag);
+          epid = bangumiCtr.epId;
+          seasonId = bangumiCtr.seasonId;
+        } catch (e) {
+          print('⚠️ 获取番剧参数失败: $e');
+        }
+      }
+      
       await plPlayerController!.setDataSource(
         DataSource(
           videoSource: video ?? videoUrl,
@@ -342,6 +360,8 @@ class VideoDetailController extends GetxController
             : null,
         bvid: bvid,
         cid: cid.value,
+        epid: epid,
+        seasonId: seasonId,
         enableHeart: enableHeart,
         autoplay: autoplay,
       );
@@ -356,6 +376,31 @@ class VideoDetailController extends GetxController
     var result = await VideoHttp.videoUrl(cid: cid.value, bvid: bvid);
     if (result['status']) {
       data = result['data'];
+      print('📡 videoUrl API返回数据:');
+      print('  lastPlayTime: ${data.lastPlayTime}');
+      print('  lastPlayCid: ${data.lastPlayCid}');
+      print('  当前请求的cid: ${cid.value}');
+      
+      // 获取更准确的播放信息
+      try {
+        var playInfoResult = await VideoHttp.playInfo(bvid: bvid, cid: cid.value);
+        if (playInfoResult['status']) {
+          final playInfoData = playInfoResult['data'];
+          print('📡 playInfo API返回数据:');
+          print('  last_play_cid: ${playInfoData['last_play_cid']}');
+          print('  last_play_time: ${playInfoData['last_play_time']}');
+          
+          // 使用playInfo的数据更新
+          if (playInfoData['last_play_cid'] != null) {
+            data.lastPlayCid = playInfoData['last_play_cid'];
+          }
+          if (playInfoData['last_play_time'] != null) {
+            data.lastPlayTime = playInfoData['last_play_time'];
+          }
+        }
+      } catch (e) {
+        print('⚠️ 获取playInfo失败: $e');
+      }
       if (data.acceptDesc!.isNotEmpty && data.acceptDesc!.contains('试看')) {
         SmartDialog.showNotify(
           msg: '该视频为专属视频，仅提供试看',
@@ -366,7 +411,12 @@ class VideoDetailController extends GetxController
       if (data.dash == null && data.durl != null) {
         videoUrl = data.durl!.first.url!;
         audioUrl = '';
-        defaultST = Duration.zero;
+        // 只有在defaultST为null时才设置，这样切换选集时会使用新选集的历史记录
+        if (defaultST == null) {
+          defaultST = data.lastPlayTime != null 
+              ? Duration(milliseconds: data.lastPlayTime!) 
+              : Duration.zero;
+        }
         // 实际为FLV/MP4格式，但已被淘汰，这里仅做兜底处理
         firstVideo = VideoItem(
             id: data.quality!,
@@ -483,7 +533,14 @@ class VideoDetailController extends GetxController
         audioUrl = '';
       }
       //
-      defaultST = Duration(milliseconds: data.lastPlayTime!);
+      // 只有在defaultST为null时才使用lastPlayTime，这样切换选集时会使用新选集的历史记录
+      if (defaultST == null) {
+        defaultST = Duration(milliseconds: data.lastPlayTime!);
+      }
+      
+      // 检查是否需要显示继续播放提示
+      checkContinuePlay();
+      
       if (autoPlay.value) {
         if (isClosed) return result;
         isShowCover.value = false;
@@ -519,4 +576,162 @@ class VideoDetailController extends GetxController
         ? replyReplyBottomSheetCtr!.close()
         : null; // print('replyReplyBottomSheetCtr is null');
   }
+
+  // 检查并自动跳转到上次观看位置
+  void checkContinuePlay() {
+    print('🔍 checkContinuePlay 开始检查');
+    print('  showContinuePlayTip: $showContinuePlayTip');
+    
+    if (!showContinuePlayTip) {
+      print('  ❌ showContinuePlayTip 为 false，跳过检查');
+      return;
+    }
+    showContinuePlayTip = false;
+    
+    // 延迟检查，等待Controller初始化完成
+    Future.delayed(const Duration(milliseconds: 500), () {
+      try {
+        // 判断是番剧还是普通视频
+        if (videoType == SearchType.media_bangumi) {
+          print('  尝试获取 BangumiIntroController...');
+          final bangumiIntroController = Get.find<BangumiIntroController>(tag: heroTag);
+          final episodes = bangumiIntroController.bangumiDetail.value.episodes;
+          
+          print('  episodes 数量: ${episodes?.length ?? 0}');
+          print('  data.lastPlayCid: ${data.lastPlayCid}');
+          print('  当前 cid: ${cid.value}');
+          
+          if (episodes != null && episodes.length > 1 && data.lastPlayCid != null && data.lastPlayCid != 0) {
+            print('  ✅ 满足基本条件：多集番剧且有历史记录');
+            
+            if (data.lastPlayCid != cid.value) {
+              print('  ✅ 上次观看的cid与当前不同，自动跳转');
+              
+              final index = episodes.indexWhere((ep) => ep.cid == data.lastPlayCid);
+              print('  找到的索引: $index');
+              
+              if (index != -1) {
+                print('  ✅ 找到对应的集数，执行跳转');
+                final episode = episodes[index];
+                
+                // 自动跳转到上次观看的集数
+                bangumiIntroController.changeSeasonOrbangu(
+                  episode.bvid,
+                  episode.cid,
+                  episode.aid,
+                  epid: episode.id,
+                );
+                
+                // 显示Toast提示
+                SmartDialog.showToast('已自动跳转到上次观看的第${episode.title}');
+              } else {
+                print('  ❌ 未找到对应的集数');
+              }
+            } else {
+              print('  ℹ️ 上次观看的cid与当前相同，无需跳转');
+            }
+          } else {
+            print('  ❌ 不满足条件：');
+            print('    - episodes != null: ${episodes != null}');
+            print('    - episodes.length > 1: ${(episodes?.length ?? 0) > 1}');
+            print('    - lastPlayCid != null: ${data.lastPlayCid != null}');
+            print('    - lastPlayCid != 0: ${data.lastPlayCid != 0}');
+          }
+        } else {
+          print('  尝试获取 VideoIntroController...');
+          final videoIntroController = Get.find<VideoIntroController>(tag: heroTag);
+          final pages = videoIntroController.videoDetail.value.pages;
+          
+          print('  pages 数量: ${pages?.length ?? 0}');
+          print('  data.lastPlayCid: ${data.lastPlayCid}');
+          print('  当前 cid: ${cid.value}');
+          
+          if (pages != null && pages.length > 1 && data.lastPlayCid != null && data.lastPlayCid != 0) {
+            print('  ✅ 满足基本条件：多P视频且有历史记录');
+            
+            if (data.lastPlayCid != cid.value) {
+              print('  ✅ 上次观看的cid与当前不同，自动跳转');
+              
+              final index = pages.indexWhere((page) => page.cid == data.lastPlayCid);
+              print('  找到的索引: $index');
+              
+              if (index != -1) {
+                print('  ✅ 找到对应的分P，执行跳转');
+                final page = pages[index];
+                
+                // 自动跳转到上次观看的分P
+                videoIntroController.changeSeasonOrbangu(
+                  bvid,
+                  page.cid,
+                  IdUtils.bv2av(bvid),
+                );
+                
+                // 显示Toast提示
+                SmartDialog.showToast('已自动跳转到上次观看的第${index + 1}P');
+              } else {
+                print('  ❌ 未找到对应的分P');
+              }
+            } else {
+              print('  ℹ️ 上次观看的cid与当前相同，无需跳转');
+            }
+          } else {
+            print('  ❌ 不满足条件：');
+            print('    - pages != null: ${pages != null}');
+            print('    - pages.length > 1: ${(pages?.length ?? 0) > 1}');
+            print('    - lastPlayCid != null: ${data.lastPlayCid != null}');
+            print('    - lastPlayCid != 0: ${data.lastPlayCid != 0}');
+          }
+        }
+      } catch (e) {
+        print('  ❌ 异常: $e');
+        // 控制器可能还未初始化，再延迟一次尝试
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          try {
+            if (videoType == SearchType.media_bangumi) {
+              final bangumiIntroController = Get.find<BangumiIntroController>(tag: heroTag);
+              final episodes = bangumiIntroController.bangumiDetail.value.episodes;
+              
+              if (episodes != null && episodes.length > 1 && data.lastPlayCid != null && 
+                  data.lastPlayCid != 0 && data.lastPlayCid != cid.value) {
+                final index = episodes.indexWhere((ep) => ep.cid == data.lastPlayCid);
+                if (index != -1) {
+                  print('  🔄 第二次尝试成功，执行跳转');
+                  final episode = episodes[index];
+                  bangumiIntroController.changeSeasonOrbangu(
+                    episode.bvid,
+                    episode.cid,
+                    episode.aid,
+                    epid: episode.id,
+                  );
+                  SmartDialog.showToast('已自动跳转到上次观看的第${episode.title}');
+                }
+              }
+            } else {
+              final videoIntroController = Get.find<VideoIntroController>(tag: heroTag);
+              final pages = videoIntroController.videoDetail.value.pages;
+              
+              if (pages != null && pages.length > 1 && data.lastPlayCid != null && 
+                  data.lastPlayCid != 0 && data.lastPlayCid != cid.value) {
+                final index = pages.indexWhere((page) => page.cid == data.lastPlayCid);
+                if (index != -1) {
+                  print('  🔄 第二次尝试成功，执行跳转');
+                  final page = pages[index];
+                  videoIntroController.changeSeasonOrbangu(
+                    bvid,
+                    page.cid,
+                    IdUtils.bv2av(bvid),
+                  );
+                  SmartDialog.showToast('已自动跳转到上次观看的第${index + 1}P');
+                }
+              }
+            }
+          } catch (e2) {
+            print('  ❌ 第二次尝试也失败: $e2');
+          }
+        });
+      }
+    });
+  }
+
+
 }
