@@ -5,6 +5,7 @@ import 'package:PiliPalaX/models/live/live_danmaku/danmaku_msg.dart';
 import 'package:PiliPalaX/pages/live_room/controller.dart';
 import 'package:PiliPalaX/pages/live_room/send_danmaku/view.dart';
 import 'package:PiliPalaX/utils/storage.dart';
+import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 
 class LiveRoomChatPanel extends StatelessWidget {
   const LiveRoomChatPanel({
@@ -218,8 +219,11 @@ class LiveRoomChatPanel extends StatelessWidget {
                     Icons.emoji_emotions_outlined,
                     color: Color(0xFFEEEEEE),
                   ),
-                  onPressed: () =>
-                      showLiveSendDanmakuPanel(context, liveRoomController),
+                  onPressed: () => showLiveSendDanmakuPanel(
+                    context,
+                    liveRoomController,
+                    openEmote: true,
+                  ),
                 ),
               ],
             ),
@@ -267,16 +271,69 @@ class LiveRoomChatPanel extends StatelessWidget {
                     : (TapGestureRecognizer()
                       ..onTap = () => Get.toNamed('/member?mid=${item.uid}')),
               ),
-              TextSpan(
-                text: item.text ?? '',
-                style: TextStyle(
-                  color: msgColor,
-                  fontSize: 13,
-                ),
-              ),
+              _buildMsgSpan(item, msgColor),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  InlineSpan _buildMsgSpan(DanmakuMsg item, Color color) {
+    final uemote = item.uemote;
+    if (uemote != null && uemote.url != null) {
+      return WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: NetworkImgLayer(
+          src: uemote.url!,
+          width: (uemote.width ?? 32).toDouble(),
+          height: (uemote.height ?? 32).toDouble(),
+        ),
+      );
+    }
+    final emots = item.emots;
+    if (emots != null && emots.isNotEmpty && item.text != null) {
+      final keys = emots.keys.map(RegExp.escape).join('|');
+      final regExp = RegExp(keys);
+      final List<InlineSpan> spans = [];
+      item.text!.splitMapJoin(
+        regExp,
+        onMatch: (m) {
+          final key = m[0]!;
+          final emote = emots[key];
+          if (emote != null && emote.url != null) {
+            spans.add(
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: NetworkImgLayer(
+                  src: emote.url!,
+                  width: (emote.width ?? 24).toDouble(),
+                  height: (emote.height ?? 24).toDouble(),
+                ),
+              ),
+            );
+          }
+          return '';
+        },
+        onNonMatch: (str) {
+          if (str.isNotEmpty) {
+            spans.add(
+              TextSpan(
+                text: str,
+                style: TextStyle(color: color, fontSize: 13),
+              ),
+            );
+          }
+          return '';
+        },
+      );
+      return TextSpan(children: spans);
+    }
+    return TextSpan(
+      text: item.text ?? '',
+      style: TextStyle(
+        color: color,
+        fontSize: 13,
       ),
     );
   }

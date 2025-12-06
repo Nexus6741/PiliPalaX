@@ -220,13 +220,22 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
             return Obx(
               () => Row(
                 children: [
-                  NetworkImgLayer(
-                    width: 40,
-                    height: 40,
-                    type: 'avatar',
-                    src: _liveRoomController.roomInfoH5.value.data?.anchorInfo
-                            ?.baseInfo?.face ??
-                        '',
+                  GestureDetector(
+                    onTap: () {
+                      final uid =
+                          _liveRoomController.roomInfoH5.value?.roomInfo?.uid;
+                      if (uid != null && uid > 0) {
+                        Get.toNamed('/member?mid=$uid');
+                      }
+                    },
+                    child: NetworkImgLayer(
+                      width: 40,
+                      height: 40,
+                      type: 'avatar',
+                      src: _liveRoomController.roomInfoH5.value?.anchorInfo
+                              ?.baseInfo?.face ??
+                          '',
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -235,7 +244,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _liveRoomController.roomInfoH5.value.data?.anchorInfo
+                          _liveRoomController.roomInfoH5.value?.anchorInfo
                                   ?.baseInfo?.uname ??
                               '',
                           style: const TextStyle(
@@ -294,13 +303,22 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
             return Obx(
               () => Row(
                 children: [
-                  NetworkImgLayer(
-                    width: 34,
-                    height: 34,
-                    type: 'avatar',
-                    src: _liveRoomController.roomInfoH5.value.data?.anchorInfo
-                            ?.baseInfo?.face ??
-                        '',
+                  GestureDetector(
+                    onTap: () {
+                      final uid =
+                          _liveRoomController.roomInfoH5.value?.roomInfo?.uid;
+                      if (uid != null && uid > 0) {
+                        Get.toNamed('/member?mid=$uid');
+                      }
+                    },
+                    child: NetworkImgLayer(
+                      width: 34,
+                      height: 34,
+                      type: 'avatar',
+                      src: _liveRoomController.roomInfoH5.value?.anchorInfo
+                              ?.baseInfo?.face ??
+                          '',
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -309,7 +327,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _liveRoomController.roomInfoH5.value.data?.anchorInfo
+                          _liveRoomController.roomInfoH5.value?.anchorInfo
                                   ?.baseInfo?.uname ??
                               '',
                           style: const TextStyle(fontSize: 14),
@@ -347,7 +365,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                           'url':
                               'https://live.bilibili.com/h5/${_liveRoomController.roomId}',
                           'type': 'liveRoom',
-                          'pageTitle': _liveRoomController.roomInfoH5.value.data
+                          'pageTitle': _liveRoomController.roomInfoH5.value
                                   ?.anchorInfo?.baseInfo?.uname ??
                               '',
                         },
@@ -390,7 +408,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
           Obx(
             () {
               final background = _liveRoomController
-                  .roomInfoH5.value.data?.roomInfo?.background;
+                  .roomInfoH5.value?.roomInfo?.background;
               if (background != null && background.isNotEmpty) {
                 return Positioned.fill(
                   child: Opacity(

@@ -1,12 +1,13 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:PiliPalaX/common/constants.dart';
+import 'package:PiliPalaX/models/live_new/live_emote/data.dart';
 import 'package:PiliPalaX/utils/app_sign.dart';
 import 'package:PiliPalaX/utils/login.dart';
 import 'package:PiliPalaX/utils/wbi_sign.dart';
+import 'package:flutter/foundation.dart';
 import '../models/live/item.dart';
 import '../models/live/room_info.dart';
-import '../models/live/room_info_h5.dart';
+import '../models/live_new/live_room_info_h5/data.dart';
 import '../models/live/live_feed_index/index.dart';
 import '../models/live/live_second_list/index.dart';
 import '../models/live/live_area_list/index.dart';
@@ -72,12 +73,40 @@ class LiveHttp {
     if (res.data['code'] == 0) {
       return {
         'status': true,
-        'data': RoomInfoH5Model.fromJson(res.data['data'])
+        'data': RoomInfoH5Data.fromJson(res.data['data']),
       };
     } else {
       return {
         'status': false,
         'data': [],
+        'msg': res.data['message'],
+      };
+    }
+  }
+
+  static Future liveEmoteList({required int roomId}) async {
+    final res = await Request().get(
+      Api.liveEmoteList,
+      data: {
+        'platform': 'pc',
+        'room_id': roomId,
+      },
+    );
+    if (res.data['code'] == 0) {
+      try {
+        return {
+          'status': true,
+          'data': LiveEmoteData.fromJson(res.data['data']).data ?? [],
+        };
+      } catch (e) {
+        return {
+          'status': false,
+          'msg': e.toString(),
+        };
+      }
+    } else {
+      return {
+        'status': false,
         'msg': res.data['message'],
       };
     }

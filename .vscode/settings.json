@@ -3,5 +3,6 @@
   "[dart]": {
     "editor.formatOnType": true
   },
-  "dart.flutterSdkPath": ".fvm/versions/custom_3.22.0"
+  "dart.flutterSdkPath": ".fvm/versions/custom_3.22.0",
+  "kiroAgent.configureMCP": "Enabled"
 }

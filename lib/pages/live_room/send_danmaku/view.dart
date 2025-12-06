@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:PiliPalaX/http/live.dart';
+import 'package:PiliPalaX/models/live/live_danmaku/danmaku_msg.dart';
 import 'package:PiliPalaX/models/live_new/live_emote/emoticon.dart';
 import 'package:PiliPalaX/pages/live_room/controller.dart';
 import 'package:PiliPalaX/pages/live_room/send_danmaku/live_emote_panel.dart';
@@ -30,6 +31,7 @@ class _LiveSendDanmakuPanelState extends State<LiveSendDanmakuPanel>
   bool _isSending = false;
   String? _pureEmoteUnique;
   String? _pureEmoteText;
+  Emoticon? _pureEmote;
   double _emoteHeight = 0.0;
   double _keyboardHeight = 0.0;
   final Debouncer _debouncer = Debouncer(milliseconds: 200);
@@ -65,21 +67,25 @@ class _LiveSendDanmakuPanelState extends State<LiveSendDanmakuPanel>
     if (trimmed.isEmpty) {
       _pureEmoteUnique = null;
       _pureEmoteText = null;
+      _pureEmote = null;
       return;
     }
     if (_pureEmoteText != null && trimmed != _pureEmoteText) {
       _pureEmoteUnique = null;
       _pureEmoteText = null;
+      _pureEmote = null;
     }
   }
 
   Future<void> _sendDanmaku({
     String? overrideMsg,
     String? emoticonUnique,
+    Emoticon? emote,
     bool closePanelOnSuccess = true,
   }) async {
-    final msg = (overrideMsg ?? _editController.text).trim();
-    if (msg.isEmpty) {
+    final msg = overrideMsg ?? _editController.text.trim();
+    // 如果不是表情弹幕，检查消息是否为空
+    if (msg.isEmpty && emoticonUnique == null) {
       SmartDialog.showToast('请输入弹幕内容');
       return;
     }
@@ -98,6 +104,7 @@ class _LiveSendDanmakuPanelState extends State<LiveSendDanmakuPanel>
           _editController.clear();
           _pureEmoteUnique = null;
           _pureEmoteText = null;
+          _pureEmote = null;
         }
         SmartDialog.showToast('发送成功');
         if (closePanelOnSuccess && mounted) {
@@ -125,14 +132,11 @@ class _LiveSendDanmakuPanelState extends State<LiveSendDanmakuPanel>
       text: newText,
       selection: TextSelection.collapsed(offset: newSelectionIndex),
     );
-    final trimmed = _editController.text.trim();
-    if (emote.emoticonUnique != null && trimmed == text.trim()) {
-      _pureEmoteUnique = emote.emoticonUnique;
-      _pureEmoteText = trimmed;
-    } else {
-      _pureEmoteUnique = null;
-      _pureEmoteText = null;
-    }
+    // 官方默认表情插入输入框后，不设置_pureEmoteUnique
+    // 因为它们应该作为普通文本发送，不需要dmType和emoticonOptions
+    _pureEmoteUnique = null;
+    _pureEmoteText = null;
+    _pureEmote = null;
     if (!_focusNode.hasFocus) {
       _focusNode.requestFocus();
     }
@@ -146,9 +150,11 @@ class _LiveSendDanmakuPanelState extends State<LiveSendDanmakuPanel>
       SmartDialog.showToast('表情数据异常');
       return;
     }
+    // 第三方表情发送时，msg参数直接使用emoticonUnique
     await _sendDanmaku(
       overrideMsg: unique,
       emoticonUnique: unique,
+      emote: emote,
       closePanelOnSuccess: false,
     );
   }
@@ -256,8 +262,10 @@ class _LiveSendDanmakuPanelState extends State<LiveSendDanmakuPanel>
                       ),
                     ),
                     onChanged: _onTextChanged,
-                    onSubmitted: (_) =>
-                        _sendDanmaku(emoticonUnique: _pureEmoteUnique),
+                    onSubmitted: (_) => _sendDanmaku(
+                          emoticonUnique: _pureEmoteUnique,
+                          emote: _pureEmote,
+                        ),
                   ),
                 ),
               ),
@@ -295,7 +303,10 @@ class _LiveSendDanmakuPanelState extends State<LiveSendDanmakuPanel>
                   FilledButton(
                     onPressed: _isSending
                         ? null
-                        : () => _sendDanmaku(emoticonUnique: _pureEmoteUnique),
+                        : () => _sendDanmaku(
+                              emoticonUnique: _pureEmoteUnique,
+                              emote: _pureEmote,
+                            ),
                     child: _isSending
                         ? const SizedBox(
                             width: 16,

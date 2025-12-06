@@ -665,6 +665,8 @@ class Api {
   /// 直播点赞
   static const String liveLikeReport =
       '${HttpString.liveBaseUrl}/xlive/app-ucenter/v1/like_info_v3/like/likeReportV3';
+  static const String liveEmoteList =
+      '${HttpString.liveBaseUrl}/xlive/web-ucenter/v2/emoticon/GetEmoticons';
 
   /// 获取直播屏蔽信息
   static const String liveShieldInfo =

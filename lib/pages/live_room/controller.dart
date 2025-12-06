@@ -15,7 +15,7 @@ import 'package:PiliPalaX/plugin/pl_player/index.dart';
 import 'package:PiliPalaX/tcp/live.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/utils.dart';
-import '../../models/live/room_info_h5.dart';
+import '../../models/live_new/live_room_info_h5/data.dart';
 import '../../utils/video_utils.dart';
 
 class LiveRoomController extends GetxController {
@@ -28,7 +28,7 @@ class LiveRoomController extends GetxController {
   RxBool volumeOff = false.obs;
   PlPlayerController plPlayerController =
       PlPlayerController.getInstance(videoType: 'live');
-  Rx<RoomInfoH5Model> roomInfoH5 = RoomInfoH5Model().obs;
+  Rx<RoomInfoH5Data?> roomInfoH5 = Rx<RoomInfoH5Data?>(null);
   final RxnString watchedShowText = RxnString();
   final RxnString onlineCountText = RxnString();
   final Rx<int?> liveStartTime = Rx<int?>(null);
@@ -294,8 +294,8 @@ class LiveRoomController extends GetxController {
   Future queryLiveInfoH5() async {
     var res = await LiveHttp.liveRoomInfoH5(roomId: roomId);
     if (res['status']) {
-      roomInfoH5.value = res['data'];
-      final data = roomInfoH5.value.data;
+      roomInfoH5.value = res['data'] as RoomInfoH5Data?;
+      final data = roomInfoH5.value;
       _updateWatchedShow(data?.watchedShow?.textLarge);
       _updateOnlineCount(data?.roomInfo?.online);
       _updateLiveStartTime(data?.roomInfo?.liveStartTime);
@@ -418,16 +418,48 @@ class LiveRoomController extends GetxController {
       String? name;
       int? uid;
       int color = 16777215; // 默认白色
+      Map<String, BaseEmote>? emoteMap;
+      BaseEmote? uemote;
+
+      // 优先从 info[0][13] 获取第三方表情信息（新格式）
+      if (first.length > 13 && first[13] != null && first[13] is Map) {
+        try {
+          uemote = BaseEmote.fromJson(
+            Map<String, dynamic>.from(first[13] as Map),
+          );
+        } catch (_) {}
+      }
 
       // 尝试从 info[0][15] 获取用户信息（新格式）
       if (first.length > 15 && first[15] != null) {
         final content = first[15];
         if (content is Map) {
-          // 解析 extra 获取颜色
+          // 解析 extra 获取颜色和官方默认表情
           if (content['extra'] != null) {
             try {
               final Map<String, dynamic> extra = jsonDecode(content['extra']);
               color = extra['color'] ?? 16777215;
+              if (extra['emots'] is Map) {
+                emoteMap = (extra['emots'] as Map).map(
+                  (key, value) => MapEntry(
+                    key.toString(),
+                    BaseEmote.fromJson(
+                        Map<String, dynamic>.from(value as Map)),
+                  ),
+                );
+              }
+              // 如果 info[0][13] 没有获取到，尝试从 extra 获取（备用方案）
+              if (uemote == null &&
+                  extra['emoticon_unique'] != null &&
+                  extra['emoticon_unique'].toString().isNotEmpty &&
+                  extra['url'] != null) {
+                uemote = BaseEmote.fromJson({
+                  'emoticon_unique': extra['emoticon_unique'],
+                  'url': extra['url'],
+                  'width': extra['width'],
+                  'height': extra['height'],
+                });
+              }
             } catch (_) {}
           }
           // 获取用户信息
@@ -464,6 +496,8 @@ class LiveRoomController extends GetxController {
           name: name,
           uid: uid,
           text: msg,
+          emots: emoteMap,
+          uemote: uemote,
         ),
       );
 
@@ -652,7 +686,7 @@ class LiveRoomController extends GetxController {
           final title = data is Map ? data['title'] : null;
           if (title is String) {
             roomInfoH5.update((val) {
-              val?.data?.roomInfo?.title = title;
+              val?.roomInfo?.title = title;
             });
             roomInfoH5.refresh();
           }
@@ -703,7 +737,7 @@ class LiveRoomController extends GetxController {
       clickTime: likeClickTime.value,
       roomId: roomId,
       uid: myMid,
-      anchorId: roomInfoH5.value.data?.roomInfo?.uid,
+      anchorId: roomInfoH5.value?.roomInfo?.uid,
     );
     if (res['status']) {
       SmartDialog.showToast('点赞成功');
