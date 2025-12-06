@@ -630,4 +630,55 @@ class Api {
 
   /// 取消订阅-播单
   static const String unfavFolder = '/x/v3/fav/folder/unfav';
+
+  /// 直播首页Feed
+  static const String liveFeedIndex =
+      '${HttpString.liveBaseUrl}/xlive/app-interface/v2/index/feed';
+
+  /// 直播关注列表
+  static const String liveFollow =
+      '${HttpString.liveBaseUrl}/xlive/web-ucenter/user/following';
+
+  /// 直播二级分区列表
+  static const String liveSecondList =
+      '${HttpString.liveBaseUrl}/xlive/app-interface/v2/second/getList';
+
+  /// 直播分区列表
+  static const String liveAreaList =
+      '${HttpString.liveBaseUrl}/xlive/app-interface/v2/index/getAreaList';
+
+  /// 直播分区二级分类
+  static const String liveRoomAreaList =
+      '${HttpString.liveBaseUrl}/room/v1/Area/getList';
+
+  /// 直播弹幕token
+  static const String liveRoomDmToken =
+      '${HttpString.liveBaseUrl}/xlive/web-room/v1/index/getDanmuInfo';
+
+  /// 直播弹幕预取
+  static const String liveRoomDmPrefetch =
+      '${HttpString.liveBaseUrl}/xlive/web-room/v1/dM/gethistory';
+
+  /// 发送直播弹幕
+  static const String sendLiveMsg = '${HttpString.liveBaseUrl}/msg/send';
+
+  /// 直播点赞
+  static const String liveLikeReport =
+      '${HttpString.liveBaseUrl}/xlive/app-ucenter/v1/like_info_v3/like/likeReportV3';
+
+  /// 获取直播屏蔽信息
+  static const String liveShieldInfo =
+      '${HttpString.liveBaseUrl}/xlive/web-ucenter/v1/banned/GetShieldInfoByUser';
+
+  /// 添加屏蔽关键词
+  static const String liveAddShieldKeyword =
+      '${HttpString.liveBaseUrl}/xlive/web-ucenter/v1/banned/AddShieldKeyword';
+
+  /// 删除屏蔽关键词
+  static const String liveDelShieldKeyword =
+      '${HttpString.liveBaseUrl}/xlive/web-ucenter/v1/banned/DelShieldKeyword';
+
+  /// 屏蔽/取消屏蔽用户
+  static const String liveShieldUser =
+      '${HttpString.liveBaseUrl}/xlive/web-ucenter/v1/banned/RoomShieldUser';
 }

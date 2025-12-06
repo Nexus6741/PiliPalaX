@@ -25,6 +25,10 @@ import '../pages/home/index.dart';
 import '../pages/hot/index.dart';
 import '../pages/html/index.dart';
 import '../pages/later/index.dart';
+import '../pages/live_area/view.dart';
+import '../pages/live_area_detail/view.dart';
+import '../pages/live_dm_block/view.dart';
+import '../pages/live_follow/view.dart';
 import '../pages/live_room/view.dart';
 import '../pages/login/index.dart';
 import '../pages/media/index.dart';
@@ -116,6 +120,16 @@ class Routes {
     CustomGetPage(name: '/fan', page: () => const FansPage()),
     // 直播详情
     CustomGetPage(name: '/liveRoom', page: () => const LiveRoomPage()),
+    // 直播关注
+    CustomGetPage(name: '/liveFollow', page: () => const LiveFollowPage()),
+    // 直播全部标签
+    CustomGetPage(name: '/liveArea', page: () => const LiveAreaPage()),
+    // 直播分区详情
+    CustomGetPage(
+        name: '/liveAreaDetail', page: () => const LiveAreaDetailPage()),
+    // 直播弹幕屏蔽
+    CustomGetPage(
+        name: '/liveDmBlockPage', page: () => const LiveDmBlockPage()),
     // 用户中心
     CustomGetPage(name: '/member', page: () => const MemberPage()),
     CustomGetPage(name: '/memberSearch', page: () => const MemberSearchPage()),

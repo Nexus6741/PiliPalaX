@@ -1,3 +1,6 @@
+import 'package:PiliPalaX/models/live/live_feed_index/watched_show.dart';
+import 'package:PiliPalaX/models/live_new/live_room_info_h5/like_info_v3.dart';
+
 class RoomInfoH5Model {
   int? code;
   String? msg;
@@ -34,6 +37,8 @@ class RoomInfoH5Data {
   int? switchInfo;
   List<dynamic>? recordSwitchInfo;
   int? fanClubShow;
+  WatchedShow? watchedShow;
+  LikeInfoV3? likeInfoV3;
 
   RoomInfoH5Data({
     this.roomInfo,
@@ -68,6 +73,12 @@ class RoomInfoH5Data {
       });
     }
     fanClubShow = json['fan_club_show'];
+    watchedShow = json['watched_show'] != null
+        ? WatchedShow.fromJson(json['watched_show'])
+        : null;
+    likeInfoV3 = json['like_info_v3'] != null
+        ? LikeInfoV3.fromJson(json['like_info_v3'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -89,6 +100,12 @@ class RoomInfoH5Data {
           recordSwitchInfo!.map((v) => v.toJson()).toList();
     }
     data['fan_club_show'] = fanClubShow;
+    if (watchedShow != null) {
+      data['watched_show'] = {'text_large': watchedShow!.textLarge};
+    }
+    if (likeInfoV3 != null) {
+      data['like_info_v3'] = likeInfoV3!.toJson();
+    }
     return data;
   }
 }

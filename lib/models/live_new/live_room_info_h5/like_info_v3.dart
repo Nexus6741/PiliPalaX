@@ -46,27 +46,50 @@ class LikeInfoV3 {
   });
 
   factory LikeInfoV3.fromJson(Map<String, dynamic> json) => LikeInfoV3(
-    totalLikes: json['total_likes'] as int?,
-    clickBlock: json['click_block'] as bool?,
-    countBlock: json['count_block'] as bool?,
-    guildEmoText: json['guild_emo_text'] as String?,
-    guildDmText: json['guild_dm_text'] as String?,
-    likeDmText: json['like_dm_text'] as String?,
-    handIcons: (json['hand_icons'] as List?)?.fromCast(),
-    dmIcons: (json['dm_icons'] as List?)?.fromCast(),
-    eggshellsIcon: json['eggshells_icon'] as String?,
-    countShowTime: json['count_show_time'] as int?,
-    processIcon: json['process_icon'] as String?,
-    processColor: json['process_color'] as String?,
-    reportClickLimit: json['report_click_limit'] as int?,
-    reportTimeMin: json['report_time_min'] as int?,
-    reportTimeMax: json['report_time_max'] as int?,
-    icon: json['icon'] as String?,
-    cooldown: (json['cooldown'] as num?)?.toDouble(),
-    handUseFace: json['hand_use_face'] as bool?,
-    guideIconUrls: (json['guide_icon_urls'] as List?)?.fromCast(),
-    guideIconRatio: (json['guide_icon_ratio'] as num?)?.toDouble(),
-  );
+        totalLikes: json['total_likes'] as int?,
+        clickBlock: json['click_block'] as bool?,
+        countBlock: json['count_block'] as bool?,
+        guildEmoText: json['guild_emo_text'] as String?,
+        guildDmText: json['guild_dm_text'] as String?,
+        likeDmText: json['like_dm_text'] as String?,
+        handIcons: (json['hand_icons'] as List?)?.fromCast(),
+        dmIcons: (json['dm_icons'] as List?)?.fromCast(),
+        eggshellsIcon: json['eggshells_icon'] as String?,
+        countShowTime: json['count_show_time'] as int?,
+        processIcon: json['process_icon'] as String?,
+        processColor: json['process_color'] as String?,
+        reportClickLimit: json['report_click_limit'] as int?,
+        reportTimeMin: json['report_time_min'] as int?,
+        reportTimeMax: json['report_time_max'] as int?,
+        icon: json['icon'] as String?,
+        cooldown: (json['cooldown'] as num?)?.toDouble(),
+        handUseFace: json['hand_use_face'] as bool?,
+        guideIconUrls: (json['guide_icon_urls'] as List?)?.fromCast(),
+        guideIconRatio: (json['guide_icon_ratio'] as num?)?.toDouble(),
+      );
+
+  Map<String, dynamic> toJson() {
+    return {
+      'total_likes': totalLikes,
+      'click_block': clickBlock,
+      'count_block': countBlock,
+      'guild_emo_text': guildEmoText,
+      'guild_dm_text': guildDmText,
+      'like_dm_text': likeDmText,
+      'hand_icons': handIcons,
+      'dm_icons': dmIcons,
+      'eggshells_icon': eggshellsIcon,
+      'count_show_time': countShowTime,
+      'process_icon': processIcon,
+      'process_color': processColor,
+      'report_click_limit': reportClickLimit,
+      'report_time_min': reportTimeMin,
+      'report_time_max': reportTimeMax,
+      'icon': icon,
+      'cooldown': cooldown,
+      'hand_use_face': handUseFace,
+      'guide_icon_urls': guideIconUrls,
+      'guide_icon_ratio': guideIconRatio,
+    };
+  }
 }
-
-

@@ -87,6 +87,8 @@ dependencies:
   # 加密
   crypto: ^3.0.3
   encrypt: ^5.0.3
+  # 解压直播消息
+  brotli: ^0.6.0
 
 #   # 视频播放器
 #   media_kit: ^1.1.11
