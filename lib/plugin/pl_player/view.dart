@@ -855,7 +855,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                         Get.back();
                         return;
                       }
-                      while (Get.rawRoute?.settings.name?.startsWith('/video') ==
+                      while (Get.rawRoute?.settings.name
+                                  ?.startsWith('/video') ==
                               true ||
                           Get.rawRoute?.settings.name?.startsWith('/live') ==
                               true) {
@@ -1433,7 +1434,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                               shape: const RoundedRectangleBorder(),
                               content: GestureDetector(
                                 onTap: () async {
-                                  String name = DateTime.now().toString();
+                                  String name =
+                                      "${'snapshot'}_${DateTime.now().toString().replaceAll(' ', '_').replaceAll(':', '-').split('.').first}";
                                   final SaveResult result =
                                       await SaverGallery.saveImage(
                                     value,

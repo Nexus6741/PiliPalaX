@@ -55,7 +55,7 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
   void dispose() {
     // 检查是否有浮窗存在，如果有则不停止播放器
     final hasFloatingWindow = floatingManager.containsFloating(globalId);
-    
+
     if (!hasFloatingWindow) {
       // 没有浮窗时，正常清理资源
       final roomId = Get.parameters['roomid'];
@@ -140,18 +140,27 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
     return Column(
       children: [
         _buildAppBar(),
-        PopScope(
-          canPop: plPlayerController?.isFullScreen.value != true,
-          onPopInvoked: (bool didPop) {
-            if (plPlayerController?.isFullScreen.value == true) {
-              plPlayerController!.triggerFullScreen(status: false);
-            }
+        Obx(
+          () {
+            final isFullScreen =
+                plPlayerController?.isFullScreen.value ?? false;
+            return SizedBox(
+              width: Get.size.width,
+              height: isFullScreen
+                  ? MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.top
+                  : Get.size.width * 9 / 16,
+              child: PopScope(
+                canPop: !isFullScreen,
+                onPopInvoked: (bool didPop) {
+                  if (isFullScreen) {
+                    plPlayerController!.triggerFullScreen(status: false);
+                  }
+                },
+                child: _buildVideoPlayer(),
+              ),
+            );
           },
-          child: SizedBox(
-            width: Get.size.width,
-            height: Get.size.width * 9 / 16,
-            child: _buildVideoPlayer(),
-          ),
         ),
         Expanded(
           child: LiveRoomChatPanel(
@@ -167,7 +176,6 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
   Widget _buildLandscapeLayout() {
     final size = MediaQuery.of(context).size;
     final padding = MediaQuery.of(context).padding;
-    final isFullScreen = plPlayerController?.isFullScreen.value ?? false;
 
     // 计算视频宽度和聊天区宽度
     double videoWidth = size.height / size.width * 1.08;
@@ -176,53 +184,69 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
     videoWidth = size.width - rightWidth - padding.horizontal;
     final videoHeight = size.height - padding.top;
 
-    final actualWidth = isFullScreen ? size.width : videoWidth;
-    final actualHeight = isFullScreen ? size.height - padding.top : videoHeight;
+    return Obx(
+      () {
+        final isFullScreen = plPlayerController?.isFullScreen.value ?? false;
+        final actualWidth = isFullScreen ? size.width : videoWidth;
+        final actualHeight =
+            isFullScreen ? size.height - padding.top : videoHeight;
 
-    return PopScope(
-      canPop: !isFullScreen,
-      onPopInvoked: (bool didPop) {
-        if (isFullScreen) {
-          plPlayerController!.triggerFullScreen(status: false);
-        } else {
-          verticalScreenForTwoSeconds();
-        }
-      },
-      child: Padding(
-        padding: isFullScreen
-            ? EdgeInsets.zero
-            : EdgeInsets.only(left: padding.left, right: padding.right),
-        child: Row(
-          children: [
-            // 左边视频区域
-            Container(
-              width: actualWidth,
-              height: actualHeight,
-              margin: EdgeInsets.only(bottom: padding.bottom),
-              child: _buildVideoPlayer(),
-            ),
-            // 右边聊天区域（全屏时隐藏）
-            if (!isFullScreen)
-              SizedBox(
-                width: rightWidth,
-                height: videoHeight,
-                child: Column(
-                  children: [
-                    // 标题栏
-                    _buildLandscapeHeader(),
-                    // 聊天面板
-                    Expanded(
-                      child: LiveRoomChatPanel(
-                        roomId: _liveRoomController.roomId,
-                        liveRoomController: _liveRoomController,
-                      ),
-                    ),
-                  ],
+        return PopScope(
+          canPop: !isFullScreen,
+          onPopInvoked: (bool didPop) {
+            if (isFullScreen) {
+              plPlayerController!.triggerFullScreen(status: false);
+            } else {
+              verticalScreenForTwoSeconds();
+            }
+          },
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.fastOutSlowIn,
+            padding: isFullScreen
+                ? EdgeInsets.zero
+                : EdgeInsets.only(left: padding.left, right: padding.right),
+            child: Row(
+              children: [
+                // 左边视频区域
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 350),
+                  curve: Curves.fastOutSlowIn,
+                  width: actualWidth,
+                  height: actualHeight,
+                  margin: EdgeInsets.only(bottom: padding.bottom),
+                  child: _buildVideoPlayer(),
                 ),
-              ),
-          ],
-        ),
-      ),
+                // 右边聊天区域（全屏时隐藏）
+                AnimatedOpacity(
+                  opacity: isFullScreen ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeInOut,
+                  child: isFullScreen
+                      ? const SizedBox.shrink()
+                      : SizedBox(
+                          width: rightWidth,
+                          height: videoHeight,
+                          child: Column(
+                            children: [
+                              // 标题栏
+                              _buildLandscapeHeader(),
+                              // 聊天面板
+                              Expanded(
+                                child: LiveRoomChatPanel(
+                                  roomId: _liveRoomController.roomId,
+                                  liveRoomController: _liveRoomController,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -253,8 +277,8 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                       width: 40,
                       height: 40,
                       type: 'avatar',
-                      src: _liveRoomController.roomInfoH5.value?.anchorInfo
-                              ?.baseInfo?.face ??
+                      src: _liveRoomController
+                              .roomInfoH5.value?.anchorInfo?.baseInfo?.face ??
                           '',
                     ),
                   ),
@@ -336,8 +360,8 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
                       width: 34,
                       height: 34,
                       type: 'avatar',
-                      src: _liveRoomController.roomInfoH5.value?.anchorInfo
-                              ?.baseInfo?.face ??
+                      src: _liveRoomController
+                              .roomInfoH5.value?.anchorInfo?.baseInfo?.face ??
                           '',
                     ),
                   ),
@@ -428,8 +452,8 @@ class _LiveRoomPageState extends State<LiveRoomPage> {
           // 自定义背景
           Obx(
             () {
-              final background = _liveRoomController
-                  .roomInfoH5.value?.roomInfo?.background;
+              final background =
+                  _liveRoomController.roomInfoH5.value?.roomInfo?.background;
               if (background != null && background.isNotEmpty) {
                 return Positioned.fill(
                   child: Opacity(

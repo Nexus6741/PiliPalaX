@@ -641,10 +641,24 @@ class PlPlayerController {
     _position.value = Duration.zero;
     // 初始化时清空弹幕，防止上次重叠
     danmakuController?.clear();
-    int bufferSize =
-        setting.get(SettingBoxKey.expandBuffer, defaultValue: false)
-            ? (videoType.value == 'live' ? 64 * 1024 * 1024 : 32 * 1024 * 1024)
-            : (videoType.value == 'live' ? 16 * 1024 * 1024 : 4 * 1024 * 1024);
+    
+    // 🔥 优化：检测是否为 4K 视频
+    bool is4K = (width != null && width >= 3840) || 
+                (height != null && height >= 2160);
+    
+    // 🔥 优化：根据视频分辨率动态调整缓冲区
+    int bufferSize;
+    if (is4K) {
+      // 4K 视频使用更大的缓冲区 (128MB)
+      bufferSize = 128 * 1024 * 1024;
+      print('🎬 检测到 4K 视频，使用 128MB 缓冲区');
+    } else {
+      // 原有逻辑
+      bufferSize = setting.get(SettingBoxKey.expandBuffer, defaultValue: false)
+          ? (videoType.value == 'live' ? 64 * 1024 * 1024 : 32 * 1024 * 1024)
+          : (videoType.value == 'live' ? 16 * 1024 * 1024 : 4 * 1024 * 1024);
+    }
+    
     Player player = _videoPlayerController ??
         Player(
           configuration: PlayerConfiguration(
@@ -653,6 +667,28 @@ class PlPlayerController {
           ),
         );
     var pp = player.platform as NativePlayer;
+    
+    // 🔥 优化：4K 视频额外配置
+    if (is4K) {
+      print('🎬 应用 4K 视频优化配置');
+      // 增加预读取缓冲
+      await pp.setProperty("demuxer-max-bytes", "200M");
+      await pp.setProperty("demuxer-readahead-secs", "10");
+      
+      // 允许丢帧以保持流畅
+      await pp.setProperty("framedrop", "vo");
+      
+      // 缓存配置
+      await pp.setProperty("cache", "yes");
+      await pp.setProperty("cache-secs", "15");
+      
+      // 4K 视频强制使用安全的硬件解码
+      if (enableHA) {
+        hwdec = 'auto-safe';
+        await pp.setProperty("hwdec-codecs", "h264,hevc,vp9");
+      }
+    }
+    
     // 解除倍速限制
     await pp.setProperty("af", "scaletempo2=max-speed=8");
     //  音量不一致

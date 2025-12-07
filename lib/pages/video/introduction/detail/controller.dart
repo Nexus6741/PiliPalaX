@@ -474,7 +474,7 @@ class VideoIntroController extends GetxController {
   }
 
   // 修改分P或番剧分集
-  Future changeSeasonOrbangu(bvid, cid, aid) async {
+  Future changeSeasonOrbangu(bvid, cid, aid, {int? epid}) async {
     // 重新获取视频资源
     final VideoDetailController videoDetailCtr =
         Get.find<VideoDetailController>(tag: heroTag);

@@ -84,9 +84,9 @@ class DownloadUtils {
   static Future<bool> downloadImg(BuildContext context, String imgUrl,
       {String imgType = 'cover'}) async {
     try {
-      if (!await checkPermissionDependOnSdkInt(context)) {
-      //   // return false;
-      }
+      // if (!await checkPermissionDependOnSdkInt(context)) {
+      // //   // return false;
+      // }
       SmartDialog.showLoading(msg: '正在下载原图');
       var response = await Dio()
           .get(imgUrl, options: Options(responseType: ResponseType.bytes));

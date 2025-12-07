@@ -320,7 +320,6 @@ class BangumiIntroController extends GetxController {
     // 更新 epId（如果提供了）
     if (epid != null) {
       epId = epid;
-      print('🔄 更新 epId: $epId');
     }
     
     // 清空当前播放位置，让queryVideoUrl使用新选集的lastPlayTime

@@ -118,8 +118,14 @@ class Routes {
     CustomGetPage(name: '/follow', page: () => const FollowPage()),
     // 粉丝
     CustomGetPage(name: '/fan', page: () => const FansPage()),
-    // 直播详情
-    CustomGetPage(name: '/liveRoom', page: () => const LiveRoomPage()),
+    // 直播详情 - 使用从右下角展开的动画
+    GetPage(
+      name: '/liveRoom',
+      page: () => const LiveRoomPage(),
+      customTransition: BottomRightExpandTransition(),
+      transitionDuration: const Duration(milliseconds: 500),
+      popGesture: false,
+    ),
     // 直播关注
     CustomGetPage(name: '/liveFollow', page: () => const LiveFollowPage()),
     // 直播全部标签
@@ -251,6 +257,70 @@ class EnterFadeInExitNoneTransition extends CustomTransition {
         reverseCurve: const Threshold(1.0),
       ),
       child: child,
+    );
+  }
+}
+
+/// 从右下角展开的"神奇"效果过渡动画 - 带圆角变形
+/// 进入时从右下角展开，离开时从左上角收缩
+/// 性能优化版本
+class BottomRightExpandTransition extends CustomTransition {
+  // 缓存曲线对象，避免重复创建
+  static const _scaleCurve = Cubic(0.25, 0.1, 0.25, 1.0);
+  static const _borderRadiusCurve = Curves.easeOutQuart;
+
+  @override
+  Widget buildTransition(
+    BuildContext context,
+    Curve? curve,
+    Alignment? alignment,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // 缓存屏幕尺寸，避免每帧查询
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+
+    return AnimatedBuilder(
+      animation: animation,
+      // 使用 child 参数避免重建子树
+      child: child,
+      builder: (context, cachedChild) {
+        final animValue = animation.value;
+        final isReversing = animation.status == AnimationStatus.reverse;
+
+        // 计算进度和尺寸
+        final progress = _scaleCurve.transform(animValue);
+        final currentWidth = screenWidth * progress;
+        final currentHeight = screenHeight * progress;
+        final borderRadius =
+            500.0 * (1.0 - _borderRadiusCurve.transform(animValue));
+
+        // 根据方向选择位置参数
+        final left = isReversing ? 0.0 : null;
+        final top = isReversing ? 0.0 : null;
+        final right = isReversing ? null : 0.0;
+        final bottom = isReversing ? null : 0.0;
+
+        return Stack(
+          children: [
+            Positioned(
+              left: left,
+              top: top,
+              right: right,
+              bottom: bottom,
+              width: currentWidth,
+              height: currentHeight,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(borderRadius),
+                child: cachedChild!,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

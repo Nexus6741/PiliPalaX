@@ -601,13 +601,6 @@ class VideoHttp {
     int? epid,
     int? seasonId,
   }) async {
-    print('💓 heartBeat上报:');
-    print('  bvid: $bvid');
-    print('  cid: $cid');
-    print('  epid: $epid');
-    print('  seasonId: $seasonId');
-    print('  played_time: $progress');
-    
     // 判断是否为番剧（有 epid 和 seasonId）
     bool isBangumi = epid != null && seasonId != null;
     
