@@ -298,7 +298,7 @@ class _VideoReplyPanelState extends State<VideoReplyPanel>
                     isDismissible: false,
                     isScrollControlled: true,
                     builder: (BuildContext context) {
-                      return VideoReplyNewDialog(
+                      return VideoReplyNewDialogEnhanced(
                         oid: _videoReplyController.aid ??
                             IdUtils.bv2av(Get.parameters['bvid']!),
                         root: 0,

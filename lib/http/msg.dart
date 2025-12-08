@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:dio/dio.dart';
 
@@ -69,7 +70,6 @@ class MsgHttp {
     String csrf = await Request.getCsrf();
     var res = await Request().get(Api.msgSysUserNotify, data: {
       'csrf': csrf,
-      'csrf': csrf,
       'page_size': 20,
     });
     if (res.data['code'] == 0) {
@@ -90,7 +90,6 @@ class MsgHttp {
     String csrf = await Request.getCsrf();
     var res = await Request().get(Api.msgSysUnifiedNotify, data: {
       'csrf': csrf,
-      'csrf': csrf,
       'page_size': 10,
     });
     if (res.data['code'] == 0) {
@@ -110,7 +109,6 @@ class MsgHttp {
   static Future msgSysUpdateCursor(int cursor) async {
     String csrf = await Request.getCsrf();
     var res = await Request().get(Api.msgSysUpdateCursor, data: {
-      'csrf': csrf,
       'csrf': csrf,
       'cursor': cursor,
     });
@@ -315,6 +313,63 @@ class MsgHttp {
         'msg': "message: ${res.data['message']},"
             " msg: ${res.data['msg']},"
             " code: ${res.data['code']}",
+      };
+    }
+  }
+
+  // 上传图片到 BFS 服务器
+  static Future uploadBfs({
+    required String path,
+    String category = 'daily',
+    String biz = 'new_dyn',
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      // 读取文件
+      final file = File(path);
+      if (!await file.exists()) {
+        return {
+          'status': false,
+          'msg': '文件不存在',
+        };
+      }
+
+      // 获取 CSRF token
+      String csrf = await Request.getCsrf();
+
+      // 创建 FormData
+      final formData = FormData.fromMap({
+        'file_up': await MultipartFile.fromFile(
+          path,
+          filename: path.split('/').last,
+        ),
+        'category': category,
+        'biz': biz,
+        'csrf': csrf,
+      });
+
+      // 上传文件
+      var res = await Request().post(
+        Api.uploadBfs,
+        data: formData,
+        cancelToken: cancelToken,
+      );
+
+      if (res.data['code'] == 0) {
+        return {
+          'status': true,
+          'data': res.data['data'],
+        };
+      } else {
+        return {
+          'status': false,
+          'msg': res.data['message'] ?? '上传失败',
+        };
+      }
+    } catch (e) {
+      return {
+        'status': false,
+        'msg': e.toString(),
       };
     }
   }

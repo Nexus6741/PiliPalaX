@@ -350,7 +350,7 @@ class _HtmlRenderPageState extends State<HtmlRenderPage>
                     isScrollControlled: true,
                     isDismissible: false,
                     builder: (BuildContext context) {
-                      return VideoReplyNewDialog(
+                      return VideoReplyNewDialogEnhanced(
                         oid: _htmlRenderCtr.oid.value,
                         root: 0,
                         parent: 0,

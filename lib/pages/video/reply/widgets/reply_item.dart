@@ -305,7 +305,7 @@ class ReplyItem extends StatelessWidget {
                 context: context,
                 isScrollControlled: true,
                 builder: (builder) {
-                  return VideoReplyNewDialog(
+                  return VideoReplyNewDialogEnhanced(
                     oid: replyItem!.oid,
                     root: replyItem!.rpid,
                     parent: replyItem!.rpid,

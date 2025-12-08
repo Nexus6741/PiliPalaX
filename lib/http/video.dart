@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -607,24 +608,37 @@ class VideoHttp {
   // parent	num	父评论rpid	非必要	二级评论同根评论id 大于二级评论为要回复的评论id
   // message	str	发送评论内容	必要	最大1000字符
   // plat	num	发送平台标识	非必要	1：web端 2：安卓客户端  3：ios客户端  4：wp客户端
+  // pictures	str	图片信息	非必要	JSON格式的图片数组
   static Future replyAdd({
     required ReplyType type,
     required int oid,
     required String message,
     int? root,
     int? parent,
+    List<Map<String, dynamic>>? pictures,
+    bool syncToDynamic = false,
   }) async {
     if (message == '') {
       return {'status': false, 'data': [], 'msg': '请输入评论内容'};
     }
-    var res = await Request().post(Api.replyAdd, queryParameters: {
+
+    final data = {
       'type': type.index,
       'oid': oid,
       'root': root == null || root == 0 ? '' : root,
       'parent': parent == null || parent == 0 ? '' : parent,
       'message': message,
+      if (pictures != null && pictures.isNotEmpty)
+        'pictures': jsonEncode(pictures),
+      if (syncToDynamic) 'sync_to_dynamic': 1,
       'csrf': await Request.getCsrf(),
-    });
+    };
+
+    var res = await Request().post(
+      Api.replyAdd,
+      data: data,
+      options: Options(contentType: Headers.formUrlEncodedContentType),
+    );
     log(res.toString());
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
@@ -957,5 +971,24 @@ class VideoHttp {
         'platform': platform,
       },
     );
+  }
+
+  // 搜索用户（用于@提及）
+  static Future searchUsers({required String keyword}) async {
+    try {
+      var res = await Request().get(
+        'https://api.bilibili.com/x/polymer/web-dynamic/v1/mention/search',
+        data: {
+          'keyword': keyword,
+        },
+      );
+      if (res.data['code'] == 0) {
+        return {'status': true, 'data': res.data['data']};
+      } else {
+        return {'status': false, 'data': [], 'msg': res.data['message']};
+      }
+    } catch (err) {
+      return {'status': false, 'data': [], 'msg': err.toString()};
+    }
   }
 }

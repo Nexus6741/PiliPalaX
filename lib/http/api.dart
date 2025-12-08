@@ -695,4 +695,8 @@ class Api {
   /// 屏蔽/取消屏蔽用户
   static const String liveShieldUser =
       '${HttpString.liveBaseUrl}/xlive/web-ucenter/v1/banned/RoomShieldUser';
+
+  /// 上传图片到 BFS 服务器
+  static const String uploadBfs =
+      'https://api.bilibili.com/x/dynamic/feed/draw/upload_bfs';
 }
