@@ -33,14 +33,15 @@ import '../pages/live_room/view.dart';
 import '../pages/login/index.dart';
 import '../pages/media/index.dart';
 import '../pages/member/index.dart';
+import '../pages/pgc/view.dart';
+import '../pages/pgc/controller.dart';
+import '../pages/pgc_index/view.dart';
 import '../pages/member_coin/index.dart';
 import '../pages/member_like/index.dart';
 import '../pages/member_search/index.dart';
 import '../pages/member_season/view.dart';
 import '../pages/member_series/view.dart';
 import '../pages/msg_feed_top/sys_msg/view.dart';
-import '../pages/rank/view.dart';
-import '../pages/rank/zone/view.dart';
 import '../pages/search/index.dart';
 import '../pages/search_result/index.dart';
 import '../pages/setting/extra_setting.dart';
@@ -97,6 +98,15 @@ class Routes {
     CustomGetPage(name: '/setting', page: () => const SettingPage()),
     //
     CustomGetPage(name: '/media', page: () => const MediaPage()),
+    // 番剧分区
+    CustomGetPage(
+        name: '/bangumi',
+        page: () => const PgcPage(tabType: PgcTabType.bangumi)),
+    // 影视分区
+    CustomGetPage(
+        name: '/cinema', page: () => const PgcPage(tabType: PgcTabType.cinema)),
+    // 影视索引页面
+    CustomGetPage(name: '/pgcIndex', page: () => const PgcIndexPage()),
     //
     CustomGetPage(name: '/fav', page: () => const FavPage()),
     //

@@ -307,24 +307,24 @@ class BangumiIntroController extends GetxController {
     // 重新获取视频资源
     VideoDetailController videoDetailCtr =
         Get.find<VideoDetailController>(tag: heroTag);
-    
+
     // 暂停当前播放
     if (videoDetailCtr.plPlayerController != null) {
       videoDetailCtr.plPlayerController!.pause();
     }
-    
+
     videoDetailCtr.bvid = bvid;
     videoDetailCtr.cid.value = cid;
     videoDetailCtr.danmakuCid.value = cid;
-    
+
     // 更新 epId（如果提供了）
     if (epid != null) {
       epId = epid;
     }
-    
+
     // 清空当前播放位置，让queryVideoUrl使用新选集的lastPlayTime
     videoDetailCtr.defaultST = null;
-    
+
     videoDetailCtr.queryVideoUrl();
     lastPlayCid.value = cid;
     // 触发媒体通知更新

@@ -5,12 +5,13 @@ import 'package:PiliPalaX/pages/bangumi/index.dart';
 import 'package:PiliPalaX/pages/hot/index.dart';
 import 'package:PiliPalaX/pages/live/index.dart';
 import 'package:PiliPalaX/pages/rcmd/index.dart';
+import 'package:PiliPalaX/pages/pgc/index.dart';
 
-enum TabType { live, rcmd, hot, rank, bangumi }
+enum TabType { live, rcmd, hot, rank, bangumi, cinema }
 
 extension TabTypeDesc on TabType {
-  String get description => ['直播', '推荐', '热门', '分区', '番剧'][index];
-  String get id => ['live', 'rcmd', 'hot', 'rank', 'bangumi'][index];
+  String get description => ['直播', '推荐', '热门', '分区', '番剧', '影视'][index];
+  String get id => ['live', 'rcmd', 'hot', 'rank', 'bangumi', 'cinema'][index];
 }
 
 List tabsConfig = [
@@ -63,5 +64,15 @@ List tabsConfig = [
     'type': TabType.bangumi,
     'ctr': Get.find<BangumiController>,
     'page': const BangumiPage(),
+  },
+  {
+    'icon': const Icon(
+      Icons.movie_outlined,
+      size: 15,
+    ),
+    'label': '影视',
+    'type': TabType.cinema,
+    'ctr': () => Get.find<PgcController>(tag: PgcTabType.cinema.name),
+    'page': const PgcPage(tabType: PgcTabType.cinema),
   },
 ];

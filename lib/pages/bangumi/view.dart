@@ -177,13 +177,21 @@ class _BangumiPageState extends State<BangumiPage>
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10, left: 16),
+              padding: const EdgeInsets.only(
+                  top: 10, bottom: 10, left: 16, right: 6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     '推荐',
                     style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Get.toNamed('/pgcIndex');
+                    },
+                    icon: const Icon(Icons.grid_view, size: 18),
+                    label: const Text('索引'),
                   ),
                 ],
               ),

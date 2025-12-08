@@ -333,15 +333,16 @@ class VideoDetailController extends GetxController
           print('⚠️ 获取番剧参数失败: $e');
         }
       }
-      
+
       // 🔥 优化：检测 4K 视频并记录日志
       bool is4K = firstVideo.width != null && firstVideo.width! >= 3840;
       if (is4K) {
         print('🎬 准备播放 4K 视频: ${firstVideo.width}x${firstVideo.height}');
         print('   编码格式: ${firstVideo.codecs}');
-        print('   码率: ${firstVideo.bandWidth != null ? (firstVideo.bandWidth! / 1000000).toStringAsFixed(2) : "未知"} Mbps');
+        print(
+            '   码率: ${firstVideo.bandWidth != null ? (firstVideo.bandWidth! / 1000000).toStringAsFixed(2) : "未知"} Mbps');
       }
-      
+
       await plPlayerController!.setDataSource(
         DataSource(
           videoSource: video ?? videoUrl,
@@ -384,26 +385,56 @@ class VideoDetailController extends GetxController
 
   // 视频链接
   Future queryVideoUrl() async {
-    var result = await VideoHttp.videoUrl(cid: cid.value, bvid: bvid);
+    var result;
+
+    // 根据视频类型选择不同的API
+    if (videoType == SearchType.media_bangumi) {
+      print('🎬 检测到番剧/影视类型，使用番剧API');
+      // 获取番剧参数
+      int? epid;
+      try {
+        final bangumiCtr = Get.find<BangumiIntroController>(tag: heroTag);
+        epid = bangumiCtr.epId;
+        print('🎬 番剧参数: bvid=$bvid, cid=${cid.value}, epId=$epid');
+      } catch (e) {
+        print('⚠️ 获取番剧参数失败: $e');
+      }
+
+      // 使用番剧专用API
+      result = await VideoHttp.bangumiVideoUrl(
+        cid: cid.value,
+        bvid: bvid,
+        epId: epid,
+      );
+      print('🎬 番剧API调用结果: status=${result['status']}');
+    } else {
+      print('🎬 普通视频类型，使用普通视频API');
+      // 使用普通视频API
+      result = await VideoHttp.videoUrl(cid: cid.value, bvid: bvid);
+    }
+
     if (result['status']) {
       data = result['data'];
-      
-      // 获取更准确的播放信息
-      try {
-        var playInfoResult = await VideoHttp.playInfo(bvid: bvid, cid: cid.value);
-        if (playInfoResult['status']) {
-          final playInfoData = playInfoResult['data'];
-          
-          // 使用playInfo的数据更新
-          if (playInfoData['last_play_cid'] != null) {
-            data.lastPlayCid = playInfoData['last_play_cid'];
+
+      // 对于普通视频，额外获取播放信息
+      if (videoType != SearchType.media_bangumi) {
+        try {
+          var playInfoResult =
+              await VideoHttp.playInfo(bvid: bvid, cid: cid.value);
+          if (playInfoResult['status']) {
+            final playInfoData = playInfoResult['data'];
+
+            // 使用playInfo的数据更新
+            if (playInfoData['last_play_cid'] != null) {
+              data.lastPlayCid = playInfoData['last_play_cid'];
+            }
+            if (playInfoData['last_play_time'] != null) {
+              data.lastPlayTime = playInfoData['last_play_time'];
+            }
           }
-          if (playInfoData['last_play_time'] != null) {
-            data.lastPlayTime = playInfoData['last_play_time'];
-          }
+        } catch (e) {
+          // 静默失败
         }
-      } catch (e) {
-        // 静默失败
       }
       if (data.acceptDesc!.isNotEmpty && data.acceptDesc!.contains('试看')) {
         SmartDialog.showNotify(
@@ -417,8 +448,8 @@ class VideoDetailController extends GetxController
         audioUrl = '';
         // 只有在defaultST为null时才设置，这样切换选集时会使用新选集的历史记录
         if (defaultST == null) {
-          defaultST = data.lastPlayTime != null 
-              ? Duration(milliseconds: data.lastPlayTime!) 
+          defaultST = data.lastPlayTime != null
+              ? Duration(milliseconds: data.lastPlayTime!)
               : Duration.zero;
         }
         // 实际为FLV/MP4格式，但已被淘汰，这里仅做兜底处理
@@ -501,7 +532,7 @@ class VideoDetailController extends GetxController
       if (firstVideo.width != null && firstVideo.width! >= 3840) {
         if (firstVideo.codecs!.startsWith('av01')) {
           print('⚠️ 检测到 4K 视频使用 AV1 编码，尝试切换到 HEVC/AVC');
-          
+
           // 优先级：HEVC (H.265) > AVC (H.264)
           final List<String> preferred4KCodecs = ['hev', 'avc'];
           for (var codec in preferred4KCodecs) {
@@ -510,7 +541,8 @@ class VideoDetailController extends GetxController
                 (e) => e.codecs!.startsWith(codec),
               );
               firstVideo = alternativeVideo;
-              currentDecodeFormats = VideoDecodeFormatsCode.fromString(alternativeVideo.codecs!)!;
+              currentDecodeFormats =
+                  VideoDecodeFormatsCode.fromString(alternativeVideo.codecs!)!;
               print('✅ 已切换到 ${currentDecodeFormats.code} 编码');
               break;
             } catch (e) {
@@ -565,10 +597,10 @@ class VideoDetailController extends GetxController
       if (defaultST == null) {
         defaultST = Duration(milliseconds: data.lastPlayTime!);
       }
-      
+
       // 检查是否需要显示继续播放提示
       checkContinuePlay();
-      
+
       if (autoPlay.value) {
         if (isClosed) return result;
         isShowCover.value = false;
@@ -611,22 +643,27 @@ class VideoDetailController extends GetxController
       return;
     }
     showContinuePlayTip = false;
-    
+
     // 延迟检查，等待Controller初始化完成
     Future.delayed(const Duration(milliseconds: 500), () {
       try {
         // 判断是番剧还是普通视频
         if (videoType == SearchType.media_bangumi) {
-          final bangumiIntroController = Get.find<BangumiIntroController>(tag: heroTag);
+          final bangumiIntroController =
+              Get.find<BangumiIntroController>(tag: heroTag);
           final episodes = bangumiIntroController.bangumiDetail.value.episodes;
-          
-          if (episodes != null && episodes.length > 1 && data.lastPlayCid != null && data.lastPlayCid != 0) {
+
+          if (episodes != null &&
+              episodes.length > 1 &&
+              data.lastPlayCid != null &&
+              data.lastPlayCid != 0) {
             if (data.lastPlayCid != cid.value) {
-              final index = episodes.indexWhere((ep) => ep.cid == data.lastPlayCid);
-              
+              final index =
+                  episodes.indexWhere((ep) => ep.cid == data.lastPlayCid);
+
               if (index != -1) {
                 final episode = episodes[index];
-                
+
                 // 自动跳转到上次观看的集数
                 bangumiIntroController.changeSeasonOrbangu(
                   episode.bvid,
@@ -634,30 +671,35 @@ class VideoDetailController extends GetxController
                   episode.aid,
                   epid: episode.id,
                 );
-                
+
                 // 显示Toast提示
                 SmartDialog.showToast('已自动跳转到上次观看的第${episode.title}');
               }
             }
           }
         } else {
-          final videoIntroController = Get.find<VideoIntroController>(tag: heroTag);
+          final videoIntroController =
+              Get.find<VideoIntroController>(tag: heroTag);
           final pages = videoIntroController.videoDetail.value.pages;
-          
-          if (pages != null && pages.length > 1 && data.lastPlayCid != null && data.lastPlayCid != 0) {
+
+          if (pages != null &&
+              pages.length > 1 &&
+              data.lastPlayCid != null &&
+              data.lastPlayCid != 0) {
             if (data.lastPlayCid != cid.value) {
-              final index = pages.indexWhere((page) => page.cid == data.lastPlayCid);
-              
+              final index =
+                  pages.indexWhere((page) => page.cid == data.lastPlayCid);
+
               if (index != -1) {
                 final page = pages[index];
-                
+
                 // 自动跳转到上次观看的分P
                 videoIntroController.changeSeasonOrbangu(
                   bvid,
                   page.cid,
                   IdUtils.bv2av(bvid),
                 );
-                
+
                 // 显示Toast提示
                 SmartDialog.showToast('已自动跳转到上次观看的第${index + 1}P');
               }
@@ -669,12 +711,18 @@ class VideoDetailController extends GetxController
         Future.delayed(const Duration(milliseconds: 1000), () {
           try {
             if (videoType == SearchType.media_bangumi) {
-              final bangumiIntroController = Get.find<BangumiIntroController>(tag: heroTag);
-              final episodes = bangumiIntroController.bangumiDetail.value.episodes;
-              
-              if (episodes != null && episodes.length > 1 && data.lastPlayCid != null && 
-                  data.lastPlayCid != 0 && data.lastPlayCid != cid.value) {
-                final index = episodes.indexWhere((ep) => ep.cid == data.lastPlayCid);
+              final bangumiIntroController =
+                  Get.find<BangumiIntroController>(tag: heroTag);
+              final episodes =
+                  bangumiIntroController.bangumiDetail.value.episodes;
+
+              if (episodes != null &&
+                  episodes.length > 1 &&
+                  data.lastPlayCid != null &&
+                  data.lastPlayCid != 0 &&
+                  data.lastPlayCid != cid.value) {
+                final index =
+                    episodes.indexWhere((ep) => ep.cid == data.lastPlayCid);
                 if (index != -1) {
                   final episode = episodes[index];
                   bangumiIntroController.changeSeasonOrbangu(
@@ -687,12 +735,17 @@ class VideoDetailController extends GetxController
                 }
               }
             } else {
-              final videoIntroController = Get.find<VideoIntroController>(tag: heroTag);
+              final videoIntroController =
+                  Get.find<VideoIntroController>(tag: heroTag);
               final pages = videoIntroController.videoDetail.value.pages;
-              
-              if (pages != null && pages.length > 1 && data.lastPlayCid != null && 
-                  data.lastPlayCid != 0 && data.lastPlayCid != cid.value) {
-                final index = pages.indexWhere((page) => page.cid == data.lastPlayCid);
+
+              if (pages != null &&
+                  pages.length > 1 &&
+                  data.lastPlayCid != null &&
+                  data.lastPlayCid != 0 &&
+                  data.lastPlayCid != cid.value) {
+                final index =
+                    pages.indexWhere((page) => page.cid == data.lastPlayCid);
                 if (index != -1) {
                   final page = pages[index];
                   videoIntroController.changeSeasonOrbangu(
@@ -711,6 +764,4 @@ class VideoDetailController extends GetxController
       }
     });
   }
-
-
 }

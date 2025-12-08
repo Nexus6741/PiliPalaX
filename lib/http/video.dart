@@ -240,6 +240,93 @@ class VideoHttp {
     }
   }
 
+  // 番剧视频流（包含历史记录信息）
+  static Future bangumiVideoUrl({
+    required int cid,
+    String? bvid,
+    int? epId,
+    int? qn,
+  }) async {
+    Map<String, dynamic> data = {
+      'cid': cid,
+      'qn': qn ?? 80,
+      'fnval': 4048, // 获取所有格式的视频
+      'fourk': 1,
+      'fnver': 0,
+      'voice_balance': 1,
+      'gaia_source': 'pre-load',
+      'web_location': 1315873,
+    };
+
+    if (bvid != null) {
+      data['bvid'] = bvid;
+    }
+    if (epId != null) {
+      data['ep_id'] = epId;
+    }
+
+    try {
+      var res = await Request().get(Api.bangumiVideoUrl, data: data);
+      print('🎬 番剧视频URL API响应: code=${res.data['code']}');
+
+      if (res.data['code'] == 0) {
+        final result = res.data['result'];
+        print('🎬 result keys: ${result?.keys}');
+
+        // PGC响应结构: result.video_info 包含视频信息
+        final videoInfo = result['video_info'];
+        if (videoInfo == null) {
+          print('⚠️ video_info 为空');
+          return {
+            'status': false,
+            'data': [],
+            'msg': 'video_info is null',
+          };
+        }
+
+        // 解析视频信息
+        PlayUrlModel playUrlModel = PlayUrlModel.fromJson(videoInfo);
+
+        // 获取历史记录信息
+        try {
+          final playViewBusinessInfo = result['play_view_business_info'];
+          final userStatus = playViewBusinessInfo?['user_status'];
+          final watchProgress = userStatus?['watch_progress'];
+          final currentProgress = watchProgress?['current_watch_progress'];
+
+          if (currentProgress != null) {
+            playUrlModel.lastPlayTime = currentProgress;
+            print('🎬 获取到历史播放时间: $currentProgress ms');
+          }
+
+          // 获取 last_play_cid (如果有的话)
+          final lastEpIndex = watchProgress?['last_ep_index'];
+          if (lastEpIndex != null) {
+            print('🎬 上次观看的集数索引: $lastEpIndex');
+          }
+        } catch (e) {
+          print('⚠️ 解析历史记录失败: $e');
+        }
+
+        return {
+          'status': true,
+          'data': playUrlModel,
+        };
+      } else {
+        print('⚠️ API返回错误: ${res.data['message']}');
+        return {
+          'status': false,
+          'data': [],
+          'code': res.data['code'],
+          'msg': res.data['message'],
+        };
+      }
+    } catch (err) {
+      print('❌ 番剧视频URL获取异常: $err');
+      return {'status': false, 'data': [], 'msg': err};
+    }
+  }
+
   // 获取播放信息（包含last_play_cid等）
   static Future playInfo({required String bvid, required int cid}) async {
     Map params = await WbiSign().makSign({
@@ -594,24 +681,24 @@ class VideoHttp {
 
   // 视频播放进度
   static Future heartBeat({
-    bvid, 
-    cid, 
-    progress, 
+    bvid,
+    cid,
+    progress,
     realtime,
     int? epid,
     int? seasonId,
   }) async {
     // 判断是否为番剧（有 epid 和 seasonId）
     bool isBangumi = epid != null && seasonId != null;
-    
+
     await Request().post(Api.heartBeat, queryParameters: {
       // 'aid': aid,
       'bvid': bvid,
       'cid': cid,
       if (isBangumi) 'epid': epid,
       if (isBangumi) 'sid': seasonId,
-      if (isBangumi) 'type': 4,        // 番剧类型
-      if (isBangumi) 'sub_type': 4,    // 番剧子类型
+      if (isBangumi) 'type': 4, // 番剧类型
+      if (isBangumi) 'sub_type': 4, // 番剧子类型
       // 'mid': '',
       'played_time': progress,
       // 'realtime': realtime,

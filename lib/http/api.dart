@@ -19,8 +19,8 @@ class Api {
   static const String videoUrl = '/x/player/wbi/playurl';
 
   // 番剧视频流
-  // https://api.bilibili.com/pgc/player/web/playurl?cid=104236640&bvid=BV13t411n7ex
-  static const String bangumiVideoUrl = '/pgc/player/web/playurl';
+  // https://api.bilibili.com/pgc/player/web/v2/playurl?cid=104236640&bvid=BV13t411n7ex
+  static const String bangumiVideoUrl = '/pgc/player/web/v2/playurl';
 
   // 字幕
   // aid, cid
@@ -630,6 +630,18 @@ class Api {
 
   /// 取消订阅-播单
   static const String unfavFolder = '/x/v3/fav/folder/unfav';
+
+  /// PGC索引结果
+  static const String pgcIndexResult = '/pgc/season/index/result';
+
+  /// PGC索引筛选条件
+  static const String pgcIndexCondition = '/pgc/season/index/condition';
+
+  /// PGC时间表
+  static const String pgcTimeline = '/pgc/web/timeline/web_timeline';
+
+  /// 收藏PGC (追番/追剧列表)
+  static const String favPgc = '/x/space/bangumi/follow/list';
 
   /// 直播首页Feed
   static const String liveFeedIndex =
