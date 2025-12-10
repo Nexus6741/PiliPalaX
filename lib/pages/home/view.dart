@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:PiliPalaX/models/common/side_bar_position.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/search_expand_route.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import './controller.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
@@ -20,7 +19,6 @@ class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   final HomeController _homeController = Get.put(HomeController());
   List videoList = [];
-  late Stream<bool> stream;
 
   @override
   bool get wantKeepAlive => true;
@@ -28,7 +26,6 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    stream = _homeController.searchBarStream.stream;
   }
 
   @override
@@ -67,9 +64,6 @@ class _HomePageState extends State<HomePage>
                           SideBarPosition.rightHorizontal) &&
                   MediaQuery.of(context).orientation == Orientation.portrait))
             CustomAppBar(
-              stream: _homeController.hideSearchBar
-                  ? stream
-                  : StreamController<bool>.broadcast().stream,
               ctr: _homeController,
             ),
           if (_homeController.tabs.length > 1) ...[
@@ -121,13 +115,11 @@ class _HomePageState extends State<HomePage>
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double height;
-  final Stream<bool>? stream;
   final HomeController ctr;
 
   const CustomAppBar({
     super.key,
     this.height = kToolbarHeight,
-    this.stream,
     required this.ctr,
   });
 
@@ -136,25 +128,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: stream,
-      initialData: true,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return AnimatedOpacity(
-          opacity: snapshot.data ? 1 : 0,
+    return Obx(() => AnimatedOpacity(
+          opacity: ctr.showSearchBar.value ? 1 : 0,
           duration: const Duration(milliseconds: 300),
           child: AnimatedContainer(
             curve: Curves.easeInOutCubicEmphasized,
             duration: const Duration(milliseconds: 500),
-            height: snapshot.data ? 52 : 0,
+            height: ctr.showSearchBar.value ? 52 : 0,
             padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
             child: SearchBarAndUser(
               ctr: ctr,
             ),
           ),
-        );
-      },
-    );
+        ));
   }
 }
 
@@ -413,11 +399,15 @@ class SearchBar extends StatelessWidget {
 
   final HomeController? ctr;
 
+  // 用于获取搜索框位置的 GlobalKey
+  static final GlobalKey searchBarKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
+        key: searchBarKey,
         width: 250,
         height: 44,
         clipBehavior: Clip.hardEdge,
@@ -428,10 +418,7 @@ class SearchBar extends StatelessWidget {
           color: colorScheme.onSecondaryContainer.withOpacity(0.05),
           child: InkWell(
             splashColor: colorScheme.primaryContainer.withOpacity(0.3),
-            onTap: () => Get.toNamed(
-              '/search',
-              parameters: {'hintText': ctr!.defaultSearch.value},
-            ),
+            onTap: () => _navigateToSearch(context),
             child: Row(
               children: [
                 const SizedBox(width: 14),
@@ -455,6 +442,29 @@ class SearchBar extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _navigateToSearch(BuildContext context) {
+    // 获取搜索框的屏幕位置
+    final renderBox =
+        searchBarKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) {
+      Get.toNamed('/search',
+          parameters: {'hintText': ctr!.defaultSearch.value});
+      return;
+    }
+
+    final position = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+    final rect =
+        Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
+
+    Navigator.of(context).push(
+      SearchExpandPageRoute(
+        sourceRect: rect,
+        hintText: ctr!.defaultSearch.value,
       ),
     );
   }

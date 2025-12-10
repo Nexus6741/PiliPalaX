@@ -10,7 +10,7 @@ import 'package:PiliPalaX/http/constants.dart';
 import 'package:PiliPalaX/http/user.dart';
 import 'package:PiliPalaX/http/video.dart';
 import 'package:PiliPalaX/models/user/fav_folder.dart';
-import 'package:PiliPalaX/models/video/ai.dart';
+import 'package:PiliPalaX/models/video/video_tag.dart';
 import 'package:PiliPalaX/models/video_detail_res.dart';
 import 'package:PiliPalaX/pages/video/controller.dart';
 import 'package:PiliPalaX/pages/video/reply/index.dart';
@@ -66,6 +66,9 @@ class VideoIntroController extends GetxController {
 
   RxInt lastPlayCid = 0.obs;
   var userInfo;
+
+  // 视频标签
+  Rx<List<VideoTag>?> videoTags = Rx<List<VideoTag>?>(null);
 
   // 同时观看
   bool isShowOnlineTotal = false;
@@ -158,6 +161,8 @@ class VideoIntroController extends GetxController {
       // ];
       // 获取到粉丝数再返回
       await queryUserStat();
+      // 获取视频标签
+      queryVideoTags();
     } else {
       SmartDialog.showToast(
           "${result['code']} ${result['msg']} ${result['data']}");
@@ -172,6 +177,17 @@ class VideoIntroController extends GetxController {
       queryHasFavVideo();
       //
       queryFollowStatus();
+    }
+  }
+
+  // 获取视频标签
+  Future<void> queryVideoTags() async {
+    var result = await VideoHttp.videoTags(
+      bvid: bvid,
+      cid: lastPlayCid.value,
+    );
+    if (result['status']) {
+      videoTags.value = result['data'];
     }
   }
 
@@ -478,20 +494,20 @@ class VideoIntroController extends GetxController {
     // 重新获取视频资源
     final VideoDetailController videoDetailCtr =
         Get.find<VideoDetailController>(tag: heroTag);
-    
+
     // 暂停当前播放
     if (videoDetailCtr.plPlayerController != null) {
       videoDetailCtr.plPlayerController!.pause();
     }
-    
+
     videoDetailCtr.bvid = bvid;
     videoDetailCtr.oid.value = aid ?? IdUtils.bv2av(bvid);
     videoDetailCtr.cid.value = cid;
     videoDetailCtr.danmakuCid.value = cid;
-    
+
     // 清空当前播放位置，让queryVideoUrl使用新选集的lastPlayTime
     videoDetailCtr.defaultST = null;
-    
+
     videoDetailCtr.queryVideoUrl();
     // 重新请求相关视频
     try {
@@ -543,38 +559,64 @@ class VideoIntroController extends GetxController {
 
   /// 播放上一个
   bool prevPlay() {
-    final List episodes = [];
-    bool isPages = false;
+    PlayRepeat playRepeat = PlPlayerController.getInstance().playRepeat;
+
+    // 1. 优先检查当前视频的分P (Pages)
+    if (videoDetail.value.pages != null &&
+        videoDetail.value.pages!.length > 1) {
+      final List<Part> pages = videoDetail.value.pages!;
+      final int currentIndex =
+          pages.indexWhere((e) => e.cid == lastPlayCid.value);
+
+      if (currentIndex != -1 && currentIndex > 0) {
+        // 还有上一P
+        int prevIndex = currentIndex - 1;
+        final int cid = pages[prevIndex].cid!;
+        changeSeasonOrbangu(bvid, cid, IdUtils.bv2av(bvid));
+        return true;
+      }
+      // 如果已经是第一P，继续检查是否有合集
+    }
+
+    // 2. 检查合集 (UgcSeason)
     if (videoDetail.value.ugcSeason != null) {
+      final List<EpisodeItem> episodes = [];
       final UgcSeason ugcSeason = videoDetail.value.ugcSeason!;
       final List<SectionItem> sections = ugcSeason.sections!;
       for (int i = 0; i < sections.length; i++) {
         final List<EpisodeItem> episodesList = sections[i].episodes!;
         episodes.addAll(episodesList);
       }
-    } else if (videoDetail.value.pages != null) {
-      isPages = true;
-      final List<Part> pages = videoDetail.value.pages!;
-      episodes.addAll(pages);
-    }
 
-    final int currentIndex =
-        episodes.indexWhere((e) => e.cid == lastPlayCid.value);
-    int prevIndex = currentIndex - 1;
-    PlayRepeat playRepeat = PlPlayerController.getInstance().playRepeat;
-    // 列表循环
-    if (prevIndex < 0) {
-      if (playRepeat == PlayRepeat.listCycle) {
-        prevIndex = episodes.length - 1;
-      } else {
-        return false;
+      int currentIndex = episodes.indexWhere((e) => e.cid == lastPlayCid.value);
+
+      // 如果通过cid找不到（可能是多P视频的非第一P），尝试通过bvid找
+      if (currentIndex == -1) {
+        currentIndex = episodes.indexWhere((e) => e.bvid == bvid);
+      }
+
+      if (currentIndex != -1) {
+        if (currentIndex > 0) {
+          // 还有上一个视频
+          int prevIndex = currentIndex - 1;
+          final int cid = episodes[prevIndex].cid!;
+          final String rBvid = episodes[prevIndex].bvid!;
+          final int rAid = episodes[prevIndex].aid!;
+          changeSeasonOrbangu(rBvid, cid, rAid);
+          return true;
+        } else if (playRepeat == PlayRepeat.listCycle) {
+          // 已经是第一个且是列表循环，跳到最后一个
+          int prevIndex = episodes.length - 1;
+          final int cid = episodes[prevIndex].cid!;
+          final String rBvid = episodes[prevIndex].bvid!;
+          final int rAid = episodes[prevIndex].aid!;
+          changeSeasonOrbangu(rBvid, cid, rAid);
+          return true;
+        }
       }
     }
-    final int cid = episodes[prevIndex].cid!;
-    final String rBvid = isPages ? bvid : episodes[prevIndex].bvid;
-    final int rAid = isPages ? IdUtils.bv2av(bvid) : episodes[prevIndex].aid!;
-    changeSeasonOrbangu(rBvid, cid, rAid);
-    return true;
+
+    return false;
   }
 
   // 是否有下一集（必须存在分p、分集）

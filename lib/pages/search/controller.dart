@@ -28,15 +28,21 @@ class SSearchController extends GetxController {
     super.onInit();
     // 其他页面跳转过来
     if (Get.parameters.keys.isNotEmpty) {
-      if (Get.parameters['keyword'] != null) {
+      // 检查是否是从标签跳转的,如果是则不触发搜索(避免污染搜索历史)
+      if (Get.parameters['keyword'] != null &&
+          Get.parameters['searchType'] != 'tag') {
         onClickKeyword(Get.parameters['keyword']!);
+      } else if (Get.parameters['keyword'] != null) {
+        // 从标签跳转的,只设置关键词但不触发搜索
+        searchKeyWord.value = Get.parameters['keyword']!;
+        controller.value.text = Get.parameters['keyword']!;
       }
       if (Get.parameters['hintText'] != null) {
         hintText = Get.parameters['hintText']!;
         searchKeyWord.value = hintText;
       }
     }
-    historyCacheList = List<String>.from(historyWord.get('cacheList')??[]);
+    historyCacheList = List<String>.from(historyWord.get('cacheList') ?? []);
     historyList.value = historyCacheList;
     enableHotKey = setting.get(SettingBoxKey.enableHotKey, defaultValue: true);
   }
@@ -64,12 +70,13 @@ class SSearchController extends GetxController {
   void submit() {
     // ignore: unrelated_type_equality_checks
     if (searchKeyWord == '') {
-      if (hintText == ''){
+      if (hintText == '') {
         return;
       }
       searchKeyWord.value = hintText;
     }
-    List<String> arr = historyCacheList.where((e) => e != searchKeyWord.value).toList();
+    List<String> arr =
+        historyCacheList.where((e) => e != searchKeyWord.value).toList();
     arr.insert(0, searchKeyWord.value);
     historyCacheList = arr;
 

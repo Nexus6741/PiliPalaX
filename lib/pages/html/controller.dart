@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:PiliPalaX/http/html.dart';
 import 'package:PiliPalaX/http/reply.dart';
+import 'package:PiliPalaX/http/video.dart';
 import 'package:PiliPalaX/models/common/reply_sort_type.dart';
 import 'package:PiliPalaX/models/video/reply/item.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
@@ -56,7 +57,34 @@ class HtmlRenderController extends GetxController {
     response = res;
     oid.value = res['commentId'];
     queryReplyList(reqType: 'init');
+
+    // 上报专栏浏览历史记录
+    if (res['status'] == true && dynamicType == 'read') {
+      _reportHistory();
+    }
+
     return res;
+  }
+
+  // 上报历史记录
+  void _reportHistory() async {
+    try {
+      // 检查是否登录和是否暂停历史记录
+      var userInfo = GStorage.userInfo.get('userInfoCache');
+      Box localCache = GStorage.localCache;
+      bool historyPause =
+          localCache.get(LocalCacheKey.historyPause, defaultValue: false);
+
+      if (userInfo != null && userInfo.mid != null && !historyPause) {
+        // type: 5 表示专栏
+        await VideoHttp.historyReport(aid: oid.value, type: 5);
+        // print('专栏历史记录已上报: aid=${oid.value}');
+      } else {
+        print('跳过历史记录上报: 登录=${userInfo != null}, 暂停=$historyPause');
+      }
+    } catch (e) {
+      print('_reportHistory error: $e');
+    }
   }
 
   // 请求评论

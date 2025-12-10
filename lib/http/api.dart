@@ -37,6 +37,10 @@ class Api {
   // 视频详情 超详细
   // https://api.bilibili.com/x/web-interface/view/detail?aid=527403921
 
+  // 视频标签
+  // https://api.bilibili.com/x/web-interface/view/detail/tag?bvid=xxx&cid=xxx
+  static const String videoTags = '/x/web-interface/view/detail/tag';
+
   /// https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/video/action.md
   // 点赞 Post
   /// aid	num	稿件avid	必要（可选）	avid与bvid任选一个
@@ -232,6 +236,10 @@ class Api {
   // 记录视频播放进度
   // https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/video/report.md
   static const String heartBeat = '/x/click-interface/web/heartbeat';
+
+  // 上报观看历史记录
+  // https://api.bilibili.com/x/v2/history/report
+  static const String historyReport = '/x/v2/history/report';
 
   // 查询视频分P列表 (avid/bvid转cid)
   static const String ab2c = '/x/player/pagelist';
@@ -699,4 +707,8 @@ class Api {
   /// 上传图片到 BFS 服务器
   static const String uploadBfs =
       'https://api.bilibili.com/x/dynamic/feed/draw/upload_bfs';
+
+  /// 专栏内容
+  /// https://api.bilibili.com/x/article/view?id=xxx
+  static const String articleView = '/x/article/view';
 }

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:PiliPalaX/models/common/side_bar_position.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,10 +19,9 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
   Box settingStorage = GStorage.setting;
   RxBool userLogin = false.obs;
   RxString userFace = ''.obs;
-  var userInfo;
+  dynamic userInfo;
   Box setting = GStorage.setting;
-  late final StreamController<bool> searchBarStream =
-      StreamController<bool>.broadcast();
+  late RxBool showSearchBar;
   late bool hideSearchBar;
   late List defaultTabs;
   late List<String> tabbarSort;
@@ -41,6 +38,8 @@ class HomeController extends GetxController with GetTickerProviderStateMixin {
     userFace.value = userInfo != null ? userInfo.face : '';
     hideSearchBar =
         setting.get(SettingBoxKey.hideSearchBar, defaultValue: false);
+    // Initialize search bar visibility based on hideSearchBar setting
+    showSearchBar = (!hideSearchBar).obs;
     if (setting.get(SettingBoxKey.enableSearchWord, defaultValue: true)) {
       searchDefault();
     }

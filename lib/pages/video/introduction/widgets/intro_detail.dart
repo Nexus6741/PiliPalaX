@@ -1,4 +1,3 @@
-import 'package:PiliPalaX/models/video/ai.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -6,9 +5,10 @@ import 'package:get/get.dart';
 import 'package:PiliPalaX/utils/utils.dart';
 
 import 'package:PiliPalaX/pages/rank/zone/view.dart';
+import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
 
-import '../../../../http/video.dart';
 import '../../widgets/ai_detail.dart';
+import 'tags_widget.dart';
 
 class IntroDetail extends StatelessWidget {
   const IntroDetail({
@@ -16,10 +16,12 @@ class IntroDetail extends StatelessWidget {
     this.videoDetail,
     required this.enableAi,
     required this.aiConclusion,
+    this.heroTag,
   });
   final dynamic videoDetail;
   final bool enableAi;
   final Future<dynamic> Function() aiConclusion;
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -100,8 +102,27 @@ class IntroDetail extends StatelessWidget {
             ),
           ),
         ],
+        // 显示视频标签
+        if (heroTag != null) _buildTags(),
       ],
     );
+  }
+
+  /// 构建标签显示
+  Widget _buildTags() {
+    try {
+      final VideoIntroController videoIntroController =
+          Get.find<VideoIntroController>(tag: heroTag);
+      return Obx(() {
+        final tags = videoIntroController.videoTags.value;
+        if (tags == null || tags.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return TagsWidget(tags: tags);
+      });
+    } catch (e) {
+      return const SizedBox.shrink();
+    }
   }
 
   InlineSpan? buildContent(BuildContext context, content) {

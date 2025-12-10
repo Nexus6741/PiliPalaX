@@ -2,13 +2,10 @@ import 'dart:async';
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:nil/nil.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
-import 'package:PiliPalaX/pages/home/index.dart';
-import 'package:PiliPalaX/pages/main/index.dart';
 
 import '../../utils/grid.dart';
 import 'controller.dart';
@@ -35,10 +32,10 @@ class _BangumiPageState extends State<BangumiPage>
   void initState() {
     super.initState();
     scrollController = _bangumiController.scrollController;
-    StreamController<bool> mainStream =
-        Get.find<MainController>().bottomBarStream;
-    StreamController<bool> searchBarStream =
-        Get.find<HomeController>().searchBarStream;
+    // 暂时禁用滚动隐藏搜索栏功能
+    // StreamController<bool> mainStream =
+    //     Get.find<MainController>().bottomBarStream;
+    // HomeController homeController = Get.find<HomeController>();
     _futureBuilderFuture = _bangumiController.queryBangumiListFeed();
     _futureBuilderFutureFollow = _bangumiController.queryBangumiFollow();
     scrollController.addListener(
@@ -51,15 +48,16 @@ class _BangumiPageState extends State<BangumiPage>
           });
         }
 
-        final ScrollDirection direction =
-            scrollController.position.userScrollDirection;
-        if (direction == ScrollDirection.forward) {
-          mainStream.add(true);
-          searchBarStream.add(true);
-        } else if (direction == ScrollDirection.reverse) {
-          mainStream.add(false);
-          searchBarStream.add(false);
-        }
+        // 暂时禁用滚动隐藏搜索栏功能
+        // final ScrollDirection direction =
+        //     scrollController.position.userScrollDirection;
+        // if (direction == ScrollDirection.forward) {
+        //   mainStream.add(true);
+        //   homeController.showSearchBar.value = true;
+        // } else if (direction == ScrollDirection.reverse) {
+        //   mainStream.add(false);
+        //   homeController.showSearchBar.value = false;
+        // }
       },
     );
   }

@@ -59,7 +59,7 @@ class _VideoReplyNewDialogEnhancedState
   @override
   void initState() {
     super.initState();
-    print('🎯 使用增强版评论对话框 VideoReplyNewDialogEnhanced');
+    // print('🎯 使用增强版评论对话框 VideoReplyNewDialogEnhanced');
     WidgetsBinding.instance.addObserver(this);
     _autoFocus();
     _focusListener();
@@ -158,26 +158,26 @@ class _VideoReplyNewDialogEnhancedState
   }
 
   void onInsertVideoProgress() {
-    print('📍 [视频进度] 开始插入视频进度');
+    // print('📍 [视频进度] 开始插入视频进度');
 
     try {
       // 检查 PlPlayerController 实例是否存在
       if (!PlPlayerController.instanceExists()) {
-        print('❌ [视频进度] PlPlayerController 实例不存在');
+        // print('❌ [视频进度] PlPlayerController 实例不存在');
         SmartDialog.showToast('播放器未初始化，请等待视频加载');
         return;
       }
 
       // 直接获取 PlPlayerController 实例
       final plPlayerController = PlPlayerController.getInstance();
-      print('✅ [视频进度] 成功获取 PlPlayerController 实例');
+      // print('✅ [视频进度] 成功获取 PlPlayerController 实例');
 
       // 获取播放器的当前位置（position 是 Rx<Duration> 类型）
       final currentPosition = plPlayerController.position.value;
-      print('📍 [视频进度] 当前播放位置: ${currentPosition.inSeconds}秒');
+      // print('📍 [视频进度] 当前播放位置: ${currentPosition.inSeconds}秒');
 
       final timeStr = _formatDuration(currentPosition);
-      print('📍 [视频进度] 格式化时间: $timeStr');
+      // print('📍 [视频进度] 格式化时间: $timeStr');
 
       // 在前后加上空格，防止文字干扰
       final progressText = ' $timeStr ';
@@ -194,11 +194,10 @@ class _VideoReplyNewDialogEnhancedState
             offset: cursorPosition + progressText.length),
       );
       enablePublish.value = true;
-      print('✅ [视频进度] 成功插入视频进度: $timeStr');
+      // print('✅ [视频进度] 成功插入视频进度: $timeStr');
       SmartDialog.showToast('已插入视频进度: $timeStr');
-    } catch (e, stackTrace) {
-      print('❌ [视频进度] 发生错误: $e');
-      print('❌ [视频进度] 堆栈跟踪: $stackTrace');
+    } catch (e) {
+      // print('❌ [视频进度] 发生错误: $e');
       SmartDialog.showToast('获取视频进度失败: $e');
     }
   }
@@ -216,14 +215,14 @@ class _VideoReplyNewDialogEnhancedState
   }
 
   Future<void> onInsertScreenshot() async {
-    print('📸 [视频截图] 开始截图');
+    // print('📸 [视频截图] 开始截图');
 
     try {
       SmartDialog.showLoading(msg: '正在截图...');
 
       // 检查 PlPlayerController 实例是否存在
       if (!PlPlayerController.instanceExists()) {
-        print('❌ [视频截图] PlPlayerController 实例不存在');
+        // print('❌ [视频截图] PlPlayerController 实例不存在');
         SmartDialog.dismiss();
         SmartDialog.showToast('播放器未初始化，请等待视频加载');
         return;
@@ -231,49 +230,48 @@ class _VideoReplyNewDialogEnhancedState
 
       // 直接获取 PlPlayerController 实例
       final plPlayerController = PlPlayerController.getInstance();
-      print('✅ [视频截图] 成功获取 PlPlayerController 实例');
+      // print('✅ [视频截图] 成功获取 PlPlayerController 实例');
 
       // 检查图片数量限制
       if (pathList.length >= imageLimit) {
-        print('⚠️ [视频截图] 图片数量已达上限: ${pathList.length}/$imageLimit');
+        // print('⚠️ [视频截图] 图片数量已达上限: ${pathList.length}/$imageLimit');
         SmartDialog.dismiss();
         SmartDialog.showToast('最多只能添加$imageLimit张图片');
         return;
       }
 
-      print('📸 [视频截图] 开始调用 screenshot() 方法');
+      // print('📸 [视频截图] 开始调用 screenshot() 方法');
       // 获取当前视频画面
       // 使用播放器的截图功能
       final screenshot = await plPlayerController.screenshot();
 
       if (screenshot == null) {
-        print('❌ [视频截图] screenshot() 返回 null');
+        // print('❌ [视频截图] screenshot() 返回 null');
         SmartDialog.dismiss();
         SmartDialog.showToast('截图失败: 无法获取视频画面');
         return;
       }
 
-      print('✅ [视频截图] 成功获取截图数据，大小: ${screenshot.length} bytes');
+      // print('✅ [视频截图] 成功获取截图数据，大小: ${screenshot.length} bytes');
 
       // 保存截图到临时文件
       final tempDir = Directory.systemTemp;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final screenshotFile = File('${tempDir.path}/screenshot_$timestamp.png');
-      print('📸 [视频截图] 保存路径: ${screenshotFile.path}');
+      // print('📸 [视频截图] 保存路径: ${screenshotFile.path}');
 
       await screenshotFile.writeAsBytes(screenshot);
-      print('✅ [视频截图] 成功保存截图文件');
+      // print('✅ [视频截图] 成功保存截图文件');
 
       // 添加到图片列表
       pathList.add(screenshotFile.path);
       _updatePublishButtonState();
-      print('✅ [视频截图] 成功添加到图片列表，当前数量: ${pathList.length}');
+      // print('✅ [视频截图] 成功添加到图片列表，当前数量: ${pathList.length}');
 
       SmartDialog.dismiss();
       SmartDialog.showToast('截图成功，已添加到图片列表');
-    } catch (e, stackTrace) {
-      print('❌ [视频截图] 发生错误: $e');
-      print('❌ [视频截图] 堆栈跟踪: $stackTrace');
+    } catch (e) {
+      // print('❌ [视频截图] 发生错误: $e');
       SmartDialog.dismiss();
       SmartDialog.showToast('截图失败: $e');
     }

@@ -82,7 +82,7 @@ class Routes {
       customTransition: EnterFadeInExitNoneTransition(),
       // transition: Transition.fadeIn,
       curve: Curves.fastOutSlowIn,
-      transitionDuration: const Duration(milliseconds: 400),
+      transitionDuration: const Duration(milliseconds: 500),
     ),
     // 图片预览
     // GetPage(
@@ -115,10 +115,27 @@ class Routes {
     CustomGetPage(name: '/later', page: () => const LaterPage()),
     // 历史记录
     CustomGetPage(name: '/history', page: () => const HistoryPage()),
-    // 搜索页面
-    CustomGetPage(name: '/search', page: () => const SearchPage()),
-    // 搜索结果
-    CustomGetPage(name: '/searchResult', page: () => const SearchResultPage()),
+    // 搜索页面 - 使用自定义展开动画（从首页搜索框展开）
+    // 注意：实际动画由 SearchExpandPageRoute 处理，这里作为备用
+    GetPage(
+      name: '/search',
+      page: () => const SearchPage(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 500),
+      popGesture: false,
+      preventDuplicates: true,
+      opaque: true,
+    ),
+    // 搜索结果 - 使用从底部滑出的动画
+    GetPage(
+      name: '/searchResult',
+      page: () => const SearchResultPage(),
+      customTransition: BottomSlideUpTransition(),
+      transitionDuration: const Duration(milliseconds: 450),
+      popGesture: true,
+      preventDuplicates: true,
+      opaque: true,
+    ),
     // 动态
     CustomGetPage(name: '/dynamics', page: () => const DynamicsPage()),
     // 动态详情
@@ -331,6 +348,92 @@ class BottomRightExpandTransition extends CustomTransition {
           ],
         );
       },
+    );
+  }
+}
+
+/// 幕布式下落过渡动画 - 极致性能优化版
+/// 幕布式下落过渡动画 - 极致性能优化版
+/// 页面从顶部像幕布一样优雅地落下，带有弹跳效果
+/// 退出时快速向上收起
+class CurtainDropTransition extends CustomTransition {
+  // 缓存 Tween 对象，避免重复创建
+  static final _slideTween = Tween<Offset>(
+    begin: const Offset(0.0, -1.0),
+    end: Offset.zero,
+  );
+
+  @override
+  Widget buildTransition(
+    BuildContext context,
+    Curve? curve,
+    Alignment? alignment,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // 根据动画方向使用不同的曲线
+    // 进入动画使用 bounceOut，退出动画使用 easeInCubic
+    final dropAnimation = CurvedAnimation(
+      parent: animation,
+      curve: Curves.elasticOut, // 进入时的弹跳效果
+      reverseCurve: Curves.easeInCubic, // 退出时的快速加速
+    );
+
+    // 使用 SlideTransition 替代手动计算，性能更好
+    // RepaintBoundary 放在最外层，减少整个动画树的重绘
+    return RepaintBoundary(
+      child: SlideTransition(
+        position: _slideTween.animate(dropAnimation),
+        // 使用 transformHitTests: false 提升性能（动画期间不需要点击检测）
+        transformHitTests: false,
+        // 子组件也用 RepaintBoundary 包裹，进一步隔离重绘
+        child: RepaintBoundary(
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// 底部滑出过渡动画 - 性能优化版
+/// 页面从底部自然流畅地滑出，使用非线性曲线
+/// 退出时向下滑出
+class BottomSlideUpTransition extends CustomTransition {
+  // 缓存 Tween 对象，避免重复创建
+  static final _slideTween = Tween<Offset>(
+    begin: const Offset(0.0, 1.0), // 从底部开始
+    end: Offset.zero,
+  );
+
+  @override
+  Widget buildTransition(
+    BuildContext context,
+    Curve? curve,
+    Alignment? alignment,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // 使用非线性曲线，让动画更自然流畅
+    // 进入：快速启动，平滑减速
+    // 退出：平滑加速
+    final slideAnimation = CurvedAnimation(
+      parent: animation,
+      curve: Curves.easeOutCubic, // 进入时平滑减速
+      reverseCurve: Curves.easeInCubic, // 退出时平滑加速
+    );
+
+    // 使用 SlideTransition 提供最佳性能
+    // RepaintBoundary 隔离重绘范围
+    return RepaintBoundary(
+      child: SlideTransition(
+        position: _slideTween.animate(slideAnimation),
+        transformHitTests: false, // 动画期间禁用点击检测，提升性能
+        child: RepaintBoundary(
+          child: child,
+        ),
+      ),
     );
   }
 }

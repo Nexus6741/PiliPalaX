@@ -397,6 +397,7 @@ class _VideoInfoState extends State<VideoInfo> with TickerProviderStateMixin {
                               videoDetail: widget.videoDetail,
                               enableAi: enableAi,
                               aiConclusion: videoIntroController.aiConclusion,
+                              heroTag: heroTag,
                             ),
                           )
                       ]),

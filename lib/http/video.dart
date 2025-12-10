@@ -11,6 +11,7 @@ import '../models/model_rec_video_item.dart';
 import '../models/user/fav_folder.dart';
 import '../models/video/ai.dart';
 import '../models/video/play/url.dart';
+import '../models/video/video_tag.dart';
 import '../models/video_detail_res.dart';
 import '../utils/id_utils.dart';
 import '../utils/recommend_filter.dart';
@@ -693,6 +694,30 @@ class VideoHttp {
     }
   }
 
+  // 上报观看历史记录
+  // type: 3=视频, 4=番剧, 5=专栏
+  static Future historyReport({
+    required int aid,
+    int? type,
+  }) async {
+    try {
+      var res = await Request().post(
+        Api.historyReport,
+        data: {
+          'aid': aid,
+          if (type != null) 'type': type,
+          'csrf': await Request.getCsrf(),
+        },
+        options: Options(contentType: Headers.formUrlEncodedContentType),
+      );
+      print('historyReport response: ${res.data}');
+      return res;
+    } catch (e) {
+      print('historyReport error: $e');
+      return null;
+    }
+  }
+
   // 视频播放进度
   static Future heartBeat({
     bvid,
@@ -984,6 +1009,36 @@ class VideoHttp {
       );
       if (res.data['code'] == 0) {
         return {'status': true, 'data': res.data['data']};
+      } else {
+        return {'status': false, 'data': [], 'msg': res.data['message']};
+      }
+    } catch (err) {
+      return {'status': false, 'data': [], 'msg': err.toString()};
+    }
+  }
+
+  // 获取视频标签
+  static Future videoTags({
+    required String bvid,
+    required int cid,
+  }) async {
+    try {
+      var res = await Request().get(
+        Api.videoTags,
+        data: {
+          'bvid': bvid,
+          'cid': cid,
+        },
+      );
+
+      if (res.data['code'] == 0) {
+        List<VideoTag> tags = [];
+        if (res.data['data'] != null) {
+          for (var item in res.data['data']) {
+            tags.add(VideoTag.fromJson(item));
+          }
+        }
+        return {'status': true, 'data': tags};
       } else {
         return {'status': false, 'data': [], 'msg': res.data['message']};
       }

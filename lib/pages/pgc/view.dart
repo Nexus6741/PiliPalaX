@@ -1,16 +1,15 @@
-import 'dart:async';
+// import 'dart:async';
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/http/loading_state.dart';
 import 'package:PiliPalaX/models/pgc/fav_pgc/list.dart';
 import 'package:PiliPalaX/models/pgc/pgc_index_result/list.dart';
-import 'package:PiliPalaX/pages/home/index.dart';
-import 'package:PiliPalaX/pages/main/index.dart';
+// import 'package:PiliPalaX/pages/home/index.dart';
+// import 'package:PiliPalaX/pages/main/index.dart';
 
 import '../../utils/grid.dart';
 import 'controller.dart';
@@ -39,10 +38,10 @@ class _PgcPageState extends State<PgcPage> with AutomaticKeepAliveClientMixin {
   void initState() {
     super.initState();
     scrollController = _pgcController.scrollController;
-    StreamController<bool> mainStream =
-        Get.find<MainController>().bottomBarStream;
-    StreamController<bool> searchBarStream =
-        Get.find<HomeController>().searchBarStream;
+    // 暂时禁用滚动隐藏搜索栏功能
+    // StreamController<bool> mainStream =
+    //     Get.find<MainController>().bottomBarStream;
+    // HomeController homeController = Get.find<HomeController>();
 
     scrollController.addListener(
       () async {
@@ -56,15 +55,16 @@ class _PgcPageState extends State<PgcPage> with AutomaticKeepAliveClientMixin {
         }
 
         // 控制底部栏和搜索栏显示
-        final ScrollDirection direction =
-            scrollController.position.userScrollDirection;
-        if (direction == ScrollDirection.forward) {
-          mainStream.add(true);
-          searchBarStream.add(true);
-        } else if (direction == ScrollDirection.reverse) {
-          mainStream.add(false);
-          searchBarStream.add(false);
-        }
+        // 暂时禁用滚动隐藏搜索栏功能
+        // final ScrollDirection direction =
+        //     scrollController.position.userScrollDirection;
+        // if (direction == ScrollDirection.forward) {
+        //   mainStream.add(true);
+        //   homeController.showSearchBar.value = true;
+        // } else if (direction == ScrollDirection.reverse) {
+        //   mainStream.add(false);
+        //   homeController.showSearchBar.value = false;
+        // }
       },
     );
   }
