@@ -130,7 +130,7 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
                 style: TextStyle(
                   fontSize: 15,
                   color: colorScheme.primary,
-                ),·
+                ),
               ),
             ),
           ],
