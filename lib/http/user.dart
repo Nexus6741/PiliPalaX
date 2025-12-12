@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import '../common/constants.dart';
 import '../models/model_hot_video_item.dart';
@@ -417,6 +418,7 @@ class UserHttp {
           'csrf': csrf,
           'topic_id': topicId,
         },
+        options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
       print('🔍 [addFavTopic] Response code: ${res.data['code']}');
@@ -447,6 +449,7 @@ class UserHttp {
           'csrf': csrf,
           'topic_id': topicId,
         },
+        options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
       print('🔍 [delFavTopic] Response code: ${res.data['code']}');
@@ -488,6 +491,7 @@ class UserHttp {
           'topic_id': topicId,
           'business': 'topic',
         },
+        options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
       print('🔍 [likeTopic] Response code: ${res.data['code']}');
