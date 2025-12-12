@@ -8,6 +8,7 @@ import 'package:PiliPalaX/pages/msg_feed_top/reply_me/view.dart';
 import 'package:PiliPalaX/pages/msg_feed_top/like_me/view.dart';
 import 'package:PiliPalaX/pages/follow_search/view.dart';
 import 'package:PiliPalaX/pages/setting/pages/logs.dart';
+import 'package:PiliPalaX/pages/dynamics_topic/view.dart';
 
 import '../pages/about/index.dart';
 import '../pages/blacklist/index.dart';
@@ -252,6 +253,9 @@ class Routes {
     CustomGetPage(name: '/subDetail', page: () => const SubDetailPage()),
     // 弹幕屏蔽管理
     CustomGetPage(name: '/danmakuBlock', page: () => const DanmakuBlockPage()),
+    // 话题页
+    CustomGetPage(
+        name: '/dynamicsTopic', page: () => const DynamicsTopicPage()),
   ];
 }
 

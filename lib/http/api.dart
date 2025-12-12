@@ -732,4 +732,20 @@ class Api {
 
   // 投票信息
   static const String voteInfo = '/x/vote/web/info';
+
+  // 话题详情
+  static const String topicTop =
+      '${HttpString.appBaseUrl}/x/topic/web/details/top';
+
+  // 话题动态列表
+  static const String topicFeed = '/x/polymer/web-dynamic/v1/feed/topic';
+
+  // 收藏话题
+  static const String addFavTopic = '/x/topic/fav/sub/add';
+
+  // 取消收藏话题
+  static const String delFavTopic = '/x/topic/fav/sub/cancel';
+
+  // 点赞话题
+  static const String likeTopic = '/x/topic/like';
 }

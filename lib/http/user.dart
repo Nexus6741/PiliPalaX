@@ -8,6 +8,7 @@ import '../models/user/info.dart';
 import '../models/user/stat.dart';
 import '../models/user/sub_detail.dart';
 import '../models/user/sub_folder.dart';
+import '../utils/storage.dart';
 import 'api.dart';
 import 'init.dart';
 
@@ -399,6 +400,107 @@ class UserHttp {
       return {'status': true};
     } else {
       return {'status': false, 'msg': res.data['message']};
+    }
+  }
+
+  // 收藏话题
+  static Future<dynamic> addFavTopic(String topicId) async {
+    try {
+      String csrf = await Request.getCsrf();
+      print('🔍 [addFavTopic] topic_id: $topicId');
+      print('🔍 [addFavTopic] csrf: $csrf');
+      print('🔍 [addFavTopic] API endpoint: ${Api.addFavTopic}');
+
+      var res = await Request().post(
+        Api.addFavTopic,
+        data: {
+          'csrf': csrf,
+          'topic_id': topicId,
+        },
+      );
+
+      print('🔍 [addFavTopic] Response code: ${res.data['code']}');
+      print('🔍 [addFavTopic] Response: ${res.data}');
+
+      if (res.data['code'] == 0) {
+        return {'status': true};
+      } else {
+        return {'status': false, 'msg': res.data['message']};
+      }
+    } catch (err) {
+      print('❌ [addFavTopic] Error: $err');
+      return {'status': false, 'msg': err.toString()};
+    }
+  }
+
+  // 取消收藏话题
+  static Future<dynamic> delFavTopic(String topicId) async {
+    try {
+      String csrf = await Request.getCsrf();
+      print('🔍 [delFavTopic] topic_id: $topicId');
+      print('🔍 [delFavTopic] csrf: $csrf');
+      print('🔍 [delFavTopic] API endpoint: ${Api.delFavTopic}');
+
+      var res = await Request().post(
+        Api.delFavTopic,
+        data: {
+          'csrf': csrf,
+          'topic_id': topicId,
+        },
+      );
+
+      print('🔍 [delFavTopic] Response code: ${res.data['code']}');
+      print('🔍 [delFavTopic] Response: ${res.data}');
+
+      if (res.data['code'] == 0) {
+        return {'status': true};
+      } else {
+        return {'status': false, 'msg': res.data['message']};
+      }
+    } catch (err) {
+      print('❌ [delFavTopic] Error: $err');
+      return {'status': false, 'msg': err.toString()};
+    }
+  }
+
+  // 点赞话题
+  static Future<dynamic> likeTopic(String topicId, bool isLike) async {
+    try {
+      // 获取当前登录用户的 mid
+      var userInfo = GStorage.userInfo.get('userInfoCache');
+      int upMid = userInfo != null ? userInfo.mid : 0;
+      String csrf = await Request.getCsrf();
+      String action = isLike ? 'cancel_like' : 'like';
+
+      print('🔍 [likeTopic] topic_id: $topicId');
+      print('🔍 [likeTopic] isLike: $isLike');
+      print('🔍 [likeTopic] action: $action');
+      print('🔍 [likeTopic] up_mid: $upMid');
+      print('🔍 [likeTopic] csrf: $csrf');
+      print('🔍 [likeTopic] API endpoint: ${Api.likeTopic}');
+
+      var res = await Request().post(
+        Api.likeTopic,
+        data: {
+          'csrf': csrf,
+          'action': action,
+          'up_mid': upMid,
+          'topic_id': topicId,
+          'business': 'topic',
+        },
+      );
+
+      print('🔍 [likeTopic] Response code: ${res.data['code']}');
+      print('🔍 [likeTopic] Response: ${res.data}');
+
+      if (res.data['code'] == 0) {
+        return {'status': true};
+      } else {
+        return {'status': false, 'msg': res.data['message']};
+      }
+    } catch (err) {
+      print('❌ [likeTopic] Error: $err');
+      return {'status': false, 'msg': err.toString()};
     }
   }
 }

@@ -85,7 +85,10 @@ class TagsWidget extends StatelessWidget {
       case 'topic':
         // 话题标签: 跳转到动态话题页
         if (tag.tagId != null) {
-          Get.toNamed('/dynTopic', parameters: {'id': tag.tagId!.toString()});
+          Get.toNamed('/dynamicsTopic', parameters: {
+            'id': tag.tagId!.toString(),
+            'name': tag.tagName ?? '',
+          });
         }
         break;
       default:

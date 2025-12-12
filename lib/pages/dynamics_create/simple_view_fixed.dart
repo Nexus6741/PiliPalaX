@@ -6,6 +6,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import '../../common/widgets/rich_text/controller.dart';
 import '../../common/widgets/rich_text/text_field.dart';
 import '../../common/widgets/rich_text/models.dart';
+import '../../models/dynamics/topic_item.dart';
 import '../../pages/emote/view.dart';
 import '../../pages/video/reply_new/widgets/mention_panel.dart';
 import '../../utils/feed_back.dart';
@@ -14,7 +15,14 @@ import 'widgets/topic_selector.dart';
 import 'widgets/vote_creator.dart';
 
 class SimpleDynamicCreatePage extends StatefulWidget {
-  const SimpleDynamicCreatePage({super.key});
+  final int? topicId;
+  final String? topicName;
+
+  const SimpleDynamicCreatePage({
+    super.key,
+    this.topicId,
+    this.topicName,
+  });
 
   @override
   State<SimpleDynamicCreatePage> createState() =>
@@ -41,6 +49,16 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
     // 监听文本变化
     _textController.addListener(_onTextChanged);
     _titleController.addListener(_onTextChanged);
+
+    // 如果传入了话题参数，自动设置话题
+    if (widget.topicId != null && widget.topicName != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller.setTopic(TopicItem(
+          id: widget.topicId!,
+          name: widget.topicName!,
+        ));
+      });
+    }
   }
 
   @override

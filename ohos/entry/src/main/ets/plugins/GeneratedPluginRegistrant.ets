@@ -1,4 +1,5 @@
 import { FlutterEngine, Log } from '@ohos/flutter_ohos';
+import MediaKitVideoPlugin from 'media_kit_video';
 import DeviceInfoOhosPlugin from 'device_info_ohos';
 import AudioSessionPlugin from 'audio_session';
 import PathProviderPlugin from 'path_provider_ohos';
@@ -18,7 +19,6 @@ import HapticFeedbackOhosPlugin from 'haptic_feedback_ohos';
 import MediaKitLibsOhosPlugin from 'media_kit_libs_ohos';
 import ScreenBrightnessOhosPlugin from 'screen_brightness_ohos';
 import SaverGalleryPlugin from 'saver_gallery';
-import MediaKitVideoPlugin from 'media_kit_video';
 
 /**
  * Generated file. Do not edit.
@@ -32,6 +32,7 @@ export class GeneratedPluginRegistrant {
 
   static registerWith(flutterEngine: FlutterEngine) {
     try {
+      flutterEngine.getPlugins()?.add(new MediaKitVideoPlugin());
       flutterEngine.getPlugins()?.add(new DeviceInfoOhosPlugin());
       flutterEngine.getPlugins()?.add(new AudioSessionPlugin());
       flutterEngine.getPlugins()?.add(new PathProviderPlugin());
@@ -51,7 +52,6 @@ export class GeneratedPluginRegistrant {
       flutterEngine.getPlugins()?.add(new MediaKitLibsOhosPlugin());
       flutterEngine.getPlugins()?.add(new ScreenBrightnessOhosPlugin());
       flutterEngine.getPlugins()?.add(new SaverGalleryPlugin());
-      flutterEngine.getPlugins()?.add(new MediaKitVideoPlugin());
     } catch (e) {
       Log.e(
         TAG,

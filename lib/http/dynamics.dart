@@ -1,6 +1,8 @@
 import '../models/dynamics/result.dart';
 import '../models/dynamics/up.dart';
 import '../models/dynamics/topic_item.dart';
+import '../models/dynamics/topic_card_list.dart';
+import '../models/dynamics/topic_top_details.dart';
 import '../models/dynamics/vote_model.dart';
 import '../utils/utils.dart';
 import 'index.dart';
@@ -408,6 +410,80 @@ class DynamicsHttp {
         return {
           'status': true,
           'data': VoteInfo.fromJson(res.data['data']),
+        };
+      } else {
+        return {
+          'status': false,
+          'msg': res.data['message'],
+        };
+      }
+    } catch (err) {
+      return {
+        'status': false,
+        'msg': err.toString(),
+      };
+    }
+  }
+
+  // 获取话题详情
+  static Future topicTop({required String topicId}) async {
+    try {
+      var res = await Request().get(
+        Api.topicTop,
+        data: {
+          'topic_id': topicId,
+          'source': 'Web',
+        },
+      );
+
+      if (res.data['code'] == 0) {
+        TopicTopDetails? data = res.data['data']?['top_details'] == null
+            ? null
+            : TopicTopDetails.fromJson(res.data['data']['top_details']);
+        return {
+          'status': true,
+          'data': data,
+        };
+      } else {
+        return {
+          'status': false,
+          'msg': res.data['message'],
+        };
+      }
+    } catch (err) {
+      return {
+        'status': false,
+        'msg': err.toString(),
+      };
+    }
+  }
+
+  // 获取话题下的动态列表
+  static Future topicFeed({
+    required String topicId,
+    required String offset,
+    required int sortBy,
+  }) async {
+    try {
+      var res = await Request().get(
+        Api.topicFeed,
+        data: {
+          'topic_id': topicId,
+          'sort_by': sortBy,
+          'offset': offset,
+          'page_size': 20,
+          'source': 'Web',
+          'features': 'itemOpusStyle,listOnlyfans',
+        },
+      );
+
+      if (res.data['code'] == 0) {
+        TopicCardList? data = res.data['data']?['topic_card_list'] == null
+            ? null
+            : TopicCardList.fromJson(res.data['data']['topic_card_list']);
+        return {
+          'status': true,
+          'data': data,
         };
       } else {
         return {
