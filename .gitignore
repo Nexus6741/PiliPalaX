@@ -141,4 +141,9 @@ app.*.symbols
 # Ignored folders
 PiliPlus/
 bilibili-API-collect/
-ohos/
+ohos/*
+!ohos/entry/
+ohos/entry/*
+!ohos/entry/src/
+ohos/entry/src/*
+!ohos/entry/src/main/

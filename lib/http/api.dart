@@ -475,6 +475,9 @@ class Api {
   // features=itemOpusStyle
   static const String dynamicDetail = '/x/polymer/web-dynamic/v1/detail';
 
+  // 创建动态
+  static const String createDynamic = '/x/dynamic/feed/create/dyn';
+
   // AI总结
   /// https://api.bilibili.com/x/web-interface/view/conclusion/get?
   /// bvid=BV1ju4y1s7kn&
@@ -711,4 +714,22 @@ class Api {
   /// 专栏内容
   /// https://api.bilibili.com/x/article/view?id=xxx
   static const String articleView = '/x/article/view';
+
+  // 话题推荐
+  static const String dynTopicRcmd = '/x/topic/web/topic/rcmd';
+
+  // 话题搜索
+  static const String topicPubSearch = '/x/topic/pub/search';
+
+  // 话题上传关联
+  static const String topicPubUpload = '/x/topic/web/pub/upload';
+
+  // 创建投票（新API）
+  static const String createVote = '/x/vote/create';
+
+  // 更新投票
+  static const String updateVote = '/x/vote/update';
+
+  // 投票信息
+  static const String voteInfo = '/x/vote/web/info';
 }

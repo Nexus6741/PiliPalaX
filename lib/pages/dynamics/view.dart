@@ -78,6 +78,14 @@ class _DynamicsPageState extends State<DynamicsPage>
     super.dispose();
   }
 
+  void _onCreateDynamic() async {
+    final result = await Get.toNamed('/dynamics/create');
+    if (result == true) {
+      // 发布成功，刷新动态列表
+      _dynamicsController.onRefresh();
+    }
+  }
+
   Widget upPanelPart() {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -154,6 +162,13 @@ class _DynamicsPageState extends State<DynamicsPage>
                     // _dynamicsController.onSelectType(index);
                     // _
                   })),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _onCreateDynamic(),
+              tooltip: '发布动态',
+            ),
+          ],
         ),
         drawer: upPanelPosition == UpPanelPosition.leftDrawer
             ? SafeArea(child: upPanelPart())
