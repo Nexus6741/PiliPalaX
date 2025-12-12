@@ -135,4 +135,14 @@ class SSearchController extends GetxController {
     historyList.refresh();
     historyWord.put('cacheList', []);
   }
+
+  @override
+  void onClose() {
+    // 清空搜索框内容，确保下次进入时搜索框为空
+    controller.value.clear();
+    searchKeyWord.value = '';
+    searchSuggestList.value = [];
+    searchFocusNode.dispose();
+    super.onClose();
+  }
 }

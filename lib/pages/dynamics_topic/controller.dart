@@ -11,9 +11,10 @@ class DynamicsTopicController extends GetxController {
   final String topicId = Get.parameters['id']!;
   String topicName = Get.parameters['name'] ?? '';
 
-  int sortBy = 0;
+  RxInt sortBy = 0.obs;
   String offset = '';
   Rx<TopicSortByConf?> topicSortByConf = Rx<TopicSortByConf?>(null);
+  bool _isInitialized = false;
 
   double? appbarOffset;
 
@@ -37,6 +38,17 @@ class DynamicsTopicController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    // 添加滚动监听
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 200) {
+        if (!isEnd.value && !isLoadingMore.value) {
+          onLoadMore();
+        }
+      }
+    });
+
     queryTop();
     queryData();
   }
@@ -76,33 +88,55 @@ class DynamicsTopicController extends GetxController {
     }
     errorMsg.value = '';
 
+    print(
+        '📡 [queryData] 请求参数: topicId=$topicId, offset=$offset, sortBy=${sortBy.value}');
+
     var res = await DynamicsHttp.topicFeed(
       topicId: topicId,
       offset: offset,
-      sortBy: sortBy,
+      sortBy: sortBy.value,
     );
 
     if (res['status']) {
       TopicCardList? data = res['data'];
       if (data != null) {
         offset = data.offset ?? '';
+        print(
+            '📊 [queryData] 响应数据: items=${data.items?.length ?? 0}, hasMore=${data.hasMore}, offset=$offset');
+
+        // 更新排序配置
         topicSortByConf.value = data.topicSortByConf;
-        sortBy = data.topicSortByConf?.showSortBy ?? 0;
+
+        // 只在第一次初始化时设置默认排序
+        if (!_isInitialized && data.topicSortByConf != null) {
+          sortBy.value = data.topicSortByConf?.showSortBy ?? 0;
+          _isInitialized = true;
+          print('🎯 [queryData] 初始化默认排序: ${sortBy.value}');
+        }
 
         if (data.hasMore == false) {
           isEnd.value = true;
         }
 
         if (data.items != null && data.items!.isNotEmpty) {
-          if (offset.isEmpty || offset.isEmpty) {
+          if (offset.isEmpty) {
             dynamicsList.value = data.items!;
+            print('✅ [queryData] 设置新数据: ${data.items!.length} 条');
           } else {
             dynamicsList.addAll(data.items!);
+            print('➕ [queryData] 追加数据: ${data.items!.length} 条');
+          }
+        } else {
+          // 如果没有数据且是第一页，清空列表
+          if (offset.isEmpty) {
+            dynamicsList.clear();
+            print('🗑️ [queryData] 清空列表，无数据');
           }
         }
       }
     } else {
       errorMsg.value = res['msg'] ?? '加载失败';
+      print('❌ [queryData] 请求失败: ${res['msg']}');
     }
 
     isLoading.value = false;
@@ -137,15 +171,14 @@ class DynamicsTopicController extends GetxController {
     }
     offset = '';
     isEnd.value = false;
+    dynamicsList.clear(); // 清空列表
     await queryData();
   }
 
-  void onSort(int sortBy) {
-    this.sortBy = sortBy;
-    offset = '';
-    isEnd.value = false;
-    dynamicsList.clear();
-    queryData();
+  void onSort(int newSortBy) {
+    print('🔄 [onSort] 切换排序: $newSortBy');
+    sortBy.value = newSortBy;
+    onReload();
   }
 
   Future<void> onFav() async {

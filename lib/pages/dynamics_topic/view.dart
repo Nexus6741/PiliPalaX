@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/pages/dynamics/widgets/dynamic_panel.dart';
 import 'package:PiliPalaX/pages/dynamics_create/simple_view_fixed.dart';
 import 'package:PiliPalaX/pages/dynamics_topic/controller.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
+import 'package:PiliPalaX/utils/grid.dart';
+import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/utils.dart';
+import 'package:waterfall_flow/waterfall_flow.dart';
 
 class DynamicsTopicPage extends StatefulWidget {
   const DynamicsTopicPage({super.key});
@@ -83,7 +87,7 @@ class _DynamicsTopicPageState extends State<DynamicsTopicPage> {
                           _controller.onSort(allSortBy[index].sortBy!);
                         },
                         isSelected: allSortBy.map((e) {
-                          return e.sortBy == _controller.sortBy;
+                          return e.sortBy == _controller.sortBy.value;
                         }).toList(),
                         children: allSortBy.map((e) {
                           return Padding(
@@ -367,28 +371,35 @@ class _DynamicsTopicPageState extends State<DynamicsTopicPage> {
       );
     }
 
+    // 检查是否启用瀑布流布局（横屏双列）
+    final bool enableWaterfallFlow = GStorage.setting
+        .get(SettingBoxKey.dynamicsWaterfallFlow, defaultValue: true);
+
+    // 获取屏幕方向
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
+    // 在横屏且启用瀑布流时使用双列布局
+    if (isLandscape && enableWaterfallFlow) {
+      return _buildWaterfallLayout();
+    } else {
+      return _buildListLayout();
+    }
+  }
+
+  Widget _buildListLayout() {
     return SliverList.builder(
-      itemCount: _controller.dynamicsList.length + 1,
+      itemCount:
+          _controller.dynamicsList.length + (_controller.isEnd.value ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == _controller.dynamicsList.length) {
-          if (_controller.isLoadingMore.value) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else if (_controller.isEnd.value) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Text('没有更多了'),
-              ),
-            );
-          } else {
-            _controller.onLoadMore();
-            return const SizedBox.shrink();
-          }
+          // 只在结束时显示"没有更多了"
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Text('没有更多了'),
+            ),
+          );
         }
 
         final item = _controller.dynamicsList[index];
@@ -401,6 +412,38 @@ class _DynamicsTopicPageState extends State<DynamicsTopicPage> {
 
         return const SizedBox.shrink();
       },
+    );
+  }
+
+  Widget _buildWaterfallLayout() {
+    final List<Widget> children = [];
+
+    // 添加动态卡片
+    for (var item in _controller.dynamicsList) {
+      if (item.dynamicCardItem != null) {
+        children.add(DynamicPanel(item: item.dynamicCardItem!));
+      }
+    }
+
+    // 只在结束时添加"没有更多了"提示
+    if (_controller.isEnd.value) {
+      children.add(const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text('没有更多了'),
+        ),
+      ));
+    }
+
+    return SliverWaterfallFlow.extent(
+      maxCrossAxisExtent: Grid.maxRowWidth * 2,
+      crossAxisSpacing: StyleString.cardSpace / 2,
+      mainAxisSpacing: StyleString.cardSpace / 2,
+      lastChildLayoutTypeBuilder: (index) =>
+          index == children.length - 1 && _controller.isEnd.value
+              ? LastChildLayoutType.foot
+              : LastChildLayoutType.none,
+      children: children,
     );
   }
 }
