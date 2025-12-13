@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/video_card_h.dart';
 import 'package:PiliPalaX/models/common/search_type.dart';
@@ -87,19 +88,31 @@ class SearchVideoPanel extends StatelessWidget {
           slivers: [
             SliverPadding(
                 padding: const EdgeInsets.all(StyleString.safeSpace),
-                sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithExtentAndRatio(
-                      mainAxisSpacing: StyleString.safeSpace,
-                      crossAxisSpacing: StyleString.safeSpace,
-                      maxCrossAxisExtent: Grid.maxRowWidth * 2,
-                      childAspectRatio: StyleString.aspectRatio * 2.4,
-                      mainAxisExtent: 0),
-                  delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int index) {
-                      return VideoCardH(
-                          videoItem: list[index], showPubdate: true);
-                    },
-                    childCount: list.length,
+                sliver: AnimationLimiter(
+                  child: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithExtentAndRatio(
+                        mainAxisSpacing: StyleString.safeSpace,
+                        crossAxisSpacing: StyleString.safeSpace,
+                        maxCrossAxisExtent: Grid.maxRowWidth * 2,
+                        childAspectRatio: StyleString.aspectRatio * 2.4,
+                        mainAxisExtent: 0),
+                    delegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                        return AnimationConfiguration.staggeredGrid(
+                          position: index,
+                          duration: const Duration(milliseconds: 375),
+                          columnCount: 1,
+                          child: SlideAnimation(
+                            verticalOffset: 50.0,
+                            child: FadeInAnimation(
+                              child: VideoCardH(
+                                  videoItem: list[index], showPubdate: true),
+                            ),
+                          ),
+                        );
+                      },
+                      childCount: list.length,
+                    ),
                   ),
                 )),
           ],

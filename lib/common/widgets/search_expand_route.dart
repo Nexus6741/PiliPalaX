@@ -87,9 +87,16 @@ class _SearchExpandTransition extends StatelessWidget {
         }
 
         // 内容透明度：
-        // 0.0 - 0.7: 完全透明（隐藏内容，避免变形）
-        // 0.7 - 1.0: 快速淡入
+        // 展开时：0.0 - 0.7: 完全透明（隐藏内容，避免变形）
+        //        0.7 - 1.0: 快速淡入
+        // 关闭时：1.0 - 0.2: 保持可见
+        //        0.2 - 0.0: 快速淡出（避免黑条效果）
         final contentOpacity = progress < 0.7 ? 0.0 : (progress - 0.7) / 0.3;
+
+        // 整体透明度：在关闭动画的最后阶段淡出
+        // 1.0 - 0.15: 完全不透明
+        // 0.15 - 0.0: 快速淡出
+        final overallOpacity = progress < 0.15 ? progress / 0.15 : 1.0;
 
         return Stack(
           children: [
@@ -98,20 +105,23 @@ class _SearchExpandTransition extends StatelessWidget {
               top: currentTop,
               width: currentWidth,
               height: currentHeight,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(borderRadius),
-                child: Stack(
-                  children: [
-                    // 背景色（在内容淡入前显示）
-                    Container(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                    ),
-                    // 实际内容（延迟显示）
-                    Opacity(
-                      opacity: contentOpacity,
-                      child: cachedChild!,
-                    ),
-                  ],
+              child: Opacity(
+                opacity: overallOpacity,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  child: Stack(
+                    children: [
+                      // 背景色（在内容淡入前显示）
+                      Container(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
+                      // 实际内容（延迟显示）
+                      Opacity(
+                        opacity: contentOpacity,
+                        child: cachedChild!,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

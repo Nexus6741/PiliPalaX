@@ -15,6 +15,7 @@ import '../constants.dart';
 import 'badge.dart';
 import 'network_img_layer.dart';
 import 'video_popup_menu.dart';
+import 'frosted_glass_container.dart';
 
 // 视频卡片 - 垂直布局
 class VideoCardV extends StatelessWidget {
@@ -160,6 +161,7 @@ class VideoCardV extends StatelessWidget {
             elevation: 0,
             clipBehavior: Clip.hardEdge,
             margin: EdgeInsets.zero,
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
             child: GestureDetector(
               onLongPress: () {
                 if (longPress != null) {
@@ -237,14 +239,14 @@ class VideoCardV extends StatelessWidget {
                                 size: 'small',
                                 type: 'gray',
                                 text: Utils.timeFormat(videoItem.duration),
-                                // semanticsLabel:
-                                //     '时长${Utils.durationReadFormat(Utils.timeFormat(videoItem.duration))}',
                               )
                           ],
                         );
                       }),
                     ),
-                    VideoContent(videoItem: videoItem)
+                    Expanded(
+                      child: VideoContent(videoItem: videoItem),
+                    ),
                   ],
                 ),
               ),
@@ -268,88 +270,83 @@ class VideoContent extends StatelessWidget {
   const VideoContent({super.key, required this.videoItem});
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(6, 5, 6, 5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(videoItem.title + "\n",
-                      // semanticsLabel: "${videoItem.title}",
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        height: 1.38,
-                      )),
-                ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(6, 5, 6, 5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(videoItem.title + "\n",
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      height: 1.38,
+                    )),
+              ),
+            ],
+          ),
+          const Spacer(),
+          VideoStat(
+            videoItem: videoItem,
+          ),
+          Row(
+            children: [
+              if (videoItem.goto == 'bangumi') ...[
+                PBadge(
+                  text: videoItem.bangumiBadge,
+                  stack: 'normal',
+                  size: 'small',
+                  type: 'line',
+                  fs: 9,
+                )
               ],
-            ),
-            const Spacer(),
-            // const SizedBox(height: 2),
-            VideoStat(
-              videoItem: videoItem,
-            ),
-            Row(
-              children: [
-                if (videoItem.goto == 'bangumi') ...[
-                  PBadge(
-                    text: videoItem.bangumiBadge,
-                    stack: 'normal',
-                    size: 'small',
-                    type: 'line',
-                    fs: 9,
-                  )
-                ],
-                if (videoItem.rcmdReason != null) ...[
-                  PBadge(
-                    text: videoItem.rcmdReason,
-                    stack: 'normal',
-                    size: 'small',
-                    type: 'color',
-                  )
-                ],
-                if (videoItem.goto == 'picture') ...[
-                  const PBadge(
-                    text: '动态',
-                    stack: 'normal',
-                    size: 'small',
-                    type: 'line',
-                    fs: 9,
-                  )
-                ],
-                if (videoItem.isFollowed == 1) ...[
-                  const PBadge(
-                    text: '已关注',
-                    stack: 'normal',
-                    size: 'small',
-                    type: 'color',
-                  )
-                ],
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    videoItem.owner.name.toString(),
-                    // semanticsLabel: "Up主：${videoItem.owner.name}",
-                    maxLines: 1,
-                    overflow: TextOverflow.clip,
-                    style: TextStyle(
-                      height: 1.5,
-                      fontSize:
-                          Theme.of(context).textTheme.labelMedium!.fontSize,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+              if (videoItem.rcmdReason != null) ...[
+                PBadge(
+                  text: videoItem.rcmdReason,
+                  stack: 'normal',
+                  size: 'small',
+                  type: 'color',
+                )
+              ],
+              if (videoItem.goto == 'picture') ...[
+                const PBadge(
+                  text: '动态',
+                  stack: 'normal',
+                  size: 'small',
+                  type: 'line',
+                  fs: 9,
+                )
+              ],
+              if (videoItem.isFollowed == 1) ...[
+                const PBadge(
+                  text: '已关注',
+                  stack: 'normal',
+                  size: 'small',
+                  type: 'color',
+                )
+              ],
+              Expanded(
+                flex: 1,
+                child: Text(
+                  videoItem.owner.name.toString(),
+                  // semanticsLabel: "Up主：${videoItem.owner.name}",
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: TextStyle(
+                    height: 1.5,
+                    fontSize:
+                        Theme.of(context).textTheme.labelMedium!.fontSize,
+                    color: Theme.of(context).colorScheme.outline,
                   ),
                 ),
-                if (videoItem.goto == 'av') const SizedBox(width: 10)
-              ],
-            ),
-          ],
-        ),
+              ),
+              if (videoItem.goto == 'av') const SizedBox(width: 10)
+            ],
+          ),
+        ],
       ),
     );
   }

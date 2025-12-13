@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:nil/nil.dart';
 import 'package:PiliPalaX/common/constants.dart';
@@ -229,24 +230,37 @@ class _BangumiPageState extends State<BangumiPage>
   }
 
   Widget contentGrid(ctr, bangumiList) {
-    return SliverGrid(
-      gridDelegate: SliverGridDelegateWithExtentAndRatio(
-        // 行间距
-        mainAxisSpacing: StyleString.cardSpace - 2,
-        // 列间距
-        crossAxisSpacing: StyleString.cardSpace,
-        // 最大宽度
-        maxCrossAxisExtent: Grid.maxRowWidth / 3 * 2,
-        childAspectRatio: 0.65,
-        mainAxisExtent: MediaQuery.textScalerOf(context).scale(60),
-      ),
-      delegate: SliverChildBuilderDelegate(
-        (BuildContext context, int index) {
-          return bangumiList!.isNotEmpty
-              ? BangumiCardV(bangumiItem: bangumiList[index])
-              : nil;
-        },
-        childCount: bangumiList!.isNotEmpty ? bangumiList!.length : 10,
+    return AnimationLimiter(
+      key: ValueKey(bangumiList!.isNotEmpty ? bangumiList.first.hashCode : 0),
+      child: SliverGrid(
+        gridDelegate: SliverGridDelegateWithExtentAndRatio(
+          // 行间距
+          mainAxisSpacing: StyleString.cardSpace - 2,
+          // 列间距
+          crossAxisSpacing: StyleString.cardSpace,
+          // 最大宽度
+          maxCrossAxisExtent: Grid.maxRowWidth / 3 * 2,
+          childAspectRatio: 0.65,
+          mainAxisExtent: MediaQuery.textScalerOf(context).scale(60),
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (BuildContext context, int index) {
+            return AnimationConfiguration.staggeredGrid(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              columnCount: 2,
+              child: SlideAnimation(
+                verticalOffset: 50.0,
+                child: FadeInAnimation(
+                  child: bangumiList!.isNotEmpty
+                      ? BangumiCardV(bangumiItem: bangumiList[index])
+                      : nil,
+                ),
+              ),
+            );
+          },
+          childCount: bangumiList!.isNotEmpty ? bangumiList!.length : 10,
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
@@ -244,22 +245,35 @@ class _PgcPageState extends State<PgcPage> with AutomaticKeepAliveClientMixin {
     } else if (loadingState is Success<List<PgcIndexItem>?>) {
       final response = loadingState.response;
       if (response?.isNotEmpty == true) {
-        return SliverGrid(
-          gridDelegate: SliverGridDelegateWithExtentAndRatio(
-            mainAxisSpacing: StyleString.cardSpace,
-            crossAxisSpacing: StyleString.cardSpace,
-            maxCrossAxisExtent: Grid.maxRowWidth / 3 * 2,
-            childAspectRatio: 0.65,
-            mainAxisExtent: MediaQuery.textScalerOf(context).scale(60),
-          ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              if (index == response.length - 1) {
-                _pgcController.onLoadMore();
-              }
-              return PgcCardV(item: response[index]);
-            },
-            childCount: response!.length,
+        return AnimationLimiter(
+          key: ValueKey(response!.isNotEmpty ? response.first.hashCode : 0),
+          child: SliverGrid(
+            gridDelegate: SliverGridDelegateWithExtentAndRatio(
+              mainAxisSpacing: StyleString.cardSpace,
+              crossAxisSpacing: StyleString.cardSpace,
+              maxCrossAxisExtent: Grid.maxRowWidth / 3 * 2,
+              childAspectRatio: 0.65,
+              mainAxisExtent: MediaQuery.textScalerOf(context).scale(60),
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index == response.length - 1) {
+                  _pgcController.onLoadMore();
+                }
+                return AnimationConfiguration.staggeredGrid(
+                  position: index,
+                  duration: const Duration(milliseconds: 375),
+                  columnCount: 2,
+                  child: SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: FadeInAnimation(
+                      child: PgcCardV(item: response[index]),
+                    ),
+                  ),
+                );
+              },
+              childCount: response!.length,
+            ),
           ),
         );
       } else {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
@@ -10,20 +11,32 @@ Widget searchLivePanel(BuildContext context, ctr, list) {
   return Padding(
     padding: const EdgeInsets.only(
         left: StyleString.safeSpace, right: StyleString.safeSpace),
-    child: GridView.builder(
-      primary: false,
-      controller: ctr!.scrollController,
-      gridDelegate: SliverGridDelegateWithExtentAndRatio(
-        maxCrossAxisExtent: Grid.maxRowWidth,
-        crossAxisSpacing: StyleString.safeSpace,
-        mainAxisSpacing: StyleString.safeSpace,
-        childAspectRatio: StyleString.aspectRatio,
-        mainAxisExtent: MediaQuery.textScalerOf(context).scale(80),
+    child: AnimationLimiter(
+      child: GridView.builder(
+        primary: false,
+        controller: ctr!.scrollController,
+        gridDelegate: SliverGridDelegateWithExtentAndRatio(
+          maxCrossAxisExtent: Grid.maxRowWidth,
+          crossAxisSpacing: StyleString.safeSpace,
+          mainAxisSpacing: StyleString.safeSpace,
+          childAspectRatio: StyleString.aspectRatio,
+          mainAxisExtent: MediaQuery.textScalerOf(context).scale(80),
+        ),
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          return AnimationConfiguration.staggeredGrid(
+            position: index,
+            duration: const Duration(milliseconds: 375),
+            columnCount: 2,
+            child: SlideAnimation(
+              verticalOffset: 50.0,
+              child: FadeInAnimation(
+                child: LiveItem(liveItem: list![index]),
+              ),
+            ),
+          );
+        },
       ),
-      itemCount: list.length,
-      itemBuilder: (context, index) {
-        return LiveItem(liveItem: list![index]);
-      },
     ),
   );
 }

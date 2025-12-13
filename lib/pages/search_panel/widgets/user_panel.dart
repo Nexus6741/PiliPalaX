@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/utils/utils.dart';
@@ -12,17 +13,25 @@ Widget searchUserPanel(BuildContext context, ctr, list) {
       color: Theme.of(context).colorScheme.outline);
 
   return CustomScrollView(controller: ctr.scrollController, slivers: [
-    SliverGrid(
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            mainAxisSpacing: StyleString.cardSpace,
-            crossAxisSpacing: StyleString.safeSpace,
-            maxCrossAxisExtent: Grid.maxRowWidth * 2,
-            mainAxisExtent: 56),
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            var i = list![index];
-            String heroTag = Utils.makeHeroTag(i!.mid);
-            return InkWell(
+    AnimationLimiter(
+      child: SliverGrid(
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              mainAxisSpacing: StyleString.cardSpace,
+              crossAxisSpacing: StyleString.safeSpace,
+              maxCrossAxisExtent: Grid.maxRowWidth * 2,
+              mainAxisExtent: 56),
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              var i = list![index];
+              String heroTag = Utils.makeHeroTag(i!.mid);
+              return AnimationConfiguration.staggeredGrid(
+                position: index,
+                duration: const Duration(milliseconds: 375),
+                columnCount: 1,
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: InkWell(
               onTap: () => Get.toNamed('/member?mid=${i.mid}',
                   arguments: {'heroTag': heroTag, 'face': i.upic}),
               child: Row(
@@ -77,9 +86,13 @@ Widget searchUserPanel(BuildContext context, ctr, list) {
                   )),
                 ],
               ),
-            );
-          },
-          childCount: list!.length,
-        ))
+                    ),
+                  ),
+                ),
+              );
+            },
+            childCount: list!.length,
+          )),
+    )
   ]);
 }

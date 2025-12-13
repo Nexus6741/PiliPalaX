@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
@@ -11,16 +12,24 @@ Widget searchArticlePanel(BuildContext context, ctr, list) {
       fontSize: Theme.of(context).textTheme.labelSmall!.fontSize,
       color: Theme.of(context).colorScheme.outline);
   return CustomScrollView(controller: ctr.scrollController, slivers: [
-    SliverGrid(
-        gridDelegate: SliverGridDelegateWithExtentAndRatio(
-            mainAxisSpacing: StyleString.safeSpace,
-            crossAxisSpacing: StyleString.safeSpace,
-            maxCrossAxisExtent: Grid.maxRowWidth * 2,
-            childAspectRatio: StyleString.aspectRatio * 2.4,
-            mainAxisExtent: 0),
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            return InkWell(
+    AnimationLimiter(
+      child: SliverGrid(
+          gridDelegate: SliverGridDelegateWithExtentAndRatio(
+              mainAxisSpacing: StyleString.safeSpace,
+              crossAxisSpacing: StyleString.safeSpace,
+              maxCrossAxisExtent: Grid.maxRowWidth * 2,
+              childAspectRatio: StyleString.aspectRatio * 2.4,
+              mainAxisExtent: 0),
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              return AnimationConfiguration.staggeredGrid(
+                position: index,
+                duration: const Duration(milliseconds: 375),
+                columnCount: 1,
+                child: SlideAnimation(
+                  verticalOffset: 50.0,
+                  child: FadeInAnimation(
+                    child: InkWell(
               onTap: () {
                 Get.toNamed('/htmlRender', parameters: {
                   'url': 'www.bilibili.com/read/cv${list[index].id}',
@@ -112,9 +121,13 @@ Widget searchArticlePanel(BuildContext context, ctr, list) {
                   );
                 }),
               ),
-            );
-          },
-          childCount: list.length,
-        ))
+                    ),
+                  ),
+                ),
+              );
+            },
+            childCount: list.length,
+          )),
+    )
   ]);
 }

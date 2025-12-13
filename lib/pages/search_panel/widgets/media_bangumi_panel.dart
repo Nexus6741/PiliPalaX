@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/badge.dart';
@@ -17,16 +18,36 @@ Widget searchBangumiPanel(BuildContext context, ctr, list) {
   return CustomScrollView(
     controller: ctr.scrollController,
     slivers: [
-      SliverGrid(
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          mainAxisSpacing: StyleString.safeSpace,
-          crossAxisSpacing: StyleString.safeSpace,
-          maxCrossAxisExtent: Grid.maxRowWidth * 2,
-          mainAxisExtent: 160,
+      AnimationLimiter(
+        child: SliverGrid(
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            mainAxisSpacing: StyleString.safeSpace,
+            crossAxisSpacing: StyleString.safeSpace,
+            maxCrossAxisExtent: Grid.maxRowWidth * 2,
+            mainAxisExtent: 160,
+          ),
+          delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
+            var i = list![index];
+            return AnimationConfiguration.staggeredGrid(
+              position: index,
+              duration: const Duration(milliseconds: 375),
+              columnCount: 1,
+              child: SlideAnimation(
+                verticalOffset: 50.0,
+                child: FadeInAnimation(
+                  child: _buildBangumiItem(context, i, style),
+                ),
+              ),
+            );
+          }, childCount: list.length),
         ),
-        delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
-          var i = list![index];
-          return InkWell(
+      ),
+    ],
+  );
+}
+
+Widget _buildBangumiItem(BuildContext context, dynamic i, TextStyle style) {
+  return InkWell(
             onTap: () {
               /// TODO 番剧详情页面
               // Get.toNamed('/video?bvid=${i.bvid}&cid=${i.cid}', arguments: {
@@ -167,8 +188,4 @@ Widget searchBangumiPanel(BuildContext context, ctr, list) {
               ),
             ),
           );
-        }, childCount: list.length),
-      ),
-    ],
-  );
 }

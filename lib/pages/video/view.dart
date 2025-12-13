@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:nil/nil.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/enhanced_hero.dart';
 import 'package:PiliPalaX/http/user.dart';
 import 'package:PiliPalaX/models/common/search_type.dart';
 import 'package:PiliPalaX/pages/video/introduction/bangumi/index.dart';
@@ -728,8 +729,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                         child: Stack(
                           children: <Widget>[
                             Positioned.fill(
-                              child: Hero(
+                              child: VideoHero(
                                 tag: heroTag,
+                                width: videoWidth,
+                                height: videoHeight,
                                 child: NetworkImgLayer(
                                   src: videoDetailController.videoItem['pic'],
                                   width: videoWidth,
@@ -880,8 +883,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 },
                 child: Stack(children: <Widget>[
                   Positioned.fill(
-                    child: Hero(
+                    child: VideoHero(
                       tag: heroTag,
+                      width: videoWidth,
+                      height: videoHeight,
                       child: NetworkImgLayer(
                         src: videoDetailController.videoItem['pic'],
                         width: videoWidth,
@@ -1152,8 +1157,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 child: Stack(
                   children: <Widget>[
                     Positioned.fill(
-                      child: Hero(
+                      child: VideoHero(
                         tag: heroTag,
+                        width: videoWidth,
+                        height: videoHeight,
                         child: NetworkImgLayer(
                           src: videoDetailController.videoItem['pic'],
                           width: videoWidth,
@@ -1265,8 +1272,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   child: Stack(
                     children: <Widget>[
                       Positioned.fill(
-                        child: Hero(
+                        child: VideoHero(
                           tag: heroTag,
+                          width: videoWidth,
+                          height: videoHeight,
                           child: NetworkImgLayer(
                             src: videoDetailController.videoItem['pic'],
                             width: videoWidth,
