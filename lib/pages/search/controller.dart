@@ -28,8 +28,15 @@ class SSearchController extends GetxController {
     super.onInit();
     // 其他页面跳转过来
     if (Get.parameters.keys.isNotEmpty) {
-      // 检查是否是从标签跳转的,如果是则不触发搜索(避免污染搜索历史)
+      // 检查是否是从搜索结果页面跳转的，需要保留关键词
       if (Get.parameters['keyword'] != null &&
+          Get.parameters['searchType'] == 'fromSearchResult') {
+        // 从搜索结果页面跳转的，只设置关键词但不触发搜索
+        searchKeyWord.value = Get.parameters['keyword']!;
+        controller.value.text = Get.parameters['keyword']!;
+      }
+      // 检查是否是从标签跳转的,如果是则不触发搜索(避免污染搜索历史)
+      else if (Get.parameters['keyword'] != null &&
           Get.parameters['searchType'] != 'tag') {
         onClickKeyword(Get.parameters['keyword']!);
       } else if (Get.parameters['keyword'] != null) {

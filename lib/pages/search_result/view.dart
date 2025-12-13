@@ -42,7 +42,14 @@ class _SearchResultPageState extends State<SearchResultPage>
         titleSpacing: 0,
         centerTitle: false,
         title: GestureDetector(
-          onTap: () => Get.back(),
+          onTap: () {
+            // 退出搜索结果页面，跳转到搜索页面并保留关键词
+            Get.back();
+            Get.toNamed('/search', parameters: {
+              'keyword': _searchResultController!.keyword ?? '',
+              'searchType': 'fromSearchResult' // 标记这是从搜索结果页面跳转的
+            });
+          },
           child: SizedBox(
             width: double.infinity,
             child: Text(

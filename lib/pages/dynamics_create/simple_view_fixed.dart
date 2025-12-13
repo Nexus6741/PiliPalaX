@@ -188,6 +188,8 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -195,8 +197,47 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
       body: Column(
         children: [
           Expanded(
+            child: isLandscape
+                ? _buildLandscapeLayout(theme)
+                : _buildPortraitLayout(theme),
+          ),
+          _buildToolbar(theme),
+          _buildPanel(theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPortraitLayout(ThemeData theme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTitleInput(theme),
+          const SizedBox(height: 16),
+          _buildContentInput(theme),
+          const SizedBox(height: 16),
+          _buildImageGrid(theme, crossAxisCount: 3),
+          const SizedBox(height: 16),
+          _buildFeatureStatus(theme),
+          const SizedBox(height: 16),
+          _buildOptions(theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLandscapeLayout(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 左侧内容区域
+          Expanded(
+            flex: 2,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -204,17 +245,33 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
                   const SizedBox(height: 16),
                   _buildContentInput(theme),
                   const SizedBox(height: 16),
-                  _buildImageGrid(theme),
-                  const SizedBox(height: 16),
                   _buildFeatureStatus(theme),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // 右侧区域：图片 + 选项
+          Expanded(
+            flex: 1,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '图片',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildImageGrid(theme, crossAxisCount: 2),
                   const SizedBox(height: 16),
                   _buildOptions(theme),
                 ],
               ),
             ),
           ),
-          _buildToolbar(theme),
-          _buildPanel(theme),
         ],
       ),
     );
@@ -275,12 +332,17 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
   }
 
   Widget _buildContentInput(ThemeData theme) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final minHeight = isLandscape ? 120.0 : 200.0; // 横屏时降低最小高度
+    final minLines = isLandscape ? 5 : 8; // 横屏时减少最小行数
+
     return Container(
-      constraints: const BoxConstraints(minHeight: 200),
+      constraints: BoxConstraints(minHeight: minHeight),
       child: RichTextField(
         controller: _textController,
         focusNode: _focusNode,
-        minLines: 8,
+        minLines: minLines,
         maxLines: null,
         decoration: InputDecoration(
           hintText: '说点什么吧...',
@@ -294,7 +356,7 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
     );
   }
 
-  Widget _buildImageGrid(ThemeData theme) {
+  Widget _buildImageGrid(ThemeData theme, {int crossAxisCount = 3}) {
     return Obx(() {
       final images = _controller.selectedImages;
       if (images.isEmpty && !_controller.canAddImage) {
@@ -304,8 +366,8 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
           childAspectRatio: 1,
@@ -633,8 +695,12 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
         return const SizedBox.shrink();
       }
 
+      final isLandscape =
+          MediaQuery.of(context).orientation == Orientation.landscape;
+      final panelHeight = isLandscape ? 200.0 : 300.0; // 横屏时降低面板高度
+
       return Container(
-        height: 300,
+        height: panelHeight,
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           border: Border(

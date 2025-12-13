@@ -25,6 +25,14 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
     super.initState();
     _futureBuilderFuture = _searchController.queryHotSearchList();
 
+    // 检查是否是从搜索结果页面跳转过来的，需要保留关键词
+    // 由于控制器可能被缓存，onInit() 不会再次执行，所以在这里处理
+    if (Get.parameters['searchType'] == 'fromSearchResult' &&
+        Get.parameters['keyword'] != null) {
+      _searchController.searchKeyWord.value = Get.parameters['keyword']!;
+      _searchController.controller.value.text = Get.parameters['keyword']!;
+    }
+
     // 延迟显示内容动画，等待展开动画接近完成
     // 展开动画 400ms，延迟 280ms 后开始内容动画
     Future.delayed(const Duration(milliseconds: 180), () {
@@ -48,6 +56,19 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
     super.didChangeDependencies();
     SearchPage.routeObserver
         .subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+
+  @override
+  void dispose() {
+    // 只有从搜索结果页面跳转过来的才不清空搜索框，其他情况都清空
+    if (Get.parameters['searchType'] != 'fromSearchResult') {
+      // 页面销毁时清空搜索框内容，确保下次进入时搜索框为空
+      _searchController.controller.value.clear();
+      _searchController.searchKeyWord.value = '';
+      _searchController.searchSuggestList.value = [];
+    }
+    SearchPage.routeObserver.unsubscribe(this);
+    super.dispose();
   }
 
   @override
