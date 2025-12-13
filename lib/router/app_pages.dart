@@ -16,6 +16,7 @@ import '../pages/danmaku_block/index.dart';
 import '../pages/dynamics/detail/index.dart';
 import '../pages/dynamics/index.dart';
 import '../pages/dynamics_create/simple_view_fixed.dart';
+import '../pages/dynamics_repost/view.dart';
 import '../pages/fan/index.dart';
 import '../pages/fav/index.dart';
 import '../pages/fav_detail/index.dart';
@@ -143,6 +144,14 @@ class Routes {
     // 创建动态
     CustomGetPage(
         name: '/dynamics/create', page: () => const SimpleDynamicCreatePage()),
+    // 转发动态
+    CustomGetPage(
+        name: '/dynamics/repost',
+        page: () => DynamicRepostPage(
+              item: Get.arguments?['item'],
+              dynIdStr: Get.arguments?['dynIdStr'],
+              callback: Get.arguments?['callback'],
+            )),
     // 动态详情
     CustomGetPage(
         name: '/dynamicDetail', page: () => const DynamicDetailPage()),

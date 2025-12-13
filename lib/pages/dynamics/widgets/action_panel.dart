@@ -81,7 +81,17 @@ class _ActionPanelState extends State<ActionPanel> {
           flex: 1,
           child: TextButton.icon(
             onPressed: () {
-                SmartDialog.showToast('暂不支持');
+              feedBack();
+              Get.toNamed(
+                '/dynamics/repost',
+                arguments: {
+                  'item': widget.item,
+                  'callback': () {
+                    // 转发成功后刷新动态列表
+                    _dynamicsController.onRefresh();
+                  },
+                },
+              );
             },
             icon: const Icon(
               FontAwesomeIcons.shareFromSquare,
@@ -92,7 +102,7 @@ class _ActionPanelState extends State<ActionPanel> {
               padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
               foregroundColor: Theme.of(context).colorScheme.outline,
             ),
-            label: Text(stat.forward!.count ?? ''),
+            label: Text(stat.forward!.count ?? '转发'),
           ),
         ),
         Expanded(
@@ -122,7 +132,7 @@ class _ActionPanelState extends State<ActionPanel> {
                   : FontAwesomeIcons.thumbsUp,
               size: 16,
               color: stat.like!.status! ? primary : color,
-              semanticLabel: stat.like!.status! ? "已赞": "点赞",
+              semanticLabel: stat.like!.status! ? "已赞" : "点赞",
             ),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),

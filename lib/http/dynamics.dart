@@ -131,6 +131,7 @@ class DynamicsHttp {
     bool allowReply = true,
     DateTime? scheduledTime,
     List<Map<String, dynamic>>? richContent,
+    String? dynIdStr, // 转发动态ID
   }) async {
     try {
       // 日志：接收到的参数
@@ -182,7 +183,11 @@ class DynamicsHttp {
           // 标题作为content对象的独立字段，不是contents数组的一部分
           if (title?.isNotEmpty == true) 'title': title,
         },
-        'scene': images != null && images.isNotEmpty ? 2 : 1,
+        'scene': dynIdStr != null
+            ? 4 // 转发动态
+            : images != null && images.isNotEmpty
+                ? 2
+                : 1,
         'upload_id':
             '${DateTime.now().millisecondsSinceEpoch ~/ 1000}_${Utils.random.nextInt(9000) + 1000}',
         'meta': {
@@ -232,6 +237,10 @@ class DynamicsHttp {
         options['timer_pub_time'] =
             scheduledTime.millisecondsSinceEpoch ~/ 1000;
       }
+      // 转发动态时添加 aigc 参数
+      if (dynIdStr != null) {
+        options['aigc'] = 2;
+      }
       if (options.isNotEmpty) {
         dynReq['option'] = options;
       }
@@ -239,6 +248,11 @@ class DynamicsHttp {
       // 最终请求数据
       Map<String, dynamic> requestData = {
         'dyn_req': dynReq,
+        // 转发动态时添加web_repost_src
+        if (dynIdStr != null)
+          'web_repost_src': {
+            'dyn_id_str': dynIdStr,
+          },
       };
 
       // 日志：完整的请求数据
