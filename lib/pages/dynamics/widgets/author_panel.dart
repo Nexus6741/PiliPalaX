@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/http/user.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
+import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/utils.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -112,8 +113,53 @@ class MorePanel extends StatelessWidget {
   final dynamic item;
   const MorePanel({super.key, required this.item});
 
+  // 检查是否是当前用户的动态
+  bool _isMyDynamic() {
+    final userInfo = GStorage.userInfo.get('userInfoCache');
+    if (userInfo == null) return false;
+    return item.modules.moduleAuthor.mid == userInfo.mid;
+  }
+
+  void _onDeleteDynamic(BuildContext context) {
+    Get.back(); // 关闭底部菜单
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确定删除该动态?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              '取消',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back(); // 关闭对话框
+              SmartDialog.showLoading(msg: '删除中...');
+              try {
+                final DynamicsController dynamicsController =
+                    Get.find<DynamicsController>();
+                await dynamicsController.onRemoveDynamic(item.idStr);
+              } catch (err) {
+                SmartDialog.dismiss();
+                SmartDialog.showToast('删除失败: ${err.toString()}');
+              }
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMyDynamic = _isMyDynamic();
+
     return Container(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
       // clipBehavior: Clip.hardEdge,
@@ -173,23 +219,38 @@ class MorePanel extends StatelessWidget {
             },
             minLeadingWidth: 0,
           ),
-          ListTile(
-            title: Text(
-              '临时屏蔽：${item.modules.moduleAuthor.name}',
-              style: Theme.of(context).textTheme.titleSmall,
+          if (!isMyDynamic)
+            ListTile(
+              title: Text(
+                '临时屏蔽：${item.modules.moduleAuthor.name}',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              leading: const Icon(Icons.visibility_off_outlined, size: 19),
+              onTap: () {
+                Get.back();
+                DynamicsController dynamicsController =
+                    Get.find<DynamicsController>();
+                dynamicsController.tempBannedList
+                    .add(item.modules.moduleAuthor.mid);
+                SmartDialog.showToast(
+                    '已临时屏蔽${item.modules.moduleAuthor.name}(${item.modules.moduleAuthor.mid})，重启恢复');
+              },
+              minLeadingWidth: 0,
             ),
-            leading: const Icon(Icons.visibility_off_outlined, size: 19),
-            onTap: () {
-              Get.back();
-              DynamicsController dynamicsController =
-                  Get.find<DynamicsController>();
-              dynamicsController.tempBannedList
-                  .add(item.modules.moduleAuthor.mid);
-              SmartDialog.showToast(
-                  '已临时屏蔽${item.modules.moduleAuthor.name}(${item.modules.moduleAuthor.mid})，重启恢复');
-            },
-            minLeadingWidth: 0,
-          ),
+          if (isMyDynamic)
+            ListTile(
+              title: Text(
+                '删除',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              leading: Icon(
+                Icons.delete_outline,
+                size: 19,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              onTap: () => _onDeleteDynamic(context),
+              minLeadingWidth: 0,
+            ),
           const Divider(thickness: 0.1, height: 1),
           ListTile(
             onTap: () => Get.back(),

@@ -317,4 +317,23 @@ class DynamicsController extends GetxController
     tabsConfig[tabController.index]['ctr'].animateToTop();
     scrollController.animToTop();
   }
+
+  // 删除动态
+  Future<void> onRemoveDynamic(String dynIdStr) async {
+    try {
+      var res = await DynamicsHttp.removeDynamic(dynIdStr: dynIdStr);
+      SmartDialog.dismiss();
+
+      if (res['status']) {
+        SmartDialog.showToast('删除成功');
+        // 刷新动态列表
+        onRefresh();
+      } else {
+        SmartDialog.showToast(res['msg'] ?? '删除失败');
+      }
+    } catch (err) {
+      SmartDialog.dismiss();
+      SmartDialog.showToast('删除失败: ${err.toString()}');
+    }
+  }
 }

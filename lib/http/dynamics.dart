@@ -495,4 +495,42 @@ class DynamicsHttp {
       };
     }
   }
+
+  // 删除动态
+  static Future removeDynamic({
+    required String dynIdStr,
+    String? dynType,
+    String? ridStr,
+  }) async {
+    try {
+      var res = await Request().post(
+        Api.removeDynamic,
+        queryParameters: {
+          'platform': 'web',
+          'csrf': await Request.getCsrf(),
+        },
+        data: {
+          'dyn_id_str': dynIdStr,
+          if (dynType != null) 'dyn_type': dynType,
+          if (ridStr != null) 'rid_str': ridStr,
+        },
+      );
+
+      if (res.data['code'] == 0) {
+        return {
+          'status': true,
+        };
+      } else {
+        return {
+          'status': false,
+          'msg': res.data['message'],
+        };
+      }
+    } catch (err) {
+      return {
+        'status': false,
+        'msg': err.toString(),
+      };
+    }
+  }
 }

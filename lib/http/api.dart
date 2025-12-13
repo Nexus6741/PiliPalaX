@@ -478,6 +478,9 @@ class Api {
   // 创建动态
   static const String createDynamic = '/x/dynamic/feed/create/dyn';
 
+  // 删除动态
+  static const String removeDynamic = '/x/dynamic/feed/operate/remove';
+
   // AI总结
   /// https://api.bilibili.com/x/web-interface/view/conclusion/get?
   /// bvid=BV1ju4y1s7kn&
