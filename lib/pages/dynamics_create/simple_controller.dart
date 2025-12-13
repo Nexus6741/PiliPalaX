@@ -158,8 +158,9 @@ class SimpleDynamicCreateController extends GetxController {
 
   // 发布动态
   Future<void> publishDynamic({
-    required String content,
+    String? content,
     String? title,
+    List<Map<String, dynamic>>? richContent,
   }) async {
     if (isPublishing.value) return;
 
@@ -207,6 +208,7 @@ class SimpleDynamicCreateController extends GetxController {
         isPrivate: isPrivate.value,
         allowReply: allowReply.value,
         scheduledTime: scheduledTime.value,
+        richContent: richContent,
       );
 
       if (result['status'] == true) {

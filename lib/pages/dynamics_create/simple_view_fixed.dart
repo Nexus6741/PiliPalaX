@@ -77,25 +77,9 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
   }
 
   void _onMentionUser(String uid, String username) {
-    // 在当前光标位置插入 @用户
-    final selection = _textController.selection;
-    if (!selection.isValid) {
-      return;
-    }
-
-    final oldText = _textController.text;
-    final mentionText = '@$username ';
-    final newText = oldText.substring(0, selection.start) +
-        mentionText +
-        oldText.substring(selection.end);
-
-    _textController.value = _textController.value.copyWith(
-      text: newText,
-      selection:
-          TextSelection.collapsed(offset: selection.start + mentionText.length),
-    );
-
-    _controller.updatePublishEnabled(newText.trim().isNotEmpty);
+    // 使用控制器的方法插入@用户
+    _textController.insertAtUser(username, uid);
+    _controller.updatePublishEnabled(_textController.text.trim().isNotEmpty);
     _controller.hidePanel();
   }
 
@@ -169,19 +153,54 @@ class _SimpleDynamicCreatePageState extends State<SimpleDynamicCreatePage>
   void _onPublish() async {
     feedBack();
 
-    final content = _textController.originalText.trim();
     final title = _titleController.text.trim();
+    final richItems = _textController.getRichTextItems();
 
-    if (content.isEmpty &&
+    // 检查是否有内容
+    if (richItems.isEmpty &&
         title.isEmpty &&
         _controller.selectedImages.isEmpty) {
       SmartDialog.showToast('请输入内容或添加图片');
       return;
     }
 
+    // 转换富文本项为API格式
+    List<Map<String, dynamic>>? richContent;
+    if (richItems.isNotEmpty) {
+      richContent = richItems.map((item) {
+        switch (item.type) {
+          case RichTextType.text:
+          case RichTextType.common:
+            return {
+              'raw_text': item.text,
+              'type': 1,
+              'biz_id': '',
+            };
+          case RichTextType.at:
+            return {
+              'raw_text': '@${item.rawText}',
+              'type': 2,
+              'biz_id': item.id ?? '',
+            };
+          case RichTextType.emoji:
+            return {
+              'raw_text': item.rawText,
+              'type': 9,
+              'biz_id': '',
+            };
+          default:
+            return {
+              'raw_text': item.text,
+              'type': 1,
+              'biz_id': '',
+            };
+        }
+      }).toList();
+    }
+
     await _controller.publishDynamic(
-      content: content,
       title: title.isNotEmpty ? title : null,
+      richContent: richContent,
     );
   }
 

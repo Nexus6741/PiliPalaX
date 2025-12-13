@@ -122,7 +122,7 @@ class DynamicsHttp {
 
   // 创建动态
   static Future createDynamic({
-    required String content,
+    String? content,
     String? title,
     List<String>? images,
     TopicItem? topic,
@@ -130,6 +130,7 @@ class DynamicsHttp {
     bool isPrivate = false,
     bool allowReply = true,
     DateTime? scheduledTime,
+    List<Map<String, dynamic>>? richContent,
   }) async {
     try {
       // 日志：接收到的参数
@@ -151,17 +152,11 @@ class DynamicsHttp {
       // 构建动态内容
       List<Map<String, dynamic>> contents = [];
 
-      // 添加标题（如果有）
-      if (title?.isNotEmpty == true) {
-        contents.add({
-          'raw_text': title!,
-          'type': 1,
-          'biz_id': '',
-        });
-      }
-
-      // 添加正文内容
-      if (content.isNotEmpty) {
+      // 如果提供了富文本内容，使用富文本
+      if (richContent != null && richContent.isNotEmpty) {
+        contents.addAll(richContent);
+      } else if (content != null && content.isNotEmpty) {
+        // 否则使用普通文本
         contents.add({
           'raw_text': content,
           'type': 1,
@@ -184,6 +179,8 @@ class DynamicsHttp {
       Map<String, dynamic> dynReq = {
         'content': {
           'contents': contents,
+          // 标题作为content对象的独立字段，不是contents数组的一部分
+          if (title?.isNotEmpty == true) 'title': title,
         },
         'scene': images != null && images.isNotEmpty ? 2 : 1,
         'upload_id':

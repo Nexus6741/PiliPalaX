@@ -13,6 +13,9 @@ class RichTextEditingController extends TextEditingController {
   /// 表情映射：占位符 -> 表情信息
   final Map<String, EmoteInfo> _emoteMap = {};
 
+  /// @用户映射：文本范围 -> 用户信息
+  final Map<String, AtUserInfo> _atUserMap = {};
+
   /// 占位符计数器
   int _placeholderCounter = 0;
 
@@ -21,6 +24,153 @@ class RichTextEditingController extends TextEditingController {
 
   /// 获取所有占位符集合
   Set<String> get _placeholders => _emoteMap.keys.toSet();
+
+  /// 获取富文本项列表（用于发布）
+  List<RichTextItem> getRichTextItems() {
+    final items = <RichTextItem>[];
+    final currentText = text;
+
+    if (currentText.isEmpty) {
+      return items;
+    }
+
+    // 提取所有@用户
+    final mentions = _extractMentions(currentText);
+
+    // 构建富文本项
+    int lastEnd = 0;
+
+    for (int i = 0; i < currentText.length; i++) {
+      final char = currentText[i];
+
+      // 检查是否是表情占位符
+      if (_placeholders.contains(char)) {
+        final emoteInfo = _emoteMap[char];
+        if (emoteInfo != null) {
+          // 添加表情前的文本
+          if (i > lastEnd) {
+            final beforeText = currentText.substring(lastEnd, i);
+            _addTextItems(items, beforeText, lastEnd, mentions);
+          }
+
+          // 添加表情项
+          items.add(RichTextItem(
+            type: RichTextType.emoji,
+            text: char,
+            rawText: emoteInfo.originalText,
+            range: TextRange(start: i, end: i + 1),
+            emote: emoteInfo.emote,
+          ));
+
+          lastEnd = i + 1;
+        }
+      }
+    }
+
+    // 添加最后的文本
+    if (lastEnd < currentText.length) {
+      final afterText = currentText.substring(lastEnd);
+      _addTextItems(items, afterText, lastEnd, mentions);
+    }
+
+    return items;
+  }
+
+  /// 添加文本项（可能包含@用户）
+  void _addTextItems(
+    List<RichTextItem> items,
+    String text,
+    int offset,
+    List<_MentionSpan> allMentions,
+  ) {
+    // 找出在当前文本范围内的@提及
+    final mentions = allMentions.where((m) {
+      return m.start >= offset && m.end <= offset + text.length;
+    }).toList();
+
+    if (mentions.isEmpty) {
+      // 没有@提及，添加普通文本
+      items.add(RichTextItem(
+        type: RichTextType.text,
+        text: text,
+        range: TextRange(start: offset, end: offset + text.length),
+      ));
+      return;
+    }
+
+    // 有@提及，分段处理
+    int lastEnd = 0;
+
+    for (final mention in mentions) {
+      final localStart = mention.start - offset;
+      final localEnd = mention.end - offset;
+
+      // 添加@提及前的文本
+      if (localStart > lastEnd) {
+        final beforeText = text.substring(lastEnd, localStart);
+        items.add(RichTextItem(
+          type: RichTextType.text,
+          text: beforeText,
+          range: TextRange(start: offset + lastEnd, end: offset + localStart),
+        ));
+      }
+
+      // 添加@提及项
+      final atUserInfo = _atUserMap[mention.text];
+      final username =
+          mention.text.substring(1, mention.text.length - 1); // 去掉@和空格
+
+      items.add(RichTextItem(
+        type: RichTextType.at,
+        text: mention.text,
+        rawText: username,
+        range: TextRange(start: mention.start, end: mention.end),
+        id: atUserInfo?.uid,
+      ));
+
+      lastEnd = localEnd;
+    }
+
+    // 添加最后的文本
+    if (lastEnd < text.length) {
+      final afterText = text.substring(lastEnd);
+      items.add(RichTextItem(
+        type: RichTextType.text,
+        text: afterText,
+        range: TextRange(start: offset + lastEnd, end: offset + text.length),
+      ));
+    }
+  }
+
+  /// 插入@用户
+  void insertAtUser(String username, String uid) {
+    final selection = value.selection;
+    if (!selection.isValid) {
+      return;
+    }
+
+    final atText = '@$username ';
+
+    // 保存用户信息
+    _atUserMap[atText] = AtUserInfo(
+      uid: uid,
+      username: username,
+    );
+
+    final oldText = text;
+    final newText = oldText.substring(0, selection.start) +
+        atText +
+        oldText.substring(selection.end);
+
+    // 更新控制器
+    _isUpdatingValue = true;
+    value = TextEditingValue(
+      text: newText,
+      selection:
+          TextSelection.collapsed(offset: selection.start + atText.length),
+    );
+    _isUpdatingValue = false;
+  }
 
   /// 生成唯一的占位符（使用 Unicode 私有区域字符）
   String _generatePlaceholder() {
@@ -304,6 +454,17 @@ class EmoteInfo {
     required this.placeholder,
     required this.originalText,
     required this.emote,
+  });
+}
+
+/// @用户信息
+class AtUserInfo {
+  final String uid;
+  final String username;
+
+  AtUserInfo({
+    required this.uid,
+    required this.username,
   });
 }
 
