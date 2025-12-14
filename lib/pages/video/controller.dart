@@ -446,7 +446,8 @@ class VideoDetailController extends GetxController
       if (data.dash == null && data.durl != null) {
         videoUrl = data.durl!.first.url!;
         audioUrl = '';
-        // 只有在defaultST为null时才设置，这样切换选集时会使用新选集的历史记录
+        // 只有在defaultST为null时才设置历史记录位置
+        // 如果defaultST已经被设置（比如切换选集时设置为Duration.zero），则保持不变
         if (defaultST == null) {
           defaultST = data.lastPlayTime != null
               ? Duration(milliseconds: data.lastPlayTime!)
@@ -593,7 +594,8 @@ class VideoDetailController extends GetxController
         audioUrl = '';
       }
       //
-      // 只有在defaultST为null时才使用lastPlayTime，这样切换选集时会使用新选集的历史记录
+      // 只有在defaultST为null时才使用lastPlayTime
+      // 如果defaultST已经被设置（比如切换选集时设置为Duration.zero），则保持不变
       if (defaultST == null) {
         defaultST = Duration(milliseconds: data.lastPlayTime!);
       }
@@ -664,12 +666,13 @@ class VideoDetailController extends GetxController
               if (index != -1) {
                 final episode = episodes[index];
 
-                // 自动跳转到上次观看的集数
+                // 自动跳转到上次观看的集数，并使用历史记录位置
                 bangumiIntroController.changeSeasonOrbangu(
                   episode.bvid,
                   episode.cid,
                   episode.aid,
                   epid: episode.id,
+                  useHistory: true, // 使用历史记录位置
                 );
 
                 // 显示Toast提示
@@ -693,11 +696,12 @@ class VideoDetailController extends GetxController
               if (index != -1) {
                 final page = pages[index];
 
-                // 自动跳转到上次观看的分P
+                // 自动跳转到上次观看的分P，并使用历史记录位置
                 videoIntroController.changeSeasonOrbangu(
                   bvid,
                   page.cid,
                   IdUtils.bv2av(bvid),
+                  useHistory: true, // 使用历史记录位置
                 );
 
                 // 显示Toast提示
@@ -730,6 +734,7 @@ class VideoDetailController extends GetxController
                     episode.cid,
                     episode.aid,
                     epid: episode.id,
+                    useHistory: true, // 使用历史记录位置
                   );
                   SmartDialog.showToast('已自动跳转到上次观看的第${episode.title}');
                 }
@@ -752,6 +757,7 @@ class VideoDetailController extends GetxController
                     bvid,
                     page.cid,
                     IdUtils.bv2av(bvid),
+                    useHistory: true, // 使用历史记录位置
                   );
                   SmartDialog.showToast('已自动跳转到上次观看的第${index + 1}P');
                 }

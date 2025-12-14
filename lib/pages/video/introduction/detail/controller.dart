@@ -490,7 +490,8 @@ class VideoIntroController extends GetxController {
   }
 
   // 修改分P或番剧分集
-  Future changeSeasonOrbangu(bvid, cid, aid, {int? epid}) async {
+  Future changeSeasonOrbangu(bvid, cid, aid,
+      {int? epid, bool useHistory = false}) async {
     // 重新获取视频资源
     final VideoDetailController videoDetailCtr =
         Get.find<VideoDetailController>(tag: heroTag);
@@ -505,8 +506,14 @@ class VideoIntroController extends GetxController {
     videoDetailCtr.cid.value = cid;
     videoDetailCtr.danmakuCid.value = cid;
 
-    // 清空当前播放位置，让queryVideoUrl使用新选集的lastPlayTime
-    videoDetailCtr.defaultST = null;
+    // 🔥 修复：根据 useHistory 参数决定播放位置
+    // useHistory = true: 使用历史记录位置（首次打开或自动跳转）
+    // useHistory = false: 从头播放（手动切换选集）
+    if (useHistory) {
+      videoDetailCtr.defaultST = null; // 使用历史记录
+    } else {
+      videoDetailCtr.defaultST = Duration.zero; // 从头播放
+    }
 
     videoDetailCtr.queryVideoUrl();
     // 重新请求相关视频
