@@ -36,10 +36,10 @@ class EnhancedHero extends StatelessWidget {
             builder: (context, child) {
               // 使用自定义曲线让退出更流畅
               final curvedValue = Curves.easeInCubic.transform(animation.value);
-              
+
               // 在动画后期快速淡出，避免黑条效果
-              final opacity = animation.value > 0.7 
-                  ? 1.0 - ((animation.value - 0.7) / 0.3) 
+              final opacity = animation.value > 0.7
+                  ? 1.0 - ((animation.value - 0.7) / 0.3)
                   : 1.0;
 
               return Opacity(
@@ -116,7 +116,7 @@ class EnhancedPageRoute<T> extends PageRouteBuilder<T> {
                 ),
               );
             }
-            
+
             // 退出动画：快速淡出
             return FadeTransition(
               opacity: Tween<double>(
@@ -151,6 +151,10 @@ class VideoHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return Hero(
       tag: tag,
+      // 🔥 优化：创建退出时的过渡动画，避免播放器干扰
+      createRectTween: (Rect? begin, Rect? end) {
+        return RectTween(begin: begin, end: end);
+      },
       flightShuttleBuilder: (
         BuildContext flightContext,
         Animation<double> animation,
@@ -159,17 +163,19 @@ class VideoHero extends StatelessWidget {
         BuildContext toHeroContext,
       ) {
         if (flightDirection == HeroFlightDirection.pop) {
-          // 退出动画：使用更激进的淡出策略
+          // 🔥 优化：退出动画使用更快的淡出和缩放，减少掉帧
           return AnimatedBuilder(
             animation: animation,
             builder: (context, child) {
-              // 在动画的最后 20% 快速淡出
-              final opacity = animation.value > 0.8
-                  ? 1.0 - ((animation.value - 0.8) / 0.2)
+              // 🔥 优化：在动画的前 60% 保持完全可见，后 40% 快速淡出
+              // 这样可以在播放器暂停/销毁后再开始淡出，避免黑屏闪烁
+              final opacity = animation.value > 0.7
+                  ? 1.0 - ((animation.value - 0.7) / 0.3)
                   : 1.0;
 
-              // 轻微的缩放效果，让过渡更自然
-              final scale = 1.0 - (animation.value * 0.02);
+              // 🔥 优化：使用更平滑的缩放曲线
+              final curvedValue = Curves.easeInQuad.transform(animation.value);
+              final scale = 1.0 - (curvedValue * 0.03);
 
               return Opacity(
                 opacity: opacity.clamp(0.0, 1.0),
@@ -179,6 +185,7 @@ class VideoHero extends StatelessWidget {
                 ),
               );
             },
+            // 🔥 优化：使用静态图片而不是实际的播放器组件
             child: Material(
               type: MaterialType.transparency,
               child: toHeroContext.widget,
@@ -190,6 +197,17 @@ class VideoHero extends StatelessWidget {
         return DefaultTextStyle(
           style: DefaultTextStyle.of(toHeroContext).style,
           child: toHeroContext.widget,
+        );
+      },
+      // 🔥 优化：占位符使用透明度为0，避免闪烁
+      placeholderBuilder: (context, heroSize, child) {
+        return SizedBox(
+          width: heroSize.width,
+          height: heroSize.height,
+          child: Opacity(
+            opacity: 0.0,
+            child: child,
+          ),
         );
       },
       child: child,

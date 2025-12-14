@@ -404,8 +404,15 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         plPlayerController!.removeStatusLister(playerListener);
         fullScreenStatusListener.cancel();
         _directionSubscription?.cancel();
-        plPlayerController!.disable();
-        // plPlayerController!.dispose();
+
+        // 🔥 优化：在页面销毁前先暂停播放器，避免Hero动画时的掉帧
+        // 延迟销毁播放器，让Hero动画先完成
+        plPlayerController!.pause(notify: false);
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (plPlayerController != null) {
+            plPlayerController!.disable();
+          }
+        });
       }
     }
     // videoPlayerServiceHandler.onVideoDetailDispose();
@@ -712,7 +719,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             (horizontalScreen ||
                                 MediaQuery.of(context).orientation ==
                                     Orientation.portrait),
-                        onPopInvoked: (bool didPop) {
+                        onPopInvoked: (bool didPop) async {
                           if (isFullScreen.value == true) {
                             plPlayerController!
                                 .triggerFullScreen(status: false);
@@ -723,6 +730,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             verticalScreenForTwoSeconds();
                           }
                           if (didPop) {
+                            // 🔥 优化：在退出前暂停播放器，减少Hero动画掉帧
+                            if (plPlayerController != null &&
+                                !floatingManager.containsFloating(globalId)) {
+                              await plPlayerController!.pause(notify: false);
+                            }
                             triggerFloatingWindowWhenLeaving();
                           }
                         },
@@ -868,7 +880,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               width: isFullScreen.value == true ? context.width : videoWidth,
               child: PopScope(
                 canPop: isFullScreen.value != true,
-                onPopInvoked: (bool didPop) {
+                onPopInvoked: (bool didPop) async {
                   if (isFullScreen.value == true) {
                     plPlayerController!.triggerFullScreen(status: false);
                   }
@@ -878,6 +890,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     verticalScreenForTwoSeconds();
                   }
                   if (didPop) {
+                    // 🔥 优化：在退出前暂停播放器，减少Hero动画掉帧
+                    if (plPlayerController != null &&
+                        !floatingManager.containsFloating(globalId)) {
+                      await plPlayerController!.pause(notify: false);
+                    }
                     triggerFloatingWindowWhenLeaving();
                   }
                 },
@@ -1001,7 +1018,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 : videoHeight,
             child: PopScope(
               canPop: isFullScreen.value != true,
-              onPopInvoked: (bool didPop) {
+              onPopInvoked: (bool didPop) async {
                 if (isFullScreen.value == true) {
                   plPlayerController!.triggerFullScreen(status: false);
                 }
@@ -1011,6 +1028,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   verticalScreenForTwoSeconds();
                 }
                 if (didPop) {
+                  // 🔥 优化：在退出前暂停播放器，减少Hero动画掉帧
+                  if (plPlayerController != null &&
+                      !floatingManager.containsFloating(globalId)) {
+                    await plPlayerController!.pause(notify: false);
+                  }
                   triggerFloatingWindowWhenLeaving();
                 }
               },
@@ -1141,7 +1163,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               width: isFullScreen.value == true ? context.width : videoWidth,
               child: PopScope(
                 canPop: isFullScreen.value != true,
-                onPopInvoked: (bool didPop) {
+                onPopInvoked: (bool didPop) async {
                   if (isFullScreen.value == true) {
                     plPlayerController!.triggerFullScreen(status: false);
                   }
@@ -1151,6 +1173,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     verticalScreenForTwoSeconds();
                   }
                   if (didPop) {
+                    // 🔥 优化：在退出前暂停播放器，减少Hero动画掉帧
+                    if (plPlayerController != null &&
+                        !floatingManager.containsFloating(globalId)) {
+                      await plPlayerController!.pause(notify: false);
+                    }
                     triggerFloatingWindowWhenLeaving();
                   }
                 },
@@ -1256,7 +1283,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     isFullScreen.value == true ? context.height : videoHeight,
                 child: PopScope(
                   canPop: isFullScreen.value != true,
-                  onPopInvoked: (bool didPop) {
+                  onPopInvoked: (bool didPop) async {
                     if (isFullScreen.value == true) {
                       plPlayerController!.triggerFullScreen(status: false);
                     }
@@ -1266,6 +1293,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       verticalScreenForTwoSeconds();
                     }
                     if (didPop) {
+                      // 🔥 优化：在退出前暂停播放器，减少Hero动画掉帧
+                      if (plPlayerController != null &&
+                          !floatingManager.containsFloating(globalId)) {
+                        await plPlayerController!.pause(notify: false);
+                      }
                       triggerFloatingWindowWhenLeaving();
                     }
                   },
