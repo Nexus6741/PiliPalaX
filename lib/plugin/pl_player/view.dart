@@ -358,13 +358,18 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   }
 
   Future<void> setVolume(double value) async {
+    // 🔥 修复：只调节系统音量，不调节播放器音量
+    // 播放器音量保持在 100%，避免双重音量调节导致音量过小
     try {
       FlutterVolumeController.updateShowSystemUI(false);
       await FlutterVolumeController.setVolume(value);
     } catch (_) {}
+
+    // 确保播放器音量始终为 100%
     try {
-      await widget.controller.videoPlayerController?.setVolume(value * 100);
+      await widget.controller.videoPlayerController?.setVolume(100);
     } catch (_) {}
+
     _volumeValue.value = value;
     _volumeIndicator.value = true;
     _volumeInterceptEventStream.value = true;

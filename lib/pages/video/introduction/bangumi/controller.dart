@@ -417,19 +417,33 @@ class BangumiIntroController extends GetxController {
       if (playRepeat == PlayRepeat.autoPlayRelated) {
         return playRelated();
       }
+      return false;
     }
+
     int currentIndex = episodes.indexWhere((e) => e.cid == lastPlayCid.value);
+
+    // 如果找不到当前集数，返回false
+    if (currentIndex == -1) {
+      return false;
+    }
+
     int nextIndex = currentIndex + 1;
-    // 列表循环
-    if (nextIndex == episodes.length - 1) {
+
+    // 🔥 修复：检查是否已经是最后一集
+    if (nextIndex >= episodes.length) {
+      // 已经是最后一集
       if (playRepeat == PlayRepeat.listCycle) {
+        // 列表循环，回到第一集
         nextIndex = 0;
       } else if (playRepeat == PlayRepeat.autoPlayRelated) {
+        // 自动连播相关视频
         return playRelated();
       } else {
+        // 顺序播放或暂停，停止播放
         return false;
       }
     }
+
     int cid = episodes[nextIndex].cid!;
     String bvid = episodes[nextIndex].bvid!;
     int aid = episodes[nextIndex].aid!;

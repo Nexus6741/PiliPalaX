@@ -641,11 +641,11 @@ class PlPlayerController {
     _position.value = Duration.zero;
     // 初始化时清空弹幕，防止上次重叠
     danmakuController?.clear();
-    
+
     // 🔥 优化：检测是否为 4K 视频
-    bool is4K = (width != null && width >= 3840) || 
-                (height != null && height >= 2160);
-    
+    bool is4K =
+        (width != null && width >= 3840) || (height != null && height >= 2160);
+
     // 🔥 优化：根据视频分辨率动态调整缓冲区
     int bufferSize;
     if (is4K) {
@@ -658,7 +658,7 @@ class PlPlayerController {
           ? (videoType.value == 'live' ? 64 * 1024 * 1024 : 32 * 1024 * 1024)
           : (videoType.value == 'live' ? 16 * 1024 * 1024 : 4 * 1024 * 1024);
     }
-    
+
     Player player = _videoPlayerController ??
         Player(
           configuration: PlayerConfiguration(
@@ -667,28 +667,28 @@ class PlPlayerController {
           ),
         );
     var pp = player.platform as NativePlayer;
-    
+
     // 🔥 优化：4K 视频额外配置
     if (is4K) {
       print('🎬 应用 4K 视频优化配置');
       // 增加预读取缓冲
       await pp.setProperty("demuxer-max-bytes", "200M");
       await pp.setProperty("demuxer-readahead-secs", "10");
-      
+
       // 允许丢帧以保持流畅
       await pp.setProperty("framedrop", "vo");
-      
+
       // 缓存配置
       await pp.setProperty("cache", "yes");
       await pp.setProperty("cache-secs", "15");
-      
+
       // 4K 视频强制使用安全的硬件解码
       if (enableHA) {
         hwdec = 'auto-safe';
         await pp.setProperty("hwdec-codecs", "h264,hevc,vp9");
       }
     }
-    
+
     // 解除倍速限制
     await pp.setProperty("af", "scaletempo2=max-speed=8");
     //  音量不一致
@@ -766,6 +766,12 @@ class PlPlayerController {
     // player.setAudioTrack(
     //   AudioTrack.uri(dataSource.audioSource!),
     // );
+
+    // 🔥 修复：初始化时将播放器音量设置为 100%
+    // 只通过系统音量控制，避免双重音量调节
+    try {
+      await player.setVolume(100);
+    } catch (_) {}
 
     return player;
   }
@@ -1185,14 +1191,18 @@ class PlPlayerController {
     }
     volume.value = volumeNew;
 
+    // 🔥 修复：只调节系统音量，不调节播放器音量
+    // 播放器音量保持在 100%，避免双重音量调节导致音量过小
     try {
       FlutterVolumeController.updateShowSystemUI(false);
       await FlutterVolumeController.setVolume(volumeNew);
     } catch (err) {
       print(err);
     }
+
+    // 确保播放器音量始终为 100%
     try {
-      await _videoPlayerController?.setVolume(volumeNew * 100);
+      await _videoPlayerController?.setVolume(100);
     } catch (_) {}
   }
 
@@ -1406,7 +1416,6 @@ class PlPlayerController {
       backgroundColor: Color(0xaa000000),
     );
 
-
     bool isLive =
         videoIntroController == null && bangumiIntroController == null;
     double? videoHeight = videoPlayerController?.state.height?.toDouble();
@@ -1544,7 +1553,7 @@ class PlPlayerController {
         playIfExists();
       }
     }
-    
+
     floatingWindow = floatingManager.createFloating(
       globalId,
       Floating(
