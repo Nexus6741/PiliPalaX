@@ -26,6 +26,7 @@ class LiveCard extends StatelessWidget {
         ),
       ),
       margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: InkWell(
         onTap: () {},
         child: Column(

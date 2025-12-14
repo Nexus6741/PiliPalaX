@@ -337,8 +337,7 @@ class VideoContent extends StatelessWidget {
                   overflow: TextOverflow.clip,
                   style: TextStyle(
                     height: 1.5,
-                    fontSize:
-                        Theme.of(context).textTheme.labelMedium!.fontSize,
+                    fontSize: Theme.of(context).textTheme.labelMedium!.fontSize,
                     color: Theme.of(context).colorScheme.outline,
                   ),
                 ),

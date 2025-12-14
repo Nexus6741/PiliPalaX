@@ -19,6 +19,7 @@ class LiveCardVApp extends StatelessWidget {
       clipBehavior: Clip.hardEdge,
       elevation: 0,
       margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: InkWell(
         onTap: () => Get.toNamed('/liveRoom?roomid=${item.roomid}'),
         child: Column(

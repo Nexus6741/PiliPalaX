@@ -28,6 +28,7 @@ class BangumiCardV extends StatelessWidget {
     return Card(
       elevation: 0,
       clipBehavior: Clip.hardEdge,
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       margin: EdgeInsets.zero,
       child: GestureDetector(
         // onLongPress: () {
@@ -68,7 +69,7 @@ class BangumiCardV extends StatelessWidget {
                 String pic = episode.cover!;
                 print('epId');
                 print(epId);
-                String heroTag = Utils.makeHeroTag(cid);
+                // 使用卡片的 heroTag，保持 Hero 动画一致性
                 Get.toNamed(
                   '/video?bvid=$bvid&cid=$cid&seasonId=$seasonId&epId=$epId',
                   arguments: {
