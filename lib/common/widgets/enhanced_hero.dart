@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// 增强的 Hero 动画配置
-/// 提供更流畅的退出动画效果
+/// 提供更流畅灵动的退出动画效果
 class EnhancedHero extends StatelessWidget {
   final String tag;
   final Widget child;
@@ -30,23 +30,35 @@ class EnhancedHero extends StatelessWidget {
       ) {
         // 根据飞行方向选择不同的动画效果
         if (flightDirection == HeroFlightDirection.pop) {
-          // 退出时的动画：缩放 + 淡出
+          // 退出时的动画：缩放 + 淡出 + 轻微偏移
           return AnimatedBuilder(
             animation: animation,
             builder: (context, child) {
-              // 使用自定义曲线让退出更流畅
-              final curvedValue = Curves.easeInCubic.transform(animation.value);
+              // 🔥 优化：分段淡出，更自然
+              // 前60%保持完全可见，60-85%缓慢淡出，最后15%快速淡出
+              final opacity = animation.value < 0.6
+                  ? 1.0
+                  : animation.value < 0.85
+                      ? 1.0 - ((animation.value - 0.6) / 0.25) * 0.4
+                      : 0.6 - ((animation.value - 0.85) / 0.15) * 0.6;
 
-              // 在动画后期快速淡出，避免黑条效果
-              final opacity = animation.value > 0.7
-                  ? 1.0 - ((animation.value - 0.7) / 0.3)
-                  : 1.0;
+              // 🔥 优化：使用更流畅的缩放曲线
+              final curvedValue =
+                  Curves.easeInOutCubic.transform(animation.value);
+              final scale = 1.0 - (curvedValue * 0.06); // 增加缩放幅度
 
-              return Opacity(
-                opacity: opacity.clamp(0.0, 1.0),
-                child: Transform.scale(
-                  scale: 1.0 - (curvedValue * 0.05), // 轻微缩放效果
-                  child: child,
+              // 🔥 新增：轻微的Y轴偏移，增加灵动感
+              final translateY =
+                  animation.value > 0.65 ? (animation.value - 0.65) * 15 : 0.0;
+
+              return Transform.translate(
+                offset: Offset(0, translateY),
+                child: Opacity(
+                  opacity: opacity.clamp(0.0, 1.0),
+                  child: Transform.scale(
+                    scale: scale,
+                    child: child,
+                  ),
                 ),
               );
             },
@@ -163,25 +175,41 @@ class VideoHero extends StatelessWidget {
         BuildContext toHeroContext,
       ) {
         if (flightDirection == HeroFlightDirection.pop) {
-          // 🔥 优化：退出动画使用更快的淡出和缩放，减少掉帧
+          // 🔥 优化：退出动画使用更灵动的淡出和缩放效果
           return AnimatedBuilder(
             animation: animation,
             builder: (context, child) {
-              // 🔥 优化：在动画的前 60% 保持完全可见，后 40% 快速淡出
-              // 这样可以在播放器暂停/销毁后再开始淡出，避免黑屏闪烁
-              final opacity = animation.value > 0.7
-                  ? 1.0 - ((animation.value - 0.7) / 0.3)
-                  : 1.0;
+              // 🔥 优化：分段淡出策略，更自然流畅
+              // 前50%保持完全可见，50-85%缓慢淡出，最后15%快速淡出
+              // final opacity = animation.value < 0.5
+              //     ? 1.0
+              //     : animation.value < 0.85
+              //         ? 1.0 - ((animation.value - 0.5) / 0.35) * 0.3
+              //         : 0.7 - ((animation.value - 0.85) / 0.15) * 0.7;
 
-              // 🔥 优化：使用更平滑的缩放曲线
-              final curvedValue = Curves.easeInQuad.transform(animation.value);
-              final scale = 1.0 - (curvedValue * 0.03);
+              // 🔥 优化：使用更有弹性的缩放曲线，增加灵动感
+              // 使用 easeOutBack 曲线，在退出时有轻微的"回弹"效果
+              final scaleValue = animation.value < 0.6
+                  ? animation.value
+                  : 0.6 + (animation.value - 0.6) * 1.5; // 后40%加速
 
-              return Opacity(
-                opacity: opacity.clamp(0.0, 1.0),
-                child: Transform.scale(
-                  scale: scale,
-                  child: child,
+              final curvedScale =
+                  Curves.easeInOutCubic.transform(scaleValue.clamp(0.0, 1.0));
+              final scale = 1.0 - (curvedScale * 0.05); // 轻微缩小
+
+              // 🔥 新增：轻微的Y轴偏移，让退出更有层次感
+              final translateY = animation.value > 0.7
+                  ? (animation.value - 0.7) * 20 // 最后30%向下偏移
+                  : 0.0;
+
+              return Transform.translate(
+                offset: Offset(0, translateY),
+                child: Opacity(
+                  opacity: 1,
+                  child: Transform.scale(
+                    scale: scale,
+                    child: child,
+                  ),
                 ),
               );
             },
