@@ -215,6 +215,9 @@ class UserAndSearchVertical extends StatelessWidget {
 
   final HomeController ctr;
 
+  // 用于获取侧栏搜索图标位置的 GlobalKey
+  static final GlobalKey sidebarSearchKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -261,14 +264,40 @@ class UserAndSearchVertical extends StatelessWidget {
                 ),
               )
             : const SizedBox.shrink()),
-        IconButton(
-          icon: const Icon(
-            Icons.search_outlined,
-            semanticLabel: '搜索',
+        Container(
+          key: sidebarSearchKey,
+          child: IconButton(
+            icon: const Icon(
+              Icons.search_outlined,
+              semanticLabel: '搜索',
+            ),
+            onPressed: () => _navigateToSearch(context),
           ),
-          onPressed: () => Get.toNamed('/search'),
         ),
       ],
+    );
+  }
+
+  void _navigateToSearch(BuildContext context) {
+    // 获取搜索图标的屏幕位置
+    final renderBox =
+        sidebarSearchKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) {
+      Get.toNamed('/search', parameters: {'hintText': ctr.defaultSearch.value});
+      return;
+    }
+
+    final position = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+    final rect =
+        Rect.fromLTWH(position.dx, position.dy, size.width, size.height);
+
+    Navigator.of(context).push(
+      SearchExpandPageRoute(
+        sourceRect: rect,
+        hintText: ctr.defaultSearch.value,
+        isCircular: true, // 侧栏搜索图标是圆形的
+      ),
     );
   }
 }

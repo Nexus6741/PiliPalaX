@@ -6,10 +6,12 @@ import 'package:PiliPalaX/pages/search/view.dart';
 class SearchExpandPageRoute extends PageRouteBuilder<void> {
   final Rect sourceRect;
   final String hintText;
+  final bool isCircular; // 是否从圆形图标展开
 
   SearchExpandPageRoute({
     required this.sourceRect,
     required this.hintText,
+    this.isCircular = false,
   }) : super(
           settings: RouteSettings(
             name: '/search',
@@ -25,6 +27,7 @@ class SearchExpandPageRoute extends PageRouteBuilder<void> {
             return _SearchExpandTransition(
               animation: animation,
               sourceRect: sourceRect,
+              isCircular: isCircular,
               child: child,
             );
           },
@@ -35,11 +38,13 @@ class _SearchExpandTransition extends StatelessWidget {
   final Animation<double> animation;
   final Rect sourceRect;
   final Widget child;
+  final bool isCircular;
 
   const _SearchExpandTransition({
     required this.animation,
     required this.sourceRect,
     required this.child,
+    this.isCircular = false,
   });
 
   @override
@@ -73,15 +78,18 @@ class _SearchExpandTransition extends StatelessWidget {
             (screenSize.height - sourceRect.height) * progress;
 
         // 圆角变化：
-        // 0.0 - 0.85: 从搜索框圆角(25) -> 屏幕圆角(35)
-        // 0.85 - 1.0: 从屏幕圆角(35) -> 0
+        // 如果是圆形图标：从圆形(半径=宽度/2) -> 屏幕圆角(35) -> 0
+        // 如果是搜索框：从搜索框圆角(25) -> 屏幕圆角(35) -> 0
         double borderRadius;
+        final initialRadius = isCircular ? sourceRect.width / 2 : 25.0;
+
         if (progress < 0.85) {
-          // 前85%：从25过渡到35
+          // 前85%：从初始圆角过渡到屏幕圆角
           final t = progress / 0.85;
-          borderRadius = 25.0 + (screenBorderRadius - 25.0) * t;
+          borderRadius =
+              initialRadius + (screenBorderRadius - initialRadius) * t;
         } else {
-          // 后15%：从35快速过渡到0
+          // 后15%：从屏幕圆角快速过渡到0
           final t = (progress - 0.85) / 0.15;
           borderRadius = screenBorderRadius * (1 - t);
         }
