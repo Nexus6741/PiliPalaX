@@ -10,7 +10,7 @@ import 'package:PiliPalaX/pages/pgc/index.dart';
 enum TabType { live, rcmd, hot, rank, bangumi, cinema }
 
 extension TabTypeDesc on TabType {
-  String get description => ['直播', '推荐', '热门', '分区', '番剧', '影视'][index];
+  String get description => ['直播', '推荐', '热门', '排行', '番剧', '影视'][index];
   String get id => ['live', 'rcmd', 'hot', 'rank', 'bangumi', 'cinema'][index];
 }
 

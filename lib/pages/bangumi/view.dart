@@ -11,6 +11,7 @@ import 'package:PiliPalaX/common/widgets/http_error.dart';
 import '../../utils/grid.dart';
 import 'controller.dart';
 import 'widgets/bangumi_card_v.dart';
+import '../pgc_rank/controller.dart' show RankType;
 
 class BangumiPage extends StatefulWidget {
   const BangumiPage({super.key});
@@ -185,12 +186,26 @@ class _BangumiPageState extends State<BangumiPage>
                     '推荐',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  TextButton.icon(
-                    onPressed: () {
-                      Get.toNamed('/pgcIndex');
-                    },
-                    icon: const Icon(Icons.grid_view, size: 18),
-                    label: const Text('索引'),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {
+                          Get.toNamed('/pgcRank', arguments: {
+                            'rankType': RankType.bangumi,
+                          });
+                        },
+                        icon: const Icon(Icons.leaderboard, size: 18),
+                        label: const Text('排行榜'),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Get.toNamed('/pgcIndex');
+                        },
+                        icon: const Icon(Icons.grid_view, size: 18),
+                        label: const Text('索引'),
+                      ),
+                    ],
                   ),
                 ],
               ),

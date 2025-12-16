@@ -166,4 +166,63 @@ class PgcHttp {
       };
     }
   }
+
+  /// 获取番剧/国创排行榜
+  /// [seasonType] 1=番剧, 4=国创
+  /// [day] 3=三日榜
+  static Future<Map<String, dynamic>> pgcRankList({
+    required int seasonType,
+    int day = 3,
+  }) async {
+    try {
+      // 番剧使用 /pgc/web/rank/list，国创使用 /pgc/season/rank/web/list
+      final apiUrl = seasonType == 1 ? Api.pgcRankList : Api.pgcSeasonRankList;
+
+      var res = await Request().get(
+        apiUrl,
+        data: {
+          'day': day,
+          'season_type': seasonType,
+        },
+      );
+
+      if (res.data['code'] == 0) {
+        // 番剧API使用result字段，国创API使用data字段
+        final data = res.data['data'];
+        final result = res.data['result'];
+        List? list;
+
+        if (data != null) {
+          if (data is Map) {
+            list = data['list'] as List?;
+          } else if (data is List) {
+            list = data;
+          }
+        } else if (result != null) {
+          if (result is Map) {
+            list = result['list'] as List?;
+          } else if (result is List) {
+            list = result;
+          }
+        }
+
+        return {
+          'status': true,
+          'data': list ?? [],
+        };
+      } else {
+        return {
+          'status': false,
+          'data': [],
+          'msg': res.data['message'] ?? '加载失败',
+        };
+      }
+    } catch (e) {
+      return {
+        'status': false,
+        'data': [],
+        'msg': '网络错误: $e',
+      };
+    }
+  }
 }

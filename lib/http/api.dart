@@ -751,4 +751,10 @@ class Api {
 
   // 点赞话题
   static const String likeTopic = '/x/topic/like';
+
+  // 番剧排行榜
+  static const String pgcRankList = '/pgc/web/rank/list';
+
+  // 国创排行榜
+  static const String pgcSeasonRankList = '/pgc/season/rank/web/list';
 }

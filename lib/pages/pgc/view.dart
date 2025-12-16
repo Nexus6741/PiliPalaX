@@ -15,6 +15,7 @@ import 'package:PiliPalaX/models/pgc/pgc_index_result/list.dart';
 import '../../utils/grid.dart';
 import 'controller.dart';
 import 'widgets/pgc_card_v.dart';
+import '../pgc_rank/controller.dart' show RankType;
 
 class PgcPage extends StatefulWidget {
   const PgcPage({super.key, required this.tabType});
@@ -222,13 +223,27 @@ class _PgcPageState extends State<PgcPage> with AutomaticKeepAliveClientMixin {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('推荐', style: theme.textTheme.titleMedium),
-            TextButton.icon(
-              onPressed: () {
-                // 影视索引：indexType=102表示全部影视内容
-                Get.toNamed('/pgcIndex', arguments: {'indexType': 102});
-              },
-              icon: const Icon(Icons.grid_view, size: 18),
-              label: const Text('索引'),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    Get.toNamed('/pgcRank', arguments: {
+                      'rankType': RankType.cinema,
+                    });
+                  },
+                  icon: const Icon(Icons.leaderboard, size: 18),
+                  label: const Text('排行榜'),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    // 影视索引：indexType=102表示全部影视内容
+                    Get.toNamed('/pgcIndex', arguments: {'indexType': 102});
+                  },
+                  icon: const Icon(Icons.grid_view, size: 18),
+                  label: const Text('索引'),
+                ),
+              ],
             ),
           ],
         ),

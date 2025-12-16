@@ -9,7 +9,6 @@ import 'package:PiliPalaX/pages/msg_feed_top/like_me/view.dart';
 import 'package:PiliPalaX/pages/follow_search/view.dart';
 import 'package:PiliPalaX/pages/setting/pages/logs.dart';
 import 'package:PiliPalaX/pages/dynamics_topic/view.dart';
-import 'package:PiliPalaX/pages/rank/view.dart';
 
 import '../pages/about/index.dart';
 import '../pages/blacklist/index.dart';
@@ -40,6 +39,7 @@ import '../pages/member/index.dart';
 import '../pages/pgc/view.dart';
 import '../pages/pgc/controller.dart';
 import '../pages/pgc_index/view.dart';
+import '../pages/pgc_rank/view.dart';
 import '../pages/member_coin/index.dart';
 import '../pages/member_like/index.dart';
 import '../pages/member_search/index.dart';
@@ -111,6 +111,8 @@ class Routes {
         name: '/cinema', page: () => const PgcPage(tabType: PgcTabType.cinema)),
     // 影视索引页面
     CustomGetPage(name: '/pgcIndex', page: () => const PgcIndexPage()),
+    // 番剧排行榜
+    CustomGetPage(name: '/pgcRank', page: () => const PgcRankPage()),
     //
     CustomGetPage(name: '/fav', page: () => const FavPage()),
     //
@@ -266,8 +268,6 @@ class Routes {
     // 话题页
     CustomGetPage(
         name: '/dynamicsTopic', page: () => const DynamicsTopicPage()),
-    // 排行榜
-    CustomGetPage(name: '/rank', page: () => const RankPage()),
   ];
 }
 

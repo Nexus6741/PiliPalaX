@@ -1,8 +1,8 @@
+import 'package:PiliPalaX/common/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:PiliPalaX/common/widgets/spring_physics.dart';
-import 'package:PiliPalaX/pages/rank/controller.dart';
-import 'package:PiliPalaX/pages/rank/zone/view.dart';
+import '../../utils/feed_back.dart';
+import './controller.dart';
 
 class RankPage extends StatefulWidget {
   const RankPage({super.key});
@@ -12,8 +12,9 @@ class RankPage extends StatefulWidget {
 }
 
 class _RankPageState extends State<RankPage>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
   final RankController _rankController = Get.put(RankController());
+  late int _selectedTabIndex = 0;
 
   @override
   bool get wantKeepAlive => true;
@@ -21,14 +22,22 @@ class _RankPageState extends State<RankPage>
   @override
   void initState() {
     super.initState();
-    _rankController.tabController = TabController(
-      length: _rankController.tabs.length,
-      vsync: this,
-    );
+    _rankController.tabController =
+        TabController(vsync: this, length: _rankController.tabs.length);
+    _selectedTabIndex = _rankController.initialIndex.value;
+    _rankController.tabController.addListener(() {
+      if (!_rankController.tabController.indexIsChanging) {
+        // _rankController.onRefresh();
+        setState(() {
+          _selectedTabIndex = _rankController.tabController.index;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _rankController.tabController.removeListener(() {});
     _rankController.tabController.dispose();
     super.dispose();
   }
@@ -36,27 +45,95 @@ class _RankPageState extends State<RankPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('排行榜'),
-        bottom: TabBar(
-          controller: _rankController.tabController,
-          tabs: _rankController.tabs.map((e) => Tab(text: e['label'])).toList(),
-          isScrollable: true,
-          dividerColor: Colors.transparent,
-          tabAlignment: TabAlignment.start,
+
+    return Row(
+      children: [
+        const SizedBox(
+          width: StyleString.cardSpace,
         ),
-      ),
-      body: TabBarView(
-        physics: const CustomTabBarViewScrollPhysics(),
-        controller: _rankController.tabController,
-        children: _rankController.tabs.map((tab) {
-          return ZonePage(
-            rid: tab['rid'],
-            tid: tab['tid'],
-          );
-        }).toList(),
-      ),
+        // SizedBox(
+        //     width: 55,
+        //     child: NavigationRail(
+        //
+        //       backgroundColor: Colors.transparent,
+        //       minWidth: 50.0,
+        //       // elevation: 0,
+        //       selectedIndex: _selectedTabIndex,
+        //       onDestinationSelected: (int index) {
+        //         feedBack();
+        //         if (_selectedTabIndex == index) {
+        //           _rankController.tabsCtrList[index]().animateToTop();
+        //         } else {
+        //           setState(() {
+        //             _rankController.tabController.index = index;
+        //             _selectedTabIndex = index;
+        //           });
+        //         }
+        //       },
+        //       labelType: NavigationRailLabelType.none,
+        //       destinations: [
+        //         for (var tab in _rankController.tabs)
+        //           NavigationRailDestination(
+        //             padding: EdgeInsets.zero,
+        //             icon: Text(tab['label']),
+        //             // selectedIcon: Text(tab['label']),
+        //             label: const SizedBox.shrink(),
+        //           ),
+        //       ],
+        //       trailing: const SizedBox(height: 100),
+        //     )),
+        LayoutBuilder(builder: (context, constraint) {
+          return SingleChildScrollView(
+              child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraint.maxHeight),
+                  child: IntrinsicHeight(
+                      child: MediaQuery.removePadding(
+                          context: context,
+                          removeLeft: true,
+                          removeRight: true,
+                          removeTop: true,
+                          child: NavigationRail(
+                            groupAlignment: -1.0,
+                            backgroundColor: Colors.transparent,
+                            minWidth: 40.0,
+                            useIndicator: false,
+                            // elevation: 0,
+                            selectedIndex: _selectedTabIndex,
+                            onDestinationSelected: (int index) {
+                              feedBack();
+                              if (_selectedTabIndex == index) {
+                                _rankController.tabsCtrList[index]()
+                                    .animateToTop();
+                              } else {
+                                setState(() {
+                                  _rankController.tabController.index = index;
+                                  _selectedTabIndex = index;
+                                });
+                              }
+                            },
+                            labelType: NavigationRailLabelType.none,
+                            destinations: [
+                              for (var tab in _rankController.tabs)
+                                NavigationRailDestination(
+                                  icon: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4),
+                                      child: Text(tab['label'])),
+                                  // selectedIcon: Text(tab['label']),
+                                  label: const SizedBox.shrink(),
+                                ),
+                            ],
+                            trailing: const SizedBox(height: 100),
+                          )))));
+        }),
+        Expanded(
+          child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _rankController.tabController,
+            children: _rankController.tabsPageList,
+          ),
+        ),
+      ],
     );
   }
 }
