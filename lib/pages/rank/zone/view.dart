@@ -119,14 +119,6 @@ class _ZonePageState extends State<ZonePage>
                                   child: VideoCardH(
                                     videoItem: _zoneController.videoList[index],
                                     showPubdate: true,
-                                    longPress: () {
-                                      _zoneController.popupDialog.add(
-                                          _createPopupDialog(_zoneController
-                                              .videoList[index]));
-                                      Overlay.of(context).insert(
-                                          _zoneController.popupDialog.last!);
-                                    },
-                                    longPressEnd: _removePopupDialog,
                                   ),
                                 ),
                               ),

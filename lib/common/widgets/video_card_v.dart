@@ -11,11 +11,11 @@ import '../../http/search.dart';
 import '../../models/common/search_type.dart';
 import '../../utils/id_utils.dart';
 import '../../utils/utils.dart';
+import '../../utils/download.dart';
 import '../constants.dart';
 import 'badge.dart';
 import 'network_img_layer.dart';
 import 'video_popup_menu.dart';
-import 'frosted_glass_container.dart';
 
 // 视频卡片 - 垂直布局
 class VideoCardV extends StatelessWidget {
@@ -166,13 +166,11 @@ class VideoCardV extends StatelessWidget {
               onLongPress: () {
                 if (longPress != null) {
                   longPress!();
+                } else {
+                  DownloadUtils.downloadImg(context, videoItem.pic,
+                      imgType: 'cover');
                 }
               },
-              // onLongPressEnd: (details) {
-              //   if (longPressEnd != null) {
-              //     longPressEnd!();
-              //   }
-              // },
               child: InkWell(
                 onTap: () async => onPushDetail(heroTag),
                 child: Column(

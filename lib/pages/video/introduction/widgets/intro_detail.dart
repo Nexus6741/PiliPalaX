@@ -4,7 +4,6 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/utils/utils.dart';
 
-import 'package:PiliPalaX/pages/rank/zone/view.dart';
 import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
 
 import '../../widgets/ai_detail.dart';
@@ -30,46 +29,6 @@ class IntroDetail extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Row(children: [
-          if (videoDetail!.tname != null && videoDetail.tid != null)
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Scaffold(
-                      appBar: AppBar(
-                        title: Text(videoDetail!.tname!,
-                            style: Theme.of(context).textTheme.titleMedium),
-                      ),
-                      body: ZonePage(tid: videoDetail!.tid!),
-                    ),
-                  ),
-                );
-              },
-              // 移除按钮外边距
-              style: ButtonStyle(
-                padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(vertical: 6, horizontal: 10)),
-                minimumSize: WidgetStateProperty.all(Size.zero),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: WidgetStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(
-                        width: 1, color: Theme.of(context).colorScheme.primary),
-                  ),
-                ),
-              ),
-              child: Text(
-                videoDetail!.tname ?? '',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontSize: 13,
-                  height: 1,
-                ),
-              ),
-            ),
-          const SizedBox(width: 8),
           SelectableText(
             key: PageStorageKey<String>(videoDetail!.bvid!),
             videoDetail!.bvid!,

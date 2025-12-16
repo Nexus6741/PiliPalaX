@@ -7,6 +7,7 @@ import 'package:PiliPalaX/http/search.dart';
 import 'package:PiliPalaX/models/bangumi/info.dart';
 import 'package:PiliPalaX/models/common/search_type.dart';
 import 'package:PiliPalaX/utils/utils.dart';
+import 'package:PiliPalaX/utils/download.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 
 // 视频卡片 - 垂直布局
@@ -31,16 +32,10 @@ class BangumiCardV extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       margin: EdgeInsets.zero,
       child: GestureDetector(
-        // onLongPress: () {
-        //   if (longPress != null) {
-        //     longPress!();
-        //   }
-        // },
-        // onLongPressEnd: (details) {
-        //   if (longPressEnd != null) {
-        //     longPressEnd!();
-        //   }
-        // },
+        onLongPress: () {
+          DownloadUtils.downloadImg(context, bangumiItem.cover,
+              imgType: 'bangumi');
+        },
         child: InkWell(
           onTap: () async {
             final int seasonId = bangumiItem.seasonId;

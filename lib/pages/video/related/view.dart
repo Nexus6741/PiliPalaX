@@ -74,20 +74,6 @@ class _RelatedVideoPanelState extends State<RelatedVideoPanel>
                                     enableHero: true,
                                     heroTag:
                                         "${widget.heroTag}_${relatedVideoList[index].aid}",
-                                    longPress: () {
-                                      try {
-                                        _relatedController.popupDialog.add(
-                                            _createPopupDialog(
-                                                _relatedController
-                                                    .relatedVideoList[index]));
-                                        Overlay.of(context).insert(
-                                            _relatedController
-                                                .popupDialog.last!);
-                                      } catch (err) {
-                                        return {};
-                                      }
-                                    },
-                                    longPressEnd: _removePopupDialog,
                                   ),
                                 ),
                               ),

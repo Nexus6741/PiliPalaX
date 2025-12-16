@@ -175,13 +175,6 @@ class _RcmdPageState extends State<RcmdPage>
                 child: videoList!.isNotEmpty
                     ? VideoCardV(
                         videoItem: videoList[index],
-                        longPress: () {
-                          _rcmdController.popupDialog
-                              .add(_createPopupDialog(videoList[index]));
-                          Overlay.of(context)
-                              .insert(_rcmdController.popupDialog.last!);
-                        },
-                        longPressEnd: _removePopupDialog,
                       )
                     : const VideoCardVSkeleton(),
               ),

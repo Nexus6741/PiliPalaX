@@ -110,14 +110,6 @@ class _HotPageState extends State<HotPage> with AutomaticKeepAliveClientMixin {
                                   child: VideoCardH(
                                     videoItem: _hotController.videoList[index],
                                     showPubdate: true,
-                                    longPress: () {
-                                      _hotController.popupDialog.add(
-                                          _createPopupDialog(
-                                              _hotController.videoList[index]));
-                                      Overlay.of(context).insert(
-                                          _hotController.popupDialog.last!);
-                                    },
-                                    longPressEnd: _removePopupDialog,
                                   ),
                                 ),
                               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/utils.dart';
+import '../../utils/download.dart';
 import '../constants.dart';
 import 'network_img_layer.dart';
 
@@ -27,48 +28,54 @@ class LiveCard extends StatelessWidget {
       ),
       margin: EdgeInsets.zero,
       color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
-      child: InkWell(
-        onTap: () {},
-        child: Column(
-          children: [
-            AspectRatio(
-              aspectRatio: StyleString.aspectRatio,
-              child: LayoutBuilder(builder:
-                  (BuildContext context, BoxConstraints boxConstraints) {
-                final double maxWidth = boxConstraints.maxWidth;
-                final double maxHeight = boxConstraints.maxHeight;
-                return Stack(
-                  children: [
-                    Hero(
-                      tag: heroTag,
-                      child: NetworkImgLayer(
-                        src: liveItem.cover as String,
-                        type: 'emote',
-                        width: maxWidth,
-                        height: maxHeight,
-                      ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: AnimatedOpacity(
-                        opacity: 1,
-                        duration: const Duration(milliseconds: 200),
-                        child: LiveStat(
-                          // view: liveItem.stat.view,
-                          // danmaku: liveItem.stat.danmaku,
-                          // duration: liveItem.duration,
-                          online: liveItem.online as int,
+      child: GestureDetector(
+        onLongPress: () {
+          DownloadUtils.downloadImg(context, liveItem.cover as String,
+              imgType: 'live');
+        },
+        child: InkWell(
+          onTap: () {},
+          child: Column(
+            children: [
+              AspectRatio(
+                aspectRatio: StyleString.aspectRatio,
+                child: LayoutBuilder(builder:
+                    (BuildContext context, BoxConstraints boxConstraints) {
+                  final double maxWidth = boxConstraints.maxWidth;
+                  final double maxHeight = boxConstraints.maxHeight;
+                  return Stack(
+                    children: [
+                      Hero(
+                        tag: heroTag,
+                        child: NetworkImgLayer(
+                          src: liveItem.cover as String,
+                          type: 'emote',
+                          width: maxWidth,
+                          height: maxHeight,
                         ),
                       ),
-                    ),
-                  ],
-                );
-              }),
-            ),
-            LiveContent(liveItem: liveItem)
-          ],
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: AnimatedOpacity(
+                          opacity: 1,
+                          duration: const Duration(milliseconds: 200),
+                          child: LiveStat(
+                            // view: liveItem.stat.view,
+                            // danmaku: liveItem.stat.danmaku,
+                            // duration: liveItem.duration,
+                            online: liveItem.online as int,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ),
+              LiveContent(liveItem: liveItem)
+            ],
+          ),
         ),
       ),
     );

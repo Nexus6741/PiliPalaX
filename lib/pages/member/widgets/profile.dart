@@ -4,6 +4,7 @@ import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/models/live/item.dart';
 import 'package:PiliPalaX/models/member/info.dart';
 import 'package:PiliPalaX/utils/utils.dart';
+import 'package:PiliPalaX/utils/download.dart';
 
 class ProfilePanel extends StatelessWidget {
   final dynamic ctr;
@@ -21,62 +22,70 @@ class ProfilePanel extends StatelessWidget {
       builder: ((context) {
         return Row(
           children: [
-            Hero(
-              tag: ctr.heroTag!,
-              child: Stack(
-                children: [
-                  NetworkImgLayer(
-                    width: 90,
-                    height: 90,
-                    type: 'avatar',
-                    src: !loadingStatus ? memberInfo.face : ctr.face.value,
-                  ),
-                  if (!loadingStatus &&
-                      memberInfo.liveRoom != null &&
-                      memberInfo.liveRoom!.liveStatus == 1)
-                    Positioned(
-                      bottom: 0,
-                      left: 14,
-                      child: GestureDetector(
-                        onTap: () {
-                          LiveItemModel liveItem = LiveItemModel.fromJson({
-                            'title': memberInfo.liveRoom!.title,
-                            'uname': memberInfo.name,
-                            'face': memberInfo.face,
-                            'roomid': memberInfo.liveRoom!.roomId,
-                            'watched_show': memberInfo.liveRoom!.watchedShow,
-                          });
-                          Get.toNamed(
-                            '/liveRoom?roomid=${memberInfo.liveRoom!.roomId}',
-                            arguments: {'liveItem': liveItem},
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(6, 2, 6, 2),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                          ),
-                          child: Row(children: [
-                            Image.asset(
-                              'assets/images/live.gif',
-                              height: 10,
+            GestureDetector(
+              onLongPress: () {
+                String avatarUrl =
+                    !loadingStatus ? memberInfo.face : ctr.face.value;
+                DownloadUtils.downloadImg(context, avatarUrl,
+                    imgType: 'avatar');
+              },
+              child: Hero(
+                tag: ctr.heroTag!,
+                child: Stack(
+                  children: [
+                    NetworkImgLayer(
+                      width: 90,
+                      height: 90,
+                      type: 'avatar',
+                      src: !loadingStatus ? memberInfo.face : ctr.face.value,
+                    ),
+                    if (!loadingStatus &&
+                        memberInfo.liveRoom != null &&
+                        memberInfo.liveRoom!.liveStatus == 1)
+                      Positioned(
+                        bottom: 0,
+                        left: 14,
+                        child: GestureDetector(
+                          onTap: () {
+                            LiveItemModel liveItem = LiveItemModel.fromJson({
+                              'title': memberInfo.liveRoom!.title,
+                              'uname': memberInfo.name,
+                              'face': memberInfo.face,
+                              'roomid': memberInfo.liveRoom!.roomId,
+                              'watched_show': memberInfo.liveRoom!.watchedShow,
+                            });
+                            Get.toNamed(
+                              '/liveRoom?roomid=${memberInfo.liveRoom!.roomId}',
+                              arguments: {'liveItem': liveItem},
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(6, 2, 6, 2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(10)),
                             ),
-                            Text(
-                              ' 直播中',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall!
-                                      .fontSize),
-                            )
-                          ]),
+                            child: Row(children: [
+                              Image.asset(
+                                'assets/images/live.gif',
+                                height: 10,
+                              ),
+                              Text(
+                                ' 直播中',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall!
+                                        .fontSize),
+                              )
+                            ]),
+                          ),
                         ),
-                      ),
-                    )
-                ],
+                      )
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 12),

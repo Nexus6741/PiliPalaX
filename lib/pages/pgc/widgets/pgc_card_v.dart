@@ -9,6 +9,7 @@ import 'package:PiliPalaX/models/common/search_type.dart';
 import 'package:PiliPalaX/models/bangumi/info.dart';
 import 'package:PiliPalaX/http/search.dart';
 import 'package:PiliPalaX/utils/utils.dart';
+import 'package:PiliPalaX/utils/download.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 
 // PGC卡片 - 垂直布局
@@ -44,6 +45,9 @@ class PgcCardV extends StatelessWidget {
       margin: EdgeInsets.zero,
       color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: GestureDetector(
+        onLongPress: () {
+          DownloadUtils.downloadImg(context, cover ?? '', imgType: 'pgc');
+        },
         child: InkWell(
           onTap: () async {
             // 导航到视频播放页面

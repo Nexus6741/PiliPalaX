@@ -4,6 +4,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import '../../http/search.dart';
 import '../../utils/utils.dart';
+import '../../utils/download.dart';
 import '../constants.dart';
 import 'badge.dart';
 import 'network_img_layer.dart';
@@ -61,13 +62,11 @@ class VideoCardH extends StatelessWidget {
             onLongPress: () {
               if (longPress != null) {
                 longPress!();
+              } else {
+                DownloadUtils.downloadImg(context, videoItem.pic as String,
+                    imgType: 'cover');
               }
             },
-            // onLongPressEnd: (details) {
-            //   if (longPressEnd != null) {
-            //     longPressEnd!();
-            //   }
-            // },
             child: InkWell(
               onTap: () async {
                 if (type == 'ketang') {

@@ -369,49 +369,49 @@ class BottomRightExpandTransition extends CustomTransition {
   }
 }
 
-/// 幕布式下落过渡动画 - 极致性能优化版
-/// 幕布式下落过渡动画 - 极致性能优化版
-/// 页面从顶部像幕布一样优雅地落下，带有弹跳效果
-/// 退出时快速向上收起
-class CurtainDropTransition extends CustomTransition {
-  // 缓存 Tween 对象，避免重复创建
-  static final _slideTween = Tween<Offset>(
-    begin: const Offset(0.0, -1.0),
-    end: Offset.zero,
-  );
+// /// 幕布式下落过渡动画 - 极致性能优化版
+// /// 幕布式下落过渡动画 - 极致性能优化版
+// /// 页面从顶部像幕布一样优雅地落下，带有弹跳效果
+// /// 退出时快速向上收起
+// class CurtainDropTransition extends CustomTransition {
+//   // 缓存 Tween 对象，避免重复创建
+//   static final _slideTween = Tween<Offset>(
+//     begin: const Offset(0.0, -1.0),
+//     end: Offset.zero,
+//   );
 
-  @override
-  Widget buildTransition(
-    BuildContext context,
-    Curve? curve,
-    Alignment? alignment,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    // 根据动画方向使用不同的曲线
-    // 进入动画使用 bounceOut，退出动画使用 easeInCubic
-    final dropAnimation = CurvedAnimation(
-      parent: animation,
-      curve: Curves.elasticOut, // 进入时的弹跳效果
-      reverseCurve: Curves.easeInCubic, // 退出时的快速加速
-    );
+//   @override
+//   Widget buildTransition(
+//     BuildContext context,
+//     Curve? curve,
+//     Alignment? alignment,
+//     Animation<double> animation,
+//     Animation<double> secondaryAnimation,
+//     Widget child,
+//   ) {
+//     // 根据动画方向使用不同的曲线
+//     // 进入动画使用 bounceOut，退出动画使用 easeInCubic
+//     final dropAnimation = CurvedAnimation(
+//       parent: animation,
+//       curve: Curves.elasticOut, // 进入时的弹跳效果
+//       reverseCurve: Curves.easeInCubic, // 退出时的快速加速
+//     );
 
-    // 使用 SlideTransition 替代手动计算，性能更好
-    // RepaintBoundary 放在最外层，减少整个动画树的重绘
-    return RepaintBoundary(
-      child: SlideTransition(
-        position: _slideTween.animate(dropAnimation),
-        // 使用 transformHitTests: false 提升性能（动画期间不需要点击检测）
-        transformHitTests: false,
-        // 子组件也用 RepaintBoundary 包裹，进一步隔离重绘
-        child: RepaintBoundary(
-          child: child,
-        ),
-      ),
-    );
-  }
-}
+//     // 使用 SlideTransition 替代手动计算，性能更好
+//     // RepaintBoundary 放在最外层，减少整个动画树的重绘
+//     return RepaintBoundary(
+//       child: SlideTransition(
+//         position: _slideTween.animate(dropAnimation),
+//         // 使用 transformHitTests: false 提升性能（动画期间不需要点击检测）
+//         transformHitTests: false,
+//         // 子组件也用 RepaintBoundary 包裹，进一步隔离重绘
+//         child: RepaintBoundary(
+//           child: child,
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 /// 底部滑出过渡动画 - 性能优化版
 /// 页面从底部自然流畅地滑出，使用非线性曲线

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/models/live/item.dart';
 import 'package:PiliPalaX/utils/utils.dart';
+import 'package:PiliPalaX/utils/download.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 
 // 视频卡片 - 垂直布局
@@ -30,13 +31,11 @@ class LiveCardV extends StatelessWidget {
         onLongPress: () {
           if (longPress != null) {
             longPress!();
+          } else {
+            DownloadUtils.downloadImg(context, liveItem.cover!,
+                imgType: 'live');
           }
         },
-        // onLongPressEnd: (details) {
-        //   if (longPressEnd != null) {
-        //     longPressEnd!();
-        //   }
-        // },
         child: InkWell(
           onTap: () async {
             Get.toNamed('/liveRoom?roomid=${liveItem.roomId}',
