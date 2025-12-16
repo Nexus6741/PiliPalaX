@@ -9,6 +9,7 @@ import 'package:PiliPalaX/pages/msg_feed_top/like_me/view.dart';
 import 'package:PiliPalaX/pages/follow_search/view.dart';
 import 'package:PiliPalaX/pages/setting/pages/logs.dart';
 import 'package:PiliPalaX/pages/dynamics_topic/view.dart';
+import 'package:PiliPalaX/pages/rank/view.dart';
 
 import '../pages/about/index.dart';
 import '../pages/blacklist/index.dart';
@@ -265,6 +266,8 @@ class Routes {
     // 话题页
     CustomGetPage(
         name: '/dynamicsTopic', page: () => const DynamicsTopicPage()),
+    // 排行榜
+    CustomGetPage(name: '/rank', page: () => const RankPage()),
   ];
 }
 

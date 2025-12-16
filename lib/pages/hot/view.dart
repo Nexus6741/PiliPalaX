@@ -81,6 +81,28 @@ class _HotPageState extends State<HotPage> with AutomaticKeepAliveClientMixin {
         physics: const AlwaysScrollableScrollPhysics(),
         controller: _hotController.scrollController,
         slivers: [
+          // 添加排行榜入口按钮
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(
+                  StyleString.safeSpace, 8, StyleString.safeSpace, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FilledButton.tonalIcon(
+                    onPressed: () => Get.toNamed('/rank'),
+                    icon: const Icon(Icons.leaderboard, size: 18),
+                    label: const Text('排行榜'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      minimumSize: const Size(0, 36),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           FutureBuilder(
             future: _futureBuilderFuture,
             builder: (context, snapshot) {
