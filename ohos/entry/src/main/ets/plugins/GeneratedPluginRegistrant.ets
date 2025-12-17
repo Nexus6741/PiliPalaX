@@ -18,6 +18,7 @@ import WebviewCookieManagerPlugin from 'webview_cookie_manager';
 import HapticFeedbackOhosPlugin from 'haptic_feedback_ohos';
 import MediaKitLibsOhosPlugin from 'media_kit_libs_ohos';
 import ScreenBrightnessOhosPlugin from 'screen_brightness_ohos';
+import WakelockOhosPlugin from 'wakelock_ohos';
 import SaverGalleryPlugin from 'saver_gallery';
 
 /**
@@ -51,6 +52,7 @@ export class GeneratedPluginRegistrant {
       flutterEngine.getPlugins()?.add(new HapticFeedbackOhosPlugin());
       flutterEngine.getPlugins()?.add(new MediaKitLibsOhosPlugin());
       flutterEngine.getPlugins()?.add(new ScreenBrightnessOhosPlugin());
+      flutterEngine.getPlugins()?.add(new WakelockOhosPlugin());
       flutterEngine.getPlugins()?.add(new SaverGalleryPlugin());
     } catch (e) {
       Log.e(

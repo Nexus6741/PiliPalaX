@@ -41,6 +41,7 @@ import '../../models/video/play/subtitle.dart';
 import '../../pages/video/controller.dart';
 import '../../pages/video/introduction/bangumi/controller.dart';
 import '../../pages/video/introduction/detail/controller.dart';
+import '../../utils/wakelock_manager.dart';
 // import '../../pages/video/controller.dart';
 // import 'package:wakelock_plus/wakelock_plus.dart;';
 
@@ -868,8 +869,16 @@ class PlPlayerController {
             if (!isBuffering.value) {
               isVideoLoaded.value = true;
             }
+            // 播放时启用防休眠
+            // ignore: avoid_print
+            // print('🟢 播放状态监听器：视频开始播放，启用防休眠');
+            WakelockManager.instance.enable();
           } else {
             playerStatus.status.value = PlayerStatus.paused;
+            // 暂停时禁用防休眠
+            // ignore: avoid_print
+            // print('🔴 播放状态监听器：视频已暂停，禁用防休眠');
+            WakelockManager.instance.disable();
           }
           videoPlayerServiceHandler.onStatusChange(
               playerStatus.status.value, isBuffering.value);
@@ -1073,6 +1082,9 @@ class PlPlayerController {
   /// 播放视频
   /// TODO  _duration.value丢失
   Future<void> play({bool repeat = false, bool hideControls = true}) async {
+    // ignore: avoid_print
+    // print('🟢 PlPlayerController.play() 被调用');
+
     // String top = Get.currentRoute;
     // print("top:$top");
     // if (!top.startsWith('/video')) {
@@ -1095,6 +1107,13 @@ class PlPlayerController {
 
     audioSessionHandler.setActive(true);
 
+    // 启用防休眠
+    // ignore: avoid_print
+    // print('🟢 准备调用 WakelockManager.instance.enable()');
+    WakelockManager.instance.enable();
+    // ignore: avoid_print
+    // print('🟢 已调用 WakelockManager.instance.enable()');
+
     // Future.delayed(const Duration(milliseconds: 100), () {
     //   getCurrentVolume();
     // });
@@ -1102,6 +1121,9 @@ class PlPlayerController {
 
   /// 暂停播放
   Future<void> pause({bool notify = true, bool isInterrupt = false}) async {
+    // ignore: avoid_print
+    // print('🔴 PlPlayerController.pause() 被调用');
+
     await _videoPlayerController?.pause();
     playerStatus.status.value = PlayerStatus.paused;
 
@@ -1109,6 +1131,13 @@ class PlPlayerController {
     if (!isInterrupt) {
       audioSessionHandler.setActive(false);
     }
+
+    // 禁用防休眠
+    // ignore: avoid_print
+    // print('🔴 准备调用 WakelockManager.instance.disable()');
+    WakelockManager.instance.disable();
+    // ignore: avoid_print
+    // print('🔴 已调用 WakelockManager.instance.disable()');
   }
 
   // 感觉用这个管理状态也不是很好用
@@ -1644,6 +1673,9 @@ class PlPlayerController {
     _timerForGettingVolume?.cancel();
     timerForTrackingMouse?.cancel();
     _timerForSeek?.cancel();
+
+    // 释放防休眠锁
+    WakelockManager.instance.disable();
   }
 
   // 记录播放记录
@@ -1793,6 +1825,10 @@ class PlPlayerController {
     // }
     // _playerCount.value = 0;
     pause();
+
+    // 释放防休眠锁
+    WakelockManager.instance.disable();
+
     try {
       _clearPreview();
       _timer?.cancel();

@@ -1925,6 +1925,15 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.4.0"
+  wakelock_ohos:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: bd70848ae2e8b6dc00c52534466777e7d098bb36
+      url: "https://github.com/Nexus6741/wakelock_ohos.git"
+    source: git
+    version: "1.0.0"
   wakelock_plus:
     dependency: "direct main"
     description:

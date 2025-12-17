@@ -132,6 +132,11 @@ dependencies:
       url: https://github.com/Nexus6741/device_info_ohos.git
       ref: main
   wakelock_plus: ^1.2.10
+  # 鸿蒙防休眠
+  wakelock_ohos:
+    git:
+      url: https://github.com/Nexus6741/wakelock_ohos.git
+      ref: main
   universal_platform: ^1.0.0+1
   auto_orientation:
     git:
