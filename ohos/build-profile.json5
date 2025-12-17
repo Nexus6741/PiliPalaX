@@ -1,0 +1,53 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\nexus\\.ohos\\config\\default_ohos_R8MS6knLv8Drf5qt1600Gz-tRj7N4qhrRfskNH6n2HY=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B54982CF86F3E9DDD5ABB08B41D672A07DCB579D86553817165328AA3D9462E19F4BDD18E0FB4AA",
+          "profile": "C:\\Users\\nexus\\.ohos\\config\\default_ohos_R8MS6knLv8Drf5qt1600Gz-tRj7N4qhrRfskNH6n2HY=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\nexus\\.ohos\\config\\default_ohos_R8MS6knLv8Drf5qt1600Gz-tRj7N4qhrRfskNH6n2HY=.p12",
+          "storePassword": "0000001B4BAB2F7612AF3D4CDFCC78B6E277355A134F94C63EA2AEC85689F6368EE3ACF6A007E42705FE5E"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "5.1.0(18)",
+        "runtimeOS": "HarmonyOS",
+        "targetSdkVersion": "5.1.0(18)"
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "profile"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}
