@@ -36,6 +36,7 @@ import '../pages/live_room/view.dart';
 import '../pages/login/index.dart';
 import '../pages/media/index.dart';
 import '../pages/member/index.dart';
+import '../pages/music/view.dart';
 import '../pages/pgc/view.dart';
 import '../pages/pgc/controller.dart';
 import '../pages/pgc_index/view.dart';
@@ -268,6 +269,8 @@ class Routes {
     // 话题页
     CustomGetPage(
         name: '/dynamicsTopic', page: () => const DynamicsTopicPage()),
+    // 音乐详情页
+    CustomGetPage(name: '/musicDetail', page: () => const MusicDetailPage()),
   ];
 }
 

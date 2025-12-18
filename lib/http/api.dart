@@ -757,4 +757,15 @@ class Api {
 
   // 国创排行榜
   static const String pgcSeasonRankList = '/pgc/season/rank/web/list';
+
+  // BGM音乐详情
+  static const String bgmDetail = '/x/copyright-music-publicity/bgm/detail';
+
+  // BGM音乐点赞
+  static const String wishUpdate =
+      '/x/copyright-music-publicity/bgm/wish/update';
+
+  // BGM推荐视频列表
+  static const String bgmRecommend =
+      '/x/copyright-music-publicity/bgm/recommend_list';
 }
