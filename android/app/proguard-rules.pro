@@ -1,3 +1,0 @@
--dontwarn com.android.org.conscrypt.SSLParametersImpl
--dontwarn javax.annotation.Nullable
--dontwarn org.apache.harmony.xnet.provider.jsse.SSLParametersImpl

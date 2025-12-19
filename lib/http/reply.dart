@@ -59,7 +59,7 @@ class ReplyHttp {
           'root': root,
           'pn': pageNum,
           'type': type,
-          'sort': 1,
+          'sort': sort, // 使用传入的排序参数: 0=按时间, 1=按热度
           'csrf': await Request.getCsrf(),
         },
         options: options);

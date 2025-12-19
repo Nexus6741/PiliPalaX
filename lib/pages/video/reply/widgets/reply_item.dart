@@ -12,6 +12,7 @@ import 'package:PiliPalaX/models/video/reply/item.dart';
 import 'package:PiliPalaX/pages/preview/index.dart';
 import 'package:PiliPalaX/pages/video/index.dart';
 import 'package:PiliPalaX/pages/video/reply_new/index.dart';
+import 'package:PiliPalaX/pages/video/reply_reply/view.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/url_utils.dart';
@@ -292,6 +293,13 @@ class ReplyItem extends StatelessWidget {
 
   // 感谢、回复、复制
   Widget buttonAction(BuildContext context, replyControl) {
+    // 判断是否为二楼评论(有 parent 且 parent != root)
+    final bool isSecondFloor = replyLevel == '2' &&
+        replyItem!.parent != null &&
+        replyItem!.parent != replyItem!.root &&
+        replyItem!.dialog != null &&
+        replyItem!.dialog! > 0;
+
     return Row(
       children: <Widget>[
         const SizedBox(width: 32),
@@ -341,6 +349,47 @@ class ReplyItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 2),
+        // 查看对话按钮(仅二楼评论显示)
+        if (isSecondFloor) ...[
+          SizedBox(
+            height: 32,
+            child: TextButton(
+              onPressed: () {
+                feedBack();
+                // 打开对话视图,如果 parent != root 则定位到父评论
+                final int? targetId = (replyItem!.parent != replyItem!.root)
+                    ? replyItem!.parent
+                    : null;
+                Get.bottomSheet(
+                  VideoReplyReplyPanel(
+                    oid: replyItem!.oid,
+                    rpid: replyItem!.root,
+                    replyType: replyType,
+                    source: 'videoDetail',
+                    id: targetId,
+                  ),
+                  isScrollControlled: true,
+                  enableDrag: true,
+                );
+              },
+              child: Row(children: [
+                Icon(Icons.forum_outlined,
+                    size: 18,
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.8)),
+                const SizedBox(width: 3),
+                Text(
+                  '查看对话',
+                  style: TextStyle(
+                    fontSize: Theme.of(context).textTheme.labelMedium!.fontSize,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ]),
+            ),
+          ),
+          const SizedBox(width: 2),
+        ],
         if (replyItem!.upAction!.like!) ...[
           Text(
             'up主觉得很赞',
@@ -401,8 +450,9 @@ class ReplyItemRow extends StatelessWidget {
             if (replies!.isNotEmpty)
               for (int i = 0; i < replies!.length; i++) ...[
                 InkWell(
-                  // 一楼点击评论展开评论详情
-                  onTap: () => replyReply!(replyItem),
+                  // 一楼点击评论展开评论详情，并定位到被点击的预览回复
+                  onTap: () =>
+                      replyReply!(replyItem, targetRpid: replies![i].rpid),
                   onLongPress: () {
                     feedBack();
                     showModalBottomSheet(

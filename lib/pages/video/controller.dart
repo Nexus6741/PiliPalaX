@@ -69,6 +69,8 @@ class VideoDetailController extends GetxController
   RxInt oid = 0.obs;
   // 评论id 请求楼中楼评论使用
   int fRpid = 0;
+  // 目标回复id 用于定位高亮
+  int? targetReplyRpid;
 
   ReplyItemModel? firstFloor;
   final scaffoldKey = GlobalKey<ScaffoldState>();
@@ -213,10 +215,12 @@ class VideoDetailController extends GetxController
         firstFloor: firstFloor,
         replyType: ReplyType.video,
         source: 'videoDetail',
+        id: targetReplyRpid,
       );
     });
     replyReplyBottomSheetCtr?.closed.then((value) {
       fRpid = 0;
+      targetReplyRpid = null;
     });
   }
 

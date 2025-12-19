@@ -18,6 +18,7 @@ class VideoReplyReplyPanel extends StatefulWidget {
     this.firstFloor,
     this.source,
     this.replyType,
+    this.id,
     super.key,
   });
   final int? oid;
@@ -26,47 +27,54 @@ class VideoReplyReplyPanel extends StatefulWidget {
   final ReplyItemModel? firstFloor;
   final String? source;
   final ReplyType? replyType;
+  final int? id;
 
   @override
   State<VideoReplyReplyPanel> createState() => _VideoReplyReplyPanelState();
 }
 
 class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
-  late VideoReplyReplyController _videoReplyReplyController;
-  late AnimationController replyAnimationCtl;
+  late VideoReplyReplyController _ctrl;
   Future? _futureBuilderFuture;
   late ScrollController scrollController;
 
   @override
   void initState() {
     super.initState();
-    _videoReplyReplyController = Get.put(
-        VideoReplyReplyController(
-            widget.oid, widget.rpid.toString(), widget.replyType!),
+    final bool isExisting = Get.isRegistered<VideoReplyReplyController>(
         tag: widget.rpid.toString());
 
-    // 上拉加载更多
-    scrollController = _videoReplyReplyController.scrollController;
-    scrollController.addListener(
-      () {
-        if (scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent - 300) {
-          EasyThrottle.throttle('replylist', const Duration(milliseconds: 200),
-              () {
-            _videoReplyReplyController.queryReplyList(type: 'onLoad');
-          });
-        }
-      },
-    );
+    _ctrl = Get.put(
+        VideoReplyReplyController(
+            widget.oid, widget.rpid.toString(), widget.replyType!,
+            targetRpid: widget.id),
+        tag: widget.rpid.toString());
 
-    _futureBuilderFuture = _videoReplyReplyController.queryReplyList();
+    // 如果 controller 已存在，需要更新 targetRpid 并触发定位
+    if (isExisting && widget.id != null) {
+      _ctrl.targetRpid = widget.id;
+      // 如果列表已加载，直接定位
+      if (_ctrl.replyList.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _ctrl.locateTargetReply();
+        });
+      }
+    }
+
+    scrollController = _ctrl.scrollController;
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 300) {
+        EasyThrottle.throttle('replylist', const Duration(milliseconds: 200),
+            () => _ctrl.queryReplyList(type: 'onLoad'));
+      }
+    });
+
+    _futureBuilderFuture = _ctrl.queryReplyList();
   }
-
-  void replyReply(replyItem) {}
 
   @override
   void dispose() {
-    // scrollController.dispose();
     super.dispose();
   }
 
@@ -75,7 +83,7 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
     return Container(
       height:
           widget.source == 'videoDetail' ? Utils.getSheetHeight(context) : null,
-      color: Theme.of(context).colorScheme.background,
+      color: Theme.of(context).colorScheme.surface,
       child: Column(
         children: [
           if (widget.source == 'videoDetail')
@@ -90,7 +98,7 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
                     tooltip: '关闭',
                     icon: const Icon(Icons.close, size: 20),
                     onPressed: () {
-                      _videoReplyReplyController.currentPage = 0;
+                      _ctrl.currentPage = 0;
                       widget.closePanel!();
                       Navigator.pop(context);
                     },
@@ -100,7 +108,7 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
             ),
           Divider(
             height: 1,
-            color: Theme.of(context).dividerColor.withOpacity(0.1),
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
           ),
           Expanded(
             child: RefreshIndicator(
@@ -108,142 +116,47 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
               edgeOffset: 10.0,
               onRefresh: () async {
                 setState(() {});
-                _videoReplyReplyController.currentPage = 0;
-                return await _videoReplyReplyController.queryReplyList();
+                _ctrl.currentPage = 0;
+                return await _ctrl.queryReplyList();
               },
               child: CustomScrollView(
-                controller: _videoReplyReplyController.scrollController,
+                controller: _ctrl.scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: <Widget>[
                   if (widget.firstFloor != null) ...[
-                    // const SliverToBoxAdapter(child: SizedBox(height: 10)),
                     SliverToBoxAdapter(
                       child: ReplyItem(
                         replyItem: widget.firstFloor,
                         replyLevel: '2',
                         showReplyRow: false,
-                        addReply: (replyItem) {
-                          _videoReplyReplyController.replyList.add(replyItem);
-                        },
+                        addReply: (replyItem) => _ctrl.replyList.add(replyItem),
                         replyType: widget.replyType,
-                        replyReply: (replyItem) => replyReply(replyItem),
                       ),
                     ),
                     SliverToBoxAdapter(
                       child: Divider(
                         height: 20,
-                        color: Theme.of(context).dividerColor.withOpacity(0.1),
+                        color: Theme.of(context)
+                            .dividerColor
+                            .withValues(alpha: 0.1),
                         thickness: 6,
                       ),
                     ),
-                  ],
-                  FutureBuilder(
-                    future: _futureBuilderFuture,
-                    builder: (BuildContext context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        final Map data = snapshot.data as Map;
-                        if (data['status']) {
-                          // 请求成功
-                          return SliverMainAxisGroup(
-                            slivers: <Widget>[
-                              if (widget.firstFloor == null &&
-                                  _videoReplyReplyController.root != null) ...[
-                                SliverToBoxAdapter(
-                                  child: ReplyItem(
-                                    replyItem: _videoReplyReplyController.root,
-                                    replyLevel: '2',
-                                    showReplyRow: false,
-                                    addReply: (replyItem) {
-                                      _videoReplyReplyController.replyList
-                                          .add(replyItem);
-                                    },
-                                    replyType: widget.replyType,
-                                    replyReply: (replyItem) =>
-                                        replyReply(replyItem),
-                                  ),
-                                ),
-                                SliverToBoxAdapter(
-                                  child: Divider(
-                                    height: 20,
-                                    color: Theme.of(context)
-                                        .dividerColor
-                                        .withOpacity(0.1),
-                                    thickness: 6,
-                                  ),
-                                ),
-                              ],
-                              Obx(
-                                () => SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                    (BuildContext context, int index) {
-                                      if (index ==
-                                          _videoReplyReplyController
-                                              .replyList.length) {
-                                        return Container(
-                                          padding: EdgeInsets.only(
-                                              bottom: MediaQuery.of(context)
-                                                  .padding
-                                                  .bottom),
-                                          height: MediaQuery.of(context)
-                                                  .padding
-                                                  .bottom +
-                                              100,
-                                          child: Center(
-                                            child: Obx(
-                                              () => Text(
-                                                _videoReplyReplyController
-                                                    .noMore.value,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .outline,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        return ReplyItem(
-                                          replyItem: _videoReplyReplyController
-                                              .replyList[index],
-                                          replyLevel: '2',
-                                          showReplyRow: false,
-                                          addReply: (replyItem) {
-                                            _videoReplyReplyController.replyList
-                                                .add(replyItem);
-                                          },
-                                          replyType: widget.replyType,
-                                        );
-                                      }
-                                    },
-                                    childCount: _videoReplyReplyController
-                                            .replyList.length +
-                                        1,
-                                  ),
-                                ),
+                    SliverToBoxAdapter(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Obx(() => Text(
+                              '共 ${_ctrl.replyList.length} 条回复',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Theme.of(context).colorScheme.outline,
                               ),
-                            ],
-                          );
-                        } else {
-                          // 请求错误
-                          return HttpError(
-                            errMsg: data['msg'],
-                            fn: () => setState(() {}),
-                          );
-                        }
-                      } else {
-                        // 骨架屏
-                        return SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                              (BuildContext context, int index) {
-                            return const VideoReplySkeleton();
-                          }, childCount: 8),
-                        );
-                      }
-                    },
-                  )
+                            )),
+                      ),
+                    ),
+                  ],
+                  _buildReplyList(context),
                 ],
               ),
             ),
@@ -251,5 +164,117 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
         ],
       ),
     );
+  }
+
+  Widget _buildReplyList(BuildContext context) {
+    return FutureBuilder(
+      future: _futureBuilderFuture,
+      builder: (BuildContext context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          final Map data = snapshot.data as Map;
+          if (data['status']) {
+            return _buildSuccessContent(context);
+          } else {
+            return HttpError(errMsg: data['msg'], fn: () => setState(() {}));
+          }
+        } else {
+          return SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => const VideoReplySkeleton(),
+              childCount: 8,
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildSuccessContent(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: <Widget>[
+        if (widget.firstFloor == null && _ctrl.root != null) ...[
+          SliverToBoxAdapter(
+            child: ReplyItem(
+              replyItem: _ctrl.root,
+              replyLevel: '2',
+              showReplyRow: false,
+              addReply: (replyItem) => _ctrl.replyList.add(replyItem),
+              replyType: widget.replyType,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Divider(
+              height: 20,
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+              thickness: 6,
+            ),
+          ),
+        ],
+        Obx(() => SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (index == _ctrl.replyList.length) {
+                    return _buildLoadMoreIndicator(context);
+                  }
+                  return _buildReplyItem(context, index);
+                },
+                childCount: _ctrl.replyList.length + 1,
+              ),
+            )),
+      ],
+    );
+  }
+
+  Widget _buildLoadMoreIndicator(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+      height: MediaQuery.of(context).padding.bottom + 100,
+      child: Center(
+        child: Obx(() => Text(
+              _ctrl.noMore.value,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            )),
+      ),
+    );
+  }
+
+  Widget _buildReplyItem(BuildContext context, int index) {
+    return Obx(() {
+      final isHighlight = _ctrl.highlightIndex.value == index;
+      final replyWidget = ReplyItem(
+        replyItem: _ctrl.replyList[index],
+        replyLevel: '2',
+        showReplyRow: false,
+        addReply: (replyItem) => _ctrl.replyList.add(replyItem),
+        replyType: widget.replyType,
+      );
+
+      if (isHighlight) {
+        return AnimatedBuilder(
+          animation: _ctrl.animationController,
+          builder: (ctx, child) {
+            final animColor = ColorTween(
+              begin: Theme.of(ctx)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: 0.3),
+              end: Colors.transparent,
+            )
+                .animate(CurvedAnimation(
+                  parent: _ctrl.animationController,
+                  curve: const Interval(0.5, 1.0),
+                ))
+                .value;
+            return Container(color: animColor, child: child);
+          },
+          child: replyWidget,
+        );
+      }
+      return replyWidget;
+    });
   }
 }

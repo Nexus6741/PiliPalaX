@@ -101,7 +101,7 @@ class _HtmlRenderPageState extends State<HtmlRenderPage>
     }
   }
 
-  void replyReply(replyItem) {
+  void replyReply(replyItem, {int? targetRpid}) {
     int oid = replyItem.oid;
     int rpid = replyItem.rpid!;
     Get.to(
@@ -120,6 +120,7 @@ class _HtmlRenderPageState extends State<HtmlRenderPage>
           source: 'dynamic',
           replyType: ReplyType.values[type],
           firstFloor: replyItem,
+          id: targetRpid,
         ),
       ),
     );
@@ -416,7 +417,8 @@ class _HtmlRenderPageState extends State<HtmlRenderPage>
                     replyItem: _htmlRenderCtr.replyList[index],
                     showReplyRow: true,
                     replyLevel: '1',
-                    replyReply: (replyItem) => replyReply(replyItem),
+                    replyReply: (replyItem, {int? targetRpid}) =>
+                        replyReply(replyItem, targetRpid: targetRpid),
                     replyType: ReplyType.values[type],
                     addReply: (replyItem) {
                       _htmlRenderCtr.replyList[index].replies!.add(replyItem);
