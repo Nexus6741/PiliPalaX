@@ -574,6 +574,13 @@ class _VideoInfoState extends State<VideoInfo> with TickerProviderStateMixin {
                 text: !loadingStatus
                     ? Utils.numFormat(widget.videoDetail!.stat!.share!)
                     : '分享'),
+            ActionItem(
+                icon: const Icon(Icons.download_outlined),
+                onTap: () => videoIntroController.actionDownloadVideo(),
+                selectStatus: false,
+                loadingStatus: loadingStatus,
+                semanticsLabel: '缓存',
+                text: '缓存'),
           ],
         ),
       );

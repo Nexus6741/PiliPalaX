@@ -41,6 +41,7 @@ import '../pages/pgc/view.dart';
 import '../pages/pgc/controller.dart';
 import '../pages/pgc_index/view.dart';
 import '../pages/pgc_rank/view.dart';
+import '../pages/download/view.dart';
 import '../pages/member_coin/index.dart';
 import '../pages/member_like/index.dart';
 import '../pages/member_search/index.dart';
@@ -271,6 +272,8 @@ class Routes {
         name: '/dynamicsTopic', page: () => const DynamicsTopicPage()),
     // 音乐详情页
     CustomGetPage(name: '/musicDetail', page: () => const MusicDetailPage()),
+    // 离线缓存
+    CustomGetPage(name: '/download', page: () => const DownloadPage()),
   ];
 }
 

@@ -10,13 +10,11 @@ class MediaController extends GetxController {
   Box userInfoCache = GStorage.userInfo;
   RxBool userLogin = false.obs;
   List list = [
-    // {
-    //   'icon': Icons.file_download_outlined,
-    //   'title': '离线缓存',
-    //   'onTap': () {
-    //     SmartDialog.showToast('功能开发中');
-    //   },
-    // },
+    {
+      'icon': Icons.file_download_outlined,
+      'title': '离线缓存',
+      'onTap': () => Get.toNamed('/download'),
+    },
     {
       'icon': Icons.history,
       'title': '观看记录',

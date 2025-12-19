@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -8,6 +9,8 @@ import 'package:PiliPalaX/http/constants.dart';
 import 'package:PiliPalaX/http/video.dart';
 import 'package:PiliPalaX/models/common/reply_type.dart';
 import 'package:PiliPalaX/models/common/search_type.dart';
+import 'package:PiliPalaX/models/download/download_entry_info.dart';
+import 'package:PiliPalaX/models/download/download_media_info.dart';
 import 'package:PiliPalaX/models/video/play/quality.dart';
 import 'package:PiliPalaX/models/video/play/url.dart';
 import 'package:PiliPalaX/models/video/reply/item.dart';
@@ -18,7 +21,7 @@ import 'package:PiliPalaX/plugin/pl_player/index.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/utils.dart';
 import 'package:PiliPalaX/utils/video_utils.dart';
-import 'package:screen_brightness/screen_brightness.dart';
+import 'package:path/path.dart' as path;
 
 import '../../../utils/id_utils.dart';
 import 'widgets/header_control.dart';
@@ -104,9 +107,12 @@ class VideoDetailController extends GetxController
   @override
   void onInit() async {
     super.onInit();
-    final Map argMap = Get.arguments;
-    // print("VideoDetailController args: $argMap");
+    final Map argMap = Get.arguments ?? {};
+    print("🔍 VideoDetailController.onInit() - 开始初始化");
+    print("🔍 Get.arguments: $argMap");
+    print("🔍 Get.parameters: ${Get.parameters}");
     userInfo = userInfoCache.get('userInfoCache');
+
     var keys = argMap.keys.toList();
     if (keys.isNotEmpty) {
       if (keys.contains('videoItem')) {
@@ -389,7 +395,19 @@ class VideoDetailController extends GetxController
 
   // 视频链接
   Future queryVideoUrl() async {
+    print('🔍 queryVideoUrl() - 方法被调用');
     var result;
+
+    // 调试：打印 arguments
+    print('🔍 queryVideoUrl - Get.arguments: ${Get.arguments}');
+    print('🔍 queryVideoUrl - Get.parameters: ${Get.parameters}');
+
+    // 检查是否是离线播放
+    if (Get.arguments != null && Get.arguments['sourceType'] == 'file') {
+      print('🎬 检测到离线播放模式');
+      return await _loadOfflineVideo();
+    }
+    print('🌐 使用在线播放模式');
 
     // 根据视频类型选择不同的API
     if (videoType == SearchType.media_bangumi) {
@@ -773,5 +791,118 @@ class VideoDetailController extends GetxController
         });
       }
     });
+  }
+
+  /// 加载离线视频
+  Future<Map<String, dynamic>> _loadOfflineVideo() async {
+    try {
+      final entry = Get.arguments['entry'] as DownloadEntryInfo;
+      final dirPath = Get.arguments['dirPath'] as String;
+
+      print('🎬 开始加载离线视频: ${entry.title}');
+      print('🎬 文件路径: $dirPath');
+
+      // 使用 typeTag，如果为空则使用 preferedVideoQuality
+      final qualityTag = entry.typeTag ?? entry.preferedVideoQuality.toString();
+      print('🎬 使用画质标签: $qualityTag');
+
+      // 构建视频目录路径
+      final videoDir = Directory(path.join(dirPath, qualityTag));
+      print('🎬 视频目录: ${videoDir.path}');
+
+      if (!videoDir.existsSync()) {
+        SmartDialog.showToast('视频文件不存在: $qualityTag');
+        return {'status': false, 'msg': '视频文件不存在'};
+      }
+
+      // 读取媒体信息
+      final mediaJsonFile = File(path.join(videoDir.path, 'index.json'));
+      if (!mediaJsonFile.existsSync()) {
+        SmartDialog.showToast('视频信息文件不存在');
+        return {'status': false, 'msg': '视频信息文件不存在'};
+      }
+
+      final mediaJson = jsonDecode(await mediaJsonFile.readAsString());
+
+      // 根据 JSON 结构判断类型
+      final bool isType1 = mediaJson.containsKey('segment_list');
+      final DownloadMediaInfo mediaInfo = isType1
+          ? Type1MediaInfo.fromJson(mediaJson)
+          : Type2MediaInfo.fromJson(mediaJson);
+
+      print('🎬 媒体信息类型: ${mediaInfo.runtimeType}');
+
+      // 根据媒体类型加载视频
+      if (mediaInfo is Type1MediaInfo) {
+        // FLV 格式
+        final videoFile = File(path.join(videoDir.path, 'video.flv'));
+        if (!videoFile.existsSync()) {
+          SmartDialog.showToast('视频文件不存在');
+          return {'status': false, 'msg': '视频文件不存在'};
+        }
+
+        print('🎬 FLV格式视频: ${videoFile.path}');
+        videoUrl = videoFile.path;
+        audioUrl = '';
+      } else if (mediaInfo is Type2MediaInfo) {
+        // DASH 格式
+        final videoFile = File(path.join(videoDir.path, 'video.m4s'));
+        if (!videoFile.existsSync()) {
+          SmartDialog.showToast('视频文件不存在');
+          return {'status': false, 'msg': '视频文件不存在'};
+        }
+
+        print('🎬 DASH格式视频: ${videoFile.path}');
+        videoUrl = videoFile.path;
+
+        // 检查音频文件
+        final audioFile = File(path.join(videoDir.path, 'audio.m4s'));
+        if (audioFile.existsSync()) {
+          print('🎬 DASH格式音频: ${audioFile.path}');
+          audioUrl = audioFile.path;
+        } else {
+          audioUrl = '';
+        }
+      }
+
+      // 简化：只创建必要的数据，参考 PiliPlus
+      firstVideo = VideoItem(
+        id: entry.preferedVideoQuality,
+        baseUrl: videoUrl,
+        codecs: 'avc1',
+        quality: VideoQualityCode.fromCode(entry.preferedVideoQuality)!,
+      );
+      currentVideoQa = VideoQualityCode.fromCode(entry.preferedVideoQuality)!;
+      currentDecodeFormats = VideoDecodeFormatsCode.fromString('avc1')!;
+
+      // 设置播放位置
+      if (defaultST == null) {
+        defaultST = Duration.zero;
+      }
+
+      // 创建简单的 PlayUrlModel，设置视频时长以显示进度条
+      data = PlayUrlModel(
+        timeLength: entry.totalTimeMilli, // 使用下载时保存的视频时长
+      );
+
+      print('🎬 视频时长: ${entry.totalTimeMilli}ms (${Duration(milliseconds: entry.totalTimeMilli)})');
+
+
+      print('🎬 离线视频数据初始化完成');
+
+      // 初始化播放器
+      if (autoPlay.value) {
+        if (isClosed) return {'status': true};
+        isShowCover.value = false;
+        await playerInit();
+      }
+
+      print('🎬 离线视频加载成功');
+      return {'status': true};
+    } catch (e) {
+      print('❌ 加载离线视频失败: $e');
+      SmartDialog.showToast('加载离线视频失败: $e');
+      return {'status': false, 'msg': e.toString()};
+    }
   }
 }

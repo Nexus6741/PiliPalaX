@@ -1,0 +1,116 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:PiliPalaX/http/init.dart';
+import 'package:PiliPalaX/models/download/download_entry_info.dart';
+import 'package:dio/dio.dart';
+
+/// 单个文件下载管理器
+class DownloadManager {
+  final String url;
+  final String path;
+  final void Function(int, int)? onReceiveProgress;
+  final void Function([Object? error]) onDone;
+
+  DownloadStatus _status = DownloadStatus.downloading;
+
+  DownloadStatus get status => _status;
+  final _cancelToken = CancelToken();
+  late Future<void> task;
+
+  DownloadManager({
+    required this.url,
+    required this.path,
+    required this.onReceiveProgress,
+    required this.onDone,
+  }) {
+    task = _start();
+  }
+
+  Future<void> _start() async {
+    int received;
+
+    final file = File(path);
+    if (file.existsSync()) {
+      received = await file.length();
+    } else {
+      file.createSync(recursive: true);
+      received = 0;
+    }
+
+    final sink = file.openWrite(
+      mode: received == 0 ? FileMode.writeOnly : FileMode.writeOnlyAppend,
+    );
+
+    Future<void> onError(Object e, {bool delete = false}) async {
+      try {
+        await sink.close();
+      } catch (_) {}
+      if (_status == DownloadStatus.downloading) {
+        _status = DownloadStatus.failDownload;
+        if (delete && file.existsSync()) {
+          try {
+            await file.delete();
+          } catch (_) {}
+        }
+      }
+      onDone(e);
+    }
+
+    Response<ResponseBody> response;
+    try {
+      // 将 http 转换为 https
+      final downloadUrl = url.replaceFirst('http://', 'https://');
+
+      response = await Request.dio.get<ResponseBody>(
+        downloadUrl,
+        options: Options(
+          headers: {'range': 'bytes=$received-'},
+          responseType: ResponseType.stream,
+          validateStatus: (status) =>
+              status != null &&
+              (status == 416 || (status >= 200 && status < 300)),
+        ),
+        cancelToken: _cancelToken,
+      );
+    } on DioException catch (e) {
+      await onError(e, delete: true);
+      return;
+    }
+    final data = response.data!;
+    final contentLength = data.contentLength + received;
+
+    if (received == 0) {
+      onReceiveProgress?.call(0, contentLength);
+    }
+
+    int? last;
+    try {
+      await for (final chunk in data.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        if (last != now) {
+          last = now;
+          onReceiveProgress?.call(received, contentLength);
+        }
+      }
+      await sink.close();
+      _status = DownloadStatus.completed;
+      onDone();
+    } catch (e) {
+      await onError(e);
+      return;
+    }
+  }
+
+  Future<void> cancel({required bool isDelete}) {
+    if (!isDelete && _status == DownloadStatus.downloading) {
+      _status = DownloadStatus.pause;
+    }
+    if (!_cancelToken.isCancelled) {
+      _cancelToken.cancel();
+    }
+    return task;
+  }
+}

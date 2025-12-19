@@ -22,6 +22,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:PiliPalaX/pages/member/controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:PiliPalaX/services/service_locator.dart';
+import 'package:PiliPalaX/services/download_service.dart';
+import 'package:PiliPalaX/models/video/play/quality.dart';
+import 'package:PiliPalaX/models/video/play/url.dart';
 
 import '../../../../../http/search.dart';
 import '../../../../../models/model_hot_video_item.dart';
@@ -783,5 +786,105 @@ class VideoIntroController extends GetxController {
           displayTime: const Duration(seconds: 1));
     }
     return res;
+  }
+
+  // 下载视频
+  Future actionDownloadVideo() async {
+    try {
+      final downloadService = Get.find<DownloadService>();
+
+      // 获取当前播放的分P
+      Part? currentPage;
+      if (videoDetail.value.pages != null &&
+          videoDetail.value.pages!.isNotEmpty) {
+        // 查找当前播放的分P
+        currentPage = videoDetail.value.pages!.firstWhereOrNull(
+          (e) => e.cid == lastPlayCid.value,
+        );
+        // 如果没找到，使用第一个
+        currentPage ??= videoDetail.value.pages!.first;
+      }
+
+      if (currentPage == null) {
+        SmartDialog.showToast('无法获取视频信息');
+        return;
+      }
+
+      // 显示加载提示
+      SmartDialog.showLoading(msg: '获取画质信息...');
+
+      // 获取视频真实可用的画质列表
+      final res = await VideoHttp.videoUrl(
+        bvid: bvid,
+        cid: currentPage.cid!,
+      );
+
+      SmartDialog.dismiss();
+
+      if (!res['status']) {
+        SmartDialog.showToast('获取画质信息失败: ${res['msg']}');
+        return;
+      }
+
+      final PlayUrlModel playUrlData = res['data'];
+      final List<FormatItem>? supportFormats = playUrlData.supportFormats;
+
+      if (supportFormats == null || supportFormats.isEmpty) {
+        SmartDialog.showToast('无可用画质');
+        return;
+      }
+
+      // 显示画质选择对话框
+      showDialog(
+        context: Get.context!,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('选择画质'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: supportFormats.map((format) {
+                  final quality = VideoQualityCode.fromCode(format.quality!);
+                  if (quality == null) return const SizedBox.shrink();
+
+                  return ListTile(
+                    title: Text(format.newDesc ?? quality.description),
+                    onTap: () {
+                      Get.back();
+                      _startDownload(downloadService, currentPage!, quality);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      SmartDialog.dismiss();
+      SmartDialog.showToast('下载失败: $e');
+    }
+  }
+
+  void _startDownload(
+    DownloadService downloadService,
+    Part currentPage,
+    VideoQuality quality,
+  ) {
+    downloadService.downloadVideo(
+      cid: currentPage.cid!,
+      page: currentPage.page ?? 1,
+      bvid: bvid,
+      aid: IdUtils.bv2av(bvid),
+      part: currentPage.pagePart,
+      title: videoDetail.value.title ?? '',
+      cover: videoDetail.value.pic ?? '',
+      duration: currentPage.duration ?? 0,
+      danmakuCount: videoDetail.value.stat?.danmu,
+      ownerId: videoDetail.value.owner?.mid,
+      ownerName: videoDetail.value.owner?.name,
+      videoQuality: quality,
+    );
+    SmartDialog.showToast('已添加到下载队列');
   }
 }

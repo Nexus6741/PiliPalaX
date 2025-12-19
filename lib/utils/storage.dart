@@ -184,7 +184,10 @@ class SettingBoxKey {
 
       // 代理host port
       systemProxyHost = 'systemProxyHost',
-      systemProxyPort = 'systemProxyPort';
+      systemProxyPort = 'systemProxyPort',
+
+      // 下载设置
+      maxConcurrentDownloads = 'maxConcurrentDownloads'; // 最大并发下载数
 
   /// 外观
   static const String themeMode = 'themeMode',
