@@ -142,6 +142,9 @@ class Api {
   // 楼中楼
   static const String replyReplyList = '/x/v2/reply/reply';
 
+  // 对话列表（查看对话）
+  static const String replyDialog = '/x/v2/reply/dialog/cursor';
+
   // 评论点赞
   static const String likeReply = '/x/v2/reply/action';
 

@@ -12,7 +12,7 @@ import 'package:PiliPalaX/models/video/reply/item.dart';
 import 'package:PiliPalaX/pages/preview/index.dart';
 import 'package:PiliPalaX/pages/video/index.dart';
 import 'package:PiliPalaX/pages/video/reply_new/index.dart';
-import 'package:PiliPalaX/pages/video/reply_reply/view.dart';
+import 'package:PiliPalaX/pages/video/reply_dialog/view.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/url_utils.dart';
@@ -356,17 +356,14 @@ class ReplyItem extends StatelessWidget {
             child: TextButton(
               onPressed: () {
                 feedBack();
-                // 打开对话视图,如果 parent != root 则定位到父评论
-                final int? targetId = (replyItem!.parent != replyItem!.root)
-                    ? replyItem!.parent
-                    : null;
+                // 打开对话视图，使用对话 API 获取对话链
                 Get.bottomSheet(
-                  VideoReplyReplyPanel(
-                    oid: replyItem!.oid,
-                    rpid: replyItem!.root,
-                    replyType: replyType,
-                    source: 'videoDetail',
-                    id: targetId,
+                  VideoReplyDialogPanel(
+                    oid: replyItem!.oid!,
+                    root: replyItem!.root!,
+                    dialog: replyItem!.dialog!,
+                    replyType: replyType!,
+                    targetRpid: replyItem!.rpid,
                   ),
                   isScrollControlled: true,
                   enableDrag: true,

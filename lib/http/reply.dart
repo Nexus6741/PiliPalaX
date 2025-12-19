@@ -77,6 +77,45 @@ class ReplyHttp {
     }
   }
 
+  // 获取对话列表（查看对话）
+  static Future replyDialogList({
+    required int oid,
+    required int root,
+    required int dialog,
+    required int type,
+    int size = 20,
+    int? minFloor,
+  }) async {
+    Options? options = GStorage.userInfo.get('userInfoCache') == null
+        ? Options(
+            headers: {HttpHeaders.cookieHeader: "buvid3= ; b_nut= ; sid= "})
+        : null;
+    Map<String, dynamic> data = {
+      'oid': oid,
+      'root': root,
+      'dialog': dialog,
+      'type': type,
+      'size': size,
+    };
+    if (minFloor != null) {
+      data['min_floor'] = minFloor;
+    }
+    var res =
+        await Request().get(Api.replyDialog, data: data, options: options);
+    if (res.data['code'] == 0) {
+      return {
+        'status': true,
+        'data': res.data['data'],
+      };
+    } else {
+      return {
+        'status': false,
+        'data': [],
+        'msg': res.data['message'],
+      };
+    }
+  }
+
   // 评论点赞
   static Future likeReply({
     required int type,
