@@ -131,6 +131,9 @@ class VideoDetailController extends GetxController
         "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
     userInfo = userInfoCache.get('userInfoCache');
 
+    // 🔥 修复：清空旧的 videoItem 数据，避免显示上一个视频的封面
+    videoItem.clear();
+
     var keys = argMap.keys.toList();
     if (keys.isNotEmpty) {
       if (keys.contains('videoItem')) {

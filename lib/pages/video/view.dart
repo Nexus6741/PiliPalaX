@@ -277,6 +277,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
     playerStatus = status!;
     switch (status) {
       case PlayerStatus.playing:
+        // 🔥 修复：播放时隐藏封面
         if (videoDetailController.isShowCover.value) {
           videoDetailController.isShowCover.value = false;
         }
@@ -793,7 +794,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                 tag: heroTag,
                                 width: videoWidth,
                                 height: videoHeight,
+                                // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                                 child: NetworkImgLayer(
+                                  key: ValueKey(
+                                      videoDetailController.videoItem['pic']),
                                   src: videoDetailController.videoItem['pic'],
                                   width: videoWidth,
                                   height: videoHeight,
@@ -816,7 +820,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                     right: 0,
                                     child: GestureDetector(
                                       onTap: handlePlay,
+                                      // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                                       child: NetworkImgLayer(
+                                        key: ValueKey(videoDetailController
+                                            .videoItem['pic']),
                                         type: 'emote',
                                         src: videoDetailController
                                             .videoItem['pic'],
@@ -954,7 +961,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       tag: heroTag,
                       width: videoWidth,
                       height: videoHeight,
+                      // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                       child: NetworkImgLayer(
+                        key: ValueKey(videoDetailController.videoItem['pic']),
                         src: videoDetailController.videoItem['pic'],
                         width: videoWidth,
                         height: videoHeight,
@@ -975,7 +984,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                           right: 0,
                           child: GestureDetector(
                             onTap: handlePlay,
+                            // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                             child: NetworkImgLayer(
+                              key: ValueKey(
+                                  videoDetailController.videoItem['pic']),
                               type: 'emote',
                               src: videoDetailController.videoItem['pic'],
                               width: videoWidth,
@@ -1103,7 +1115,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                         right: 0,
                         child: GestureDetector(
                           onTap: handlePlay,
+                          // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                           child: NetworkImgLayer(
+                            key: ValueKey(
+                                videoDetailController.videoItem['pic']),
                             type: 'emote',
                             src: videoDetailController.videoItem['pic'],
                             width: videoWidth,
@@ -1244,7 +1259,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                         tag: heroTag,
                         width: videoWidth,
                         height: videoHeight,
+                        // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                         child: NetworkImgLayer(
+                          key: ValueKey(videoDetailController.videoItem['pic']),
                           src: videoDetailController.videoItem['pic'],
                           width: videoWidth,
                           height: videoHeight,
@@ -1265,7 +1282,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             right: 0,
                             child: GestureDetector(
                               onTap: handlePlay,
+                              // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                               child: NetworkImgLayer(
+                                key: ValueKey(
+                                    videoDetailController.videoItem['pic']),
                                 type: 'emote',
                                 src: videoDetailController.videoItem['pic'],
                                 width: videoWidth,
@@ -1364,7 +1384,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                           tag: heroTag,
                           width: videoWidth,
                           height: videoHeight,
+                          // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                           child: NetworkImgLayer(
+                            key: ValueKey(
+                                videoDetailController.videoItem['pic']),
                             src: videoDetailController.videoItem['pic'],
                             width: videoWidth,
                             height: videoHeight,
@@ -1385,7 +1408,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                               right: 0,
                               child: GestureDetector(
                                 onTap: handlePlay,
+                                // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                                 child: NetworkImgLayer(
+                                  key: ValueKey(
+                                      videoDetailController.videoItem['pic']),
                                   type: 'emote',
                                   src: videoDetailController.videoItem['pic'],
                                   width: videoWidth,
