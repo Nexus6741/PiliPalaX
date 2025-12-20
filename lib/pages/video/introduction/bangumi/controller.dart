@@ -8,10 +8,14 @@ import 'package:PiliPalaX/http/constants.dart';
 import 'package:PiliPalaX/http/search.dart';
 import 'package:PiliPalaX/http/video.dart';
 import 'package:PiliPalaX/models/bangumi/info.dart';
+import 'package:PiliPalaX/models/download/download_entry_info.dart';
 import 'package:PiliPalaX/models/user/fav_folder.dart';
+import 'package:PiliPalaX/models/video/play/quality.dart';
+import 'package:PiliPalaX/models/video/play/url.dart';
 import 'package:PiliPalaX/pages/video/index.dart';
 import 'package:PiliPalaX/pages/video/reply/index.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/play_repeat.dart';
+import 'package:PiliPalaX/services/download_service.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/id_utils.dart';
 import 'package:PiliPalaX/utils/storage.dart';
@@ -455,5 +459,127 @@ class BangumiIntroController extends GetxController {
   bool playRelated() {
     SmartDialog.showToast('番剧暂无相关视频');
     return false;
+  }
+
+  // 下载番剧
+  Future actionDownloadVideo() async {
+    try {
+      final downloadService = Get.find<DownloadService>();
+
+      // 获取当前播放的剧集
+      EpisodeItem? currentEpisode;
+      if (bangumiDetail.value.episodes != null &&
+          bangumiDetail.value.episodes!.isNotEmpty) {
+        // 查找当前播放的剧集
+        currentEpisode = bangumiDetail.value.episodes!.firstWhereOrNull(
+          (e) => e.cid == lastPlayCid.value,
+        );
+        // 如果没找到，使用第一个
+        currentEpisode ??= bangumiDetail.value.episodes!.first;
+      }
+
+      if (currentEpisode == null) {
+        SmartDialog.showToast('无法获取剧集信息');
+        return;
+      }
+
+      // 显示加载提示
+      SmartDialog.showLoading(msg: '获取画质信息...');
+
+      // 获取视频真实可用的画质列表
+      final res = await VideoHttp.videoUrl(
+        bvid: currentEpisode.bvid!,
+        cid: currentEpisode.cid!,
+      );
+
+      SmartDialog.dismiss();
+
+      if (!res['status']) {
+        SmartDialog.showToast('获取画质信息失败: ${res['msg']}');
+        return;
+      }
+
+      final PlayUrlModel playUrlData = res['data'];
+      final List<FormatItem>? supportFormats = playUrlData.supportFormats;
+
+      if (supportFormats == null || supportFormats.isEmpty) {
+        SmartDialog.showToast('无可用画质');
+        return;
+      }
+
+      // 显示画质选择对话框
+      showDialog(
+        context: Get.context!,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('选择画质'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: supportFormats.map((format) {
+                  final quality = VideoQualityCode.fromCode(format.quality!);
+                  if (quality == null) return const SizedBox.shrink();
+
+                  return ListTile(
+                    title: Text(format.newDesc ?? quality.description),
+                    onTap: () {
+                      Get.back();
+                      _startDownload(downloadService, currentEpisode!, quality);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      SmartDialog.dismiss();
+      SmartDialog.showToast('下载失败: $e');
+    }
+  }
+
+  void _startDownload(
+    DownloadService downloadService,
+    EpisodeItem currentEpisode,
+    VideoQuality quality,
+  ) {
+    // 构建EpInfo
+    final epInfo = EpInfo(
+      avId: currentEpisode.aid!,
+      page: 1,
+      danmaku: 0, // EpisodeItem没有danmaku字段
+      cover: currentEpisode.cover ?? '',
+      episodeId: currentEpisode.id ?? 0,
+      index: currentEpisode.title ?? '',
+      indexTitle: currentEpisode.longTitle ?? '',
+      showTitle: currentEpisode.longTitle,
+      from: 'bangumi',
+      seasonType: bangumiDetail.value.type ?? 1,
+      width: 0,
+      height: 0,
+      rotate: 0,
+      link: currentEpisode.link ?? '',
+      bvid: currentEpisode.bvid ?? '',
+      sortIndex: currentEpisode.id ?? 0,
+    );
+
+    downloadService.downloadVideo(
+      cid: currentEpisode.cid!,
+      page: 1,
+      bvid: currentEpisode.bvid!,
+      aid: currentEpisode.aid!,
+      part: currentEpisode.longTitle,
+      title: bangumiDetail.value.title ?? '',
+      cover: currentEpisode.cover ?? bangumiDetail.value.cover ?? '',
+      duration: currentEpisode.duration ?? 0,
+      danmakuCount: bangumiDetail.value.stat?['danmaku'],
+      ownerId: null,
+      ownerName: null,
+      videoQuality: quality,
+      seasonId: seasonId?.toString(),
+      epInfo: epInfo,
+    );
+    SmartDialog.showToast('已添加到下载队列');
   }
 }

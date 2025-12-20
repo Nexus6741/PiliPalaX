@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:PiliPalaX/models/download/download_entry_info.dart';
+import 'package:PiliPalaX/models/download/download_episode_info.dart';
 import 'package:PiliPalaX/models/download/download_page_info.dart';
 import 'package:PiliPalaX/services/download_service.dart';
 import 'package:flutter/material.dart';
@@ -73,8 +75,54 @@ class DownloadPageController extends GetxController {
         );
       }
     }
+
+    // 为每个页面构建选集分组
+    for (final page in list) {
+      page.episodes = _buildEpisodes(page.entries);
+    }
+
     pages.value = list;
     flag.value++;
+  }
+
+  /// 构建选集分组（按cid分组）
+  List<DownloadEpisodeInfo> _buildEpisodes(List<DownloadEntryInfo> entries) {
+    final Map<int, List<DownloadEntryInfo>> episodeMap = {};
+
+    // 按cid分组
+    for (final entry in entries) {
+      final cid = entry.cid;
+      if (episodeMap.containsKey(cid)) {
+        episodeMap[cid]!.add(entry);
+      } else {
+        episodeMap[cid] = [entry];
+      }
+    }
+
+    // 转换为DownloadEpisodeInfo列表
+    final episodes = <DownloadEpisodeInfo>[];
+    for (final cid in episodeMap.keys) {
+      final episodeEntries = episodeMap[cid]!;
+      // 按画质排序（从高到低）
+      episodeEntries.sort(
+          (a, b) => b.preferedVideoQuality.compareTo(a.preferedVideoQuality));
+
+      final firstEntry = episodeEntries.first;
+      episodes.add(
+        DownloadEpisodeInfo(
+          cid: cid,
+          title: firstEntry.showTitle,
+          cover: firstEntry.cover,
+          sortKey: firstEntry.sortKey,
+          entries: episodeEntries,
+        ),
+      );
+    }
+
+    // 按sortKey排序
+    episodes.sort((a, b) => a.sortKey.compareTo(b.sortKey));
+
+    return episodes;
   }
 
   void handleSelect() {
@@ -140,6 +188,12 @@ class DownloadPageController extends GetxController {
   /// 切换页面展开状态
   void toggleExpanded(DownloadPageInfo pageInfo) {
     pageInfo.isExpanded = !pageInfo.isExpanded;
+    pages.refresh();
+  }
+
+  /// 切换选集展开状态
+  void toggleEpisodeExpanded(DownloadEpisodeInfo episodeInfo) {
+    episodeInfo.isExpanded = !episodeInfo.isExpanded;
     pages.refresh();
   }
 

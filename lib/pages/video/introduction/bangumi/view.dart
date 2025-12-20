@@ -382,8 +382,8 @@ class _BangumiInfoState extends State<BangumiInfo> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 Obx(() => ActionItem(
-                  icon: const Icon(Icons.thumb_up_outlined),
-                  selectIcon: const Icon(Icons.thumb_up),
+                      icon: const Icon(Icons.thumb_up_outlined),
+                      selectIcon: const Icon(Icons.thumb_up),
                       onTap:
                           handleState(bangumiIntroController.actionLikeVideo),
                       selectStatus: bangumiIntroController.hasLike.value,
@@ -432,6 +432,13 @@ class _BangumiInfoState extends State<BangumiInfo> {
                       ? Utils.numFormat(widget.bangumiDetail!.stat!['reply']!)
                       : Utils.numFormat(bangumiItem!.stat!['reply']!),
                 ),
+                ActionItem(
+                    icon: const Icon(Icons.download_outlined),
+                    onTap: () => bangumiIntroController.actionDownloadVideo(),
+                    selectStatus: false,
+                    loadingStatus: false,
+                    semanticsLabel: '缓存',
+                    text: '缓存'),
                 ActionItem(
                     icon: const Icon(Icons.share_outlined),
                     onTap: () => bangumiIntroController.actionShareVideo(),

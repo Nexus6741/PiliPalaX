@@ -131,6 +131,9 @@ class DownloadService extends GetxService {
     int? ownerId,
     String? ownerName,
     required VideoQuality videoQuality,
+    // 番剧相关参数
+    String? seasonId,
+    EpInfo? epInfo,
   }) {
     // 检查是否已经下载了相同画质的视频
     if (downloadList.indexWhere((e) =>
@@ -182,8 +185,8 @@ class DownloadService extends GetxService {
       interruptTransformTempFile: false,
       avid: aid,
       spid: 0,
-      seasonId: null,
-      ep: null,
+      seasonId: seasonId,
+      ep: epInfo,
       source: null,
       bvid: bvid,
       ownerId: ownerId,

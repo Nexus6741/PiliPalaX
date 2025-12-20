@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/models/download/download_entry_info.dart';
+import 'package:PiliPalaX/models/download/download_episode_info.dart';
 import 'package:PiliPalaX/models/download/download_page_info.dart';
 import 'package:PiliPalaX/pages/download/controller.dart';
 import 'package:PiliPalaX/services/download_service.dart';
@@ -772,6 +773,13 @@ class _DownloadPageState extends State<DownloadPage> {
     bool enableMultiSelect,
   ) {
     final first = pageInfo.entries.first;
+    final hasMultipleEpisodes = pageInfo.hasMultipleEpisodes;
+    // 检查是否应该使用三级结构：多集 或 单集多画质
+    final useThreeLevelStructure = pageInfo.episodes != null &&
+        (pageInfo.episodes!.length > 1 ||
+            (pageInfo.episodes!.length == 1 &&
+                pageInfo.episodes!.first.entries.length > 1));
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -824,7 +832,7 @@ class _DownloadPageState extends State<DownloadPage> {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                '${pageInfo.entries.length}个画质',
+                                pageInfo.episodeCountText,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -885,32 +893,35 @@ class _DownloadPageState extends State<DownloadPage> {
                                             color: theme.colorScheme.outline,
                                           ),
                                         ),
-                                      // 显示包含的画质信息
-                                      ...pageInfo.entries
-                                          .map((e) => e.qualityPithyDescription)
-                                          .toSet()
-                                          .take(3)
-                                          .map((quality) => Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 4,
-                                                  vertical: 1,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: theme.colorScheme
-                                                      .primaryContainer,
-                                                  borderRadius:
-                                                      BorderRadius.circular(3),
-                                                ),
-                                                child: Text(
-                                                  quality,
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: theme.colorScheme
-                                                        .onPrimaryContainer,
+                                      // 显示包含的画质信息（仅当不使用三级结构时）
+                                      if (!useThreeLevelStructure)
+                                        ...pageInfo.entries
+                                            .map((e) =>
+                                                e.qualityPithyDescription)
+                                            .toSet()
+                                            .take(3)
+                                            .map((quality) => Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    horizontal: 4,
+                                                    vertical: 1,
                                                   ),
-                                                ),
-                                              )),
+                                                  decoration: BoxDecoration(
+                                                    color: theme.colorScheme
+                                                        .primaryContainer,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            3),
+                                                  ),
+                                                  child: Text(
+                                                    quality,
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      color: theme.colorScheme
+                                                          .onPrimaryContainer,
+                                                    ),
+                                                  ),
+                                                )),
                                     ],
                                   ),
                                 ),
@@ -954,12 +965,225 @@ class _DownloadPageState extends State<DownloadPage> {
           Padding(
             padding: const EdgeInsets.only(left: 16, top: 4),
             child: Column(
-              children: pageInfo.entries.map((entry) {
-                return _buildExpandedEntryItem(entry, theme);
-              }).toList(),
+              children: useThreeLevelStructure
+                  ? pageInfo.episodes!
+                      .map((episode) =>
+                          _buildEpisodeItem(episode, theme, pageInfo))
+                      .toList()
+                  : pageInfo.entries
+                      .map((entry) => _buildExpandedEntryItem(entry, theme))
+                      .toList(),
             ),
           ),
       ],
+    );
+  }
+
+  /// 构建选集项（二级）
+  Widget _buildEpisodeItem(
+    DownloadEpisodeInfo episode,
+    ThemeData theme,
+    DownloadPageInfo pageInfo,
+  ) {
+    final hasMultipleQualities = episode.entries.length > 1;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Card(
+          margin: const EdgeInsets.only(bottom: 4),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () {
+              if (hasMultipleQualities) {
+                // 有多个画质，切换展开状态
+                _controller.toggleEpisodeExpanded(episode);
+              } else {
+                // 只有一个画质，直接播放
+                _playVideo(episode.entries.first);
+              }
+            },
+            onLongPress: () {
+              if (hasMultipleQualities) {
+                _showEpisodeOptions(episode, pageInfo);
+              } else {
+                _showExpandedEntryOptions(episode.entries.first);
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  // 选集标题
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          episode.episodeTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          episode.qualityCountText,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 图标
+                  if (hasMultipleQualities)
+                    Icon(
+                      episode.isExpanded
+                          ? Icons.expand_less
+                          : Icons.expand_more,
+                      size: 20,
+                      color: theme.colorScheme.outline,
+                    )
+                  else
+                    Icon(
+                      Icons.play_circle_outline,
+                      color: theme.colorScheme.primary,
+                      size: 24,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // 展开的画质列表（三级）
+        if (episode.isExpanded && hasMultipleQualities)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 0, bottom: 4),
+            child: Column(
+              children: episode.entries
+                  .map((entry) => _buildQualityItem(entry, theme))
+                  .toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// 构建画质项（三级）
+  Widget _buildQualityItem(
+    DownloadEntryInfo entry,
+    ThemeData theme,
+  ) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => _playVideo(entry),
+        onLongPress: () => _showExpandedEntryOptions(entry),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              // 画质标签
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  entry.qualityPithyDescription,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 文件大小
+              Expanded(
+                child: Text(
+                  entry.formattedFileSize,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+              ),
+              // 播放图标
+              Icon(
+                Icons.play_circle_outline,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 播放视频
+  void _playVideo(DownloadEntryInfo entry) {
+    final heroTag =
+        '${entry.bvid}_${entry.cid}_${DateTime.now().millisecondsSinceEpoch}';
+
+    Get.toNamed(
+      '/video',
+      parameters: {
+        'bvid': entry.bvid,
+        'cid': entry.cid.toString(),
+      },
+      arguments: {
+        'sourceType': 'file',
+        'entry': entry,
+        'dirPath': entry.entryDirPath,
+        'heroTag': heroTag,
+        'pic': entry.cover,
+      },
+    );
+  }
+
+  /// 显示选集操作选项
+  void _showEpisodeOptions(
+      DownloadEpisodeInfo episode, DownloadPageInfo pageInfo) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text('删除 ${episode.episodeTitle} 的所有画质'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(() async {
+                    SmartDialog.showLoading(msg: '删除中...');
+                    for (final entry in episode.entries) {
+                      await _downloadService.deleteDownload(
+                        entry: entry,
+                        removeList: true,
+                        refresh: false,
+                      );
+                    }
+                    _downloadService.flagNotifier.refresh();
+                    SmartDialog.dismiss();
+                  });
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
