@@ -13,6 +13,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:PiliPalaX/plugin/pl_player/models/player_middle_gesture.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/player_gesture_action.dart';
 import 'package:PiliPalaX/models/video/play/subtitle.dart';
+import 'package:PiliPalaX/models/common/sponsor_block/skip_type.dart';
 import 'widgets/switch_item.dart';
 
 class PlaySetting extends StatefulWidget {
@@ -28,6 +29,7 @@ class _PlaySettingState extends State<PlaySetting> {
   late int defaultFullScreenMode;
   late int defaultBtmProgressBehavior;
   late Map<PlayerMiddleGesture, PlayerGestureAction> defaultMiddleGestureAction;
+  late String defaultPgcSkipType;
 
   @override
   void initState() {
@@ -38,6 +40,8 @@ class _PlaySettingState extends State<PlaySetting> {
         defaultValue: BtmProgressBehavior.values.first.code);
     defaultSubtitlePreference = setting.get(SettingBoxKey.subtitlePreference,
         defaultValue: SubtitlePreference.values.first.code);
+    defaultPgcSkipType = setting.get(SettingBoxKey.pgcSkipType,
+        defaultValue: SkipType.alwaysSkip.name);
   }
 
   @override
@@ -86,6 +90,40 @@ class _PlaySettingState extends State<PlaySetting> {
             leading: Icon(Icons.motion_photos_auto_outlined),
             setKey: SettingBoxKey.autoPlayEnable,
             defaultVal: true,
+          ),
+          const SetSwitchItem(
+            title: '番剧自动跳过片头片尾',
+            subTitle: '播放番剧时自动跳过片头片尾',
+            leading: Icon(Icons.skip_next_outlined),
+            setKey: SettingBoxKey.enablePgcSkip,
+            defaultVal: true,
+          ),
+          ListTile(
+            dense: false,
+            title: Text('番剧跳过方式', style: titleStyle),
+            leading: Icon(MdiIcons.skipForward),
+            subtitle: Text(
+              '当前跳过方式：${SkipType.values.firstWhere((e) => e.name == defaultPgcSkipType, orElse: () => SkipType.alwaysSkip).title}',
+              style: subTitleStyle,
+            ),
+            onTap: () async {
+              String? result = await showDialog(
+                context: context,
+                builder: (context) {
+                  return SelectDialog<String>(
+                      title: '番剧跳过方式',
+                      value: defaultPgcSkipType,
+                      values: SkipType.values.map((e) {
+                        return {'title': e.title, 'value': e.name};
+                      }).toList());
+                },
+              );
+              if (result != null) {
+                defaultPgcSkipType = result;
+                setting.put(SettingBoxKey.pgcSkipType, result);
+                setState(() {});
+              }
+            },
           ),
           const SetSwitchItem(
             title: '左右侧双击快退/快进',

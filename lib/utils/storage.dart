@@ -140,6 +140,17 @@ class SettingBoxKey {
       setSystemBrightness = 'setSystemBrightness',
       restoreBrightnessOnExit = 'restoreBrightnessOnExit',
 
+      /// SponsorBlock 片头片尾跳过
+      enableSponsorBlock = 'enableSponsorBlock',
+      enablePgcSkip = 'enablePgcSkip',
+      pgcSkipType = 'pgcSkipType',
+      blockServer = 'blockServer',
+      blockUserID = 'blockUserID',
+      blockSettings = 'blockSettings',
+      blockLimit = 'blockLimit',
+      blockToast = 'blockToast',
+      blockTrack = 'blockTrack',
+
       /// 隐私
       anonymity = 'anonymity',
 

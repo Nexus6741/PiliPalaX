@@ -1,4 +1,5 @@
 import 'package:PiliPalaX/models/video/play/quality.dart';
+import 'package:PiliPalaX/models_new/sponsor_block/segment_item.dart';
 
 class PlayUrlModel {
   PlayUrlModel({
@@ -19,6 +20,7 @@ class PlayUrlModel {
     // this.highFormat,
     this.lastPlayTime,
     this.lastPlayCid,
+    this.clipInfoList,
   });
 
   String? from;
@@ -39,6 +41,7 @@ class PlayUrlModel {
   // String? highFormat;
   int? lastPlayTime;
   int? lastPlayCid;
+  List<SegmentItemModel>? clipInfoList;
 
   PlayUrlModel.fromJson(Map<String, dynamic> json) {
     from = json['from'];
@@ -62,6 +65,18 @@ class PlayUrlModel {
         : [];
     lastPlayTime = json['last_play_time'];
     lastPlayCid = json['last_play_cid'];
+
+    // 解析片头片尾信息
+    try {
+      final List? clipInfoListJson = json['clip_info_list'];
+      if (clipInfoListJson != null && clipInfoListJson.isNotEmpty) {
+        clipInfoList = clipInfoListJson
+            .map((e) => SegmentItemModel.fromPgcJson(e, timeLength))
+            .toList();
+      }
+    } catch (e) {
+      print('⚠️ 解析 clip_info_list 失败: $e');
+    }
   }
 }
 

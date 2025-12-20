@@ -269,16 +269,13 @@ class VideoHttp {
 
     try {
       var res = await Request().get(Api.bangumiVideoUrl, data: data);
-      print('🎬 番剧视频URL API响应: code=${res.data['code']}');
 
       if (res.data['code'] == 0) {
         final result = res.data['result'];
-        print('🎬 result keys: ${result?.keys}');
 
         // PGC响应结构: result.video_info 包含视频信息
         final videoInfo = result['video_info'];
         if (videoInfo == null) {
-          print('⚠️ video_info 为空');
           return {
             'status': false,
             'data': [],
@@ -298,13 +295,12 @@ class VideoHttp {
 
           if (currentProgress != null) {
             playUrlModel.lastPlayTime = currentProgress;
-            print('🎬 获取到历史播放时间: $currentProgress ms');
           }
 
           // 获取 last_play_cid (如果有的话)
           final lastEpIndex = watchProgress?['last_ep_index'];
           if (lastEpIndex != null) {
-            print('🎬 上次观看的集数索引: $lastEpIndex');
+            // 可以在这里处理上次观看的集数索引
           }
         } catch (e) {
           print('⚠️ 解析历史记录失败: $e');
@@ -315,7 +311,6 @@ class VideoHttp {
           'data': playUrlModel,
         };
       } else {
-        print('⚠️ API返回错误: ${res.data['message']}');
         return {
           'status': false,
           'data': [],
