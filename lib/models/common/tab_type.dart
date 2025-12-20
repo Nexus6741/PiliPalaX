@@ -50,7 +50,7 @@ List tabsConfig = [
       Icons.category_outlined,
       size: 15,
     ),
-    'label': '分区',
+    'label': '排行',
     'type': TabType.rank,
     'ctr': Get.find<RankController>,
     'page': const RankPage(),

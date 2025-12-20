@@ -118,7 +118,10 @@ class Routes {
     //
     CustomGetPage(name: '/fav', page: () => const FavPage()),
     //
-    CustomGetPage(name: '/favDetail', page: () => const FavDetailPage()),
+    CustomGetPage(
+        name: '/favDetail',
+        page: () => const FavDetailPage(),
+        transitionDuration: Duration(milliseconds: 350)),
     // 稍后再看
     CustomGetPage(name: '/later', page: () => const LaterPage()),
     // 历史记录

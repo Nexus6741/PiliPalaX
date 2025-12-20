@@ -9,7 +9,6 @@ import 'package:PiliPalaX/models/common/dynamic_badge_mode.dart';
 import 'package:PiliPalaX/pages/dynamics/index.dart';
 import 'package:PiliPalaX/pages/home/index.dart';
 import 'package:PiliPalaX/pages/media/index.dart';
-import 'package:PiliPalaX/utils/event_bus.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import './controller.dart';
@@ -51,7 +50,12 @@ class _MainAppState extends State<MainApp> with SingleTickerProviderStateMixin {
 
   void setIndex(int value) async {
     feedBack();
-    _mainController.pageController.jumpToPage(value);
+    // 使用动画切换页面，提供丝滑流畅的体验
+    _mainController.pageController.animateToPage(
+      value,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.fastOutSlowIn,
+    );
     var currentPage = _mainController.pages[value];
     if (currentPage is HomePage) {
       if (_homeController.flag) {
@@ -280,14 +284,23 @@ class _MainAppState extends State<MainApp> with SingleTickerProviderStateMixin {
                 if (usingLeftSideBar()) ...[sideBar(), verticalDivider()],
                 if (usingRightSideBar()) SizedBox(width: context.width * 0.004),
                 Expanded(
-                  child: PageView(
-                    physics: const NeverScrollableScrollPhysics(),
+                  child: PageView.builder(
+                    // 使用ClampingScrollPhysics提供更流畅的切换体验
+                    physics: const ClampingScrollPhysics(),
                     controller: _mainController.pageController,
+                    itemCount: _mainController.pages.length,
+                    // 启用页面缓存，避免页面重建
+                    allowImplicitScrolling: true,
                     onPageChanged: (index) {
                       _mainController.selectedIndex = index;
                       setState(() {});
                     },
-                    children: _mainController.pages,
+                    itemBuilder: (context, index) {
+                      // 使用RepaintBoundary优化渲染性能
+                      return RepaintBoundary(
+                        child: _mainController.pages[index],
+                      );
+                    },
                   ),
                 ),
                 if (usingLeftSideBar()) SizedBox(width: context.width * 0.004),

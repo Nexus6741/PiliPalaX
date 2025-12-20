@@ -128,24 +128,30 @@ class _MediaPageState extends State<MediaPage>
                     child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 30),
                         child: Row(
-                          // mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
                               item['icon'],
                               color: primary,
-                              size: 22, // 图标大小
+                              size: 22,
                             ),
-                            const SizedBox(width: 12), // 图标和文字之间的间距
-                            Text(
-                              item['title'],
-                              style: TextStyle(
-                                  fontSize: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium!
-                                      .fontSize),
-                              // textAlign: TextAlign.center, // 文字居中
+                            const SizedBox(width: 12),
+                            Hero(
+                              tag: 'media_title_${item['title']}',
+                              createRectTween: (Rect? begin, Rect? end) {
+                                return RectTween(begin: begin, end: end);
+                              },
+                              child: Material(
+                                color: Colors.transparent,
+                                child: Text(
+                                  item['title'],
+                                  style: TextStyle(
+                                      fontSize: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .fontSize),
+                                ),
+                              ),
                             ),
-                            const Spacer(),
                           ],
                         )),
                   );
@@ -179,12 +185,25 @@ class _MediaPageState extends State<MediaPage>
               () => Text.rich(
                 TextSpan(
                   children: [
-                    TextSpan(
-                      text: '我的收藏  ',
-                      style: TextStyle(
-                          fontSize:
-                              Theme.of(context).textTheme.titleMedium!.fontSize,
-                          fontWeight: FontWeight.bold),
+                    WidgetSpan(
+                      child: Hero(
+                        tag: 'media_title_我的收藏',
+                        createRectTween: (Rect? begin, Rect? end) {
+                          return RectTween(begin: begin, end: end);
+                        },
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Text(
+                            '我的收藏  ',
+                            style: TextStyle(
+                                fontSize: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .fontSize,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
                     ),
                     if (mediaController.favFolderData.value.count != null)
                       TextSpan(

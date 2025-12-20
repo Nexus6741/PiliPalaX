@@ -1,6 +1,7 @@
 import 'package:PiliPalaX/common/skeleton/video_card_h.dart';
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/pages/fav/index.dart';
@@ -44,9 +45,18 @@ class _FavPageState extends State<FavPage> {
       appBar: AppBar(
         centerTitle: false,
         titleSpacing: 0,
-        title: Text(
-          '我的收藏',
-          style: Theme.of(context).textTheme.titleMedium,
+        title: Hero(
+          tag: 'media_title_我的收藏',
+          createRectTween: (Rect? begin, Rect? end) {
+            return RectTween(begin: begin, end: end);
+          },
+          child: Material(
+            color: Colors.transparent,
+            child: Text(
+              '我的收藏',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
         ),
         actions: [
           IconButton(
@@ -79,9 +89,19 @@ class _FavPageState extends State<FavPage> {
                             childCount:
                                 _favController.favFolderData.value.list!.length,
                             (BuildContext context, int index) {
-                              return FavItem(
-                                  favFolderItem: _favController
-                                      .favFolderData.value.list![index]);
+                              return AnimationConfiguration.staggeredGrid(
+                                position: index,
+                                duration: const Duration(milliseconds: 375),
+                                columnCount: 2,
+                                child: SlideAnimation(
+                                  verticalOffset: 50.0,
+                                  child: FadeInAnimation(
+                                    child: FavItem(
+                                        favFolderItem: _favController
+                                            .favFolderData.value.list![index]),
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         )

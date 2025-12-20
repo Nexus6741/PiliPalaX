@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
-import 'package:PiliPalaX/common/skeleton/video_card_h.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/common/widgets/no_data.dart';
@@ -224,10 +224,20 @@ class _FavDetailPageState extends State<FavDetailPage> {
                                       mainAxisExtent: 0),
                               delegate:
                                   SliverChildBuilderDelegate((context, index) {
-                                return FavVideoCardH(
-                                  videoItem: favList[index],
-                                  callFn: () => _favDetailController
-                                      .onCancelFav(favList[index].id),
+                                return AnimationConfiguration.staggeredGrid(
+                                  position: index,
+                                  columnCount: 2,
+                                  duration: const Duration(milliseconds: 375),
+                                  child: SlideAnimation(
+                                    verticalOffset: 50.0,
+                                    child: FadeInAnimation(
+                                      child: FavVideoCardH(
+                                        videoItem: favList[index],
+                                        callFn: () => _favDetailController
+                                            .onCancelFav(favList[index].id),
+                                      ),
+                                    ),
+                                  ),
                                 );
                               }, childCount: favList.length),
                             ),
@@ -240,18 +250,8 @@ class _FavDetailPageState extends State<FavDetailPage> {
                   );
                 }
               } else {
-                // 骨架屏
-                return SliverGrid(
-                  gridDelegate: SliverGridDelegateWithExtentAndRatio(
-                      mainAxisSpacing: StyleString.cardSpace,
-                      crossAxisSpacing: StyleString.safeSpace,
-                      maxCrossAxisExtent: Grid.maxRowWidth * 2,
-                      childAspectRatio: StyleString.aspectRatio * 2.4,
-                      mainAxisExtent: 0),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    return const VideoCardHSkeleton();
-                  }, childCount: 10),
-                );
+                // 加载中显示空白,避免闪烁
+                return const SliverToBoxAdapter(child: SizedBox());
               }
             },
           ),

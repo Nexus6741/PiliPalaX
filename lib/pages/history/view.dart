@@ -1,5 +1,6 @@
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/skeleton/video_card_h.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
@@ -72,9 +73,18 @@ class _HistoryPageState extends State<HistoryPage> {
         child1: AppBar(
           titleSpacing: 0,
           centerTitle: false,
-          title: Text(
-            '观看记录',
-            style: Theme.of(context).textTheme.titleMedium,
+          title: Hero(
+            tag: 'media_title_观看记录',
+            createRectTween: (Rect? begin, Rect? end) {
+              return RectTween(begin: begin, end: end);
+            },
+            child: Material(
+              color: Colors.transparent,
+              child: Text(
+                '观看记录',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
           ),
           actions: [
             IconButton(
@@ -205,12 +215,23 @@ class _HistoryPageState extends State<HistoryPage> {
                                       mainAxisExtent: 0),
                               delegate: SliverChildBuilderDelegate(
                                   (context, index) {
-                                return HistoryItem(
-                                  videoItem:
-                                      _historyController.historyList[index],
-                                  ctr: _historyController,
-                                  onChoose: () => onChoose(index),
-                                  onUpdateMultiple: () => onUpdateMultiple(),
+                                return AnimationConfiguration.staggeredGrid(
+                                  position: index,
+                                  duration: const Duration(milliseconds: 375),
+                                  columnCount: 2,
+                                  child: SlideAnimation(
+                                    verticalOffset: 50.0,
+                                    child: FadeInAnimation(
+                                      child: HistoryItem(
+                                        videoItem: _historyController
+                                            .historyList[index],
+                                        ctr: _historyController,
+                                        onChoose: () => onChoose(index),
+                                        onUpdateMultiple: () =>
+                                            onUpdateMultiple(),
+                                      ),
+                                    ),
+                                  ),
                                 );
                               },
                                   childCount:

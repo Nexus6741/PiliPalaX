@@ -49,7 +49,16 @@ class _DownloadPageState extends State<DownloadPage> {
           appBar: AppBar(
             title: enableMultiSelect
                 ? Text('已选择 ${_controller.rxCount.value} 项')
-                : const Text('离线缓存'),
+                : Hero(
+                    tag: 'media_title_离线缓存',
+                    createRectTween: (Rect? begin, Rect? end) {
+                      return RectTween(begin: begin, end: end);
+                    },
+                    child: Material(
+                      color: Colors.transparent,
+                      child: const Text('离线缓存'),
+                    ),
+                  ),
             leading: enableMultiSelect
                 ? IconButton(
                     icon: const Icon(Icons.close),

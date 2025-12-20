@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/skeleton/video_card_h.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
@@ -34,13 +35,31 @@ class _LaterPageState extends State<LaterPage> {
         centerTitle: false,
         title: Obx(
           () => _laterController.laterList.isNotEmpty
-              ? Text(
-                  '稍后再看 (${_laterController.laterList.length})',
-                  style: Theme.of(context).textTheme.titleMedium,
+              ? Hero(
+                  tag: 'media_title_稍后再看',
+                  createRectTween: (Rect? begin, Rect? end) {
+                    return RectTween(begin: begin, end: end);
+                  },
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Text(
+                      '稍后再看 (${_laterController.laterList.length})',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
                 )
-              : Text(
-                  '稍后再看',
-                  style: Theme.of(context).textTheme.titleMedium,
+              : Hero(
+                  tag: 'media_title_稍后再看',
+                  createRectTween: (Rect? begin, Rect? end) {
+                    return RectTween(begin: begin, end: end);
+                  },
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Text(
+                      '稍后再看',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
                 ),
         ),
         actions: [
@@ -98,12 +117,22 @@ class _LaterPageState extends State<LaterPage> {
                                     (context, index) {
                                   var videoItem =
                                       _laterController.laterList[index];
-                                  return VideoCardH(
-                                      videoItem: videoItem,
-                                      source: 'later',
-                                      longPress: () =>
-                                          _laterController.toViewDel(context,
-                                              aid: videoItem.aid));
+                                  return AnimationConfiguration.staggeredGrid(
+                                    position: index,
+                                    duration: const Duration(milliseconds: 375),
+                                    columnCount: 2,
+                                    child: SlideAnimation(
+                                      verticalOffset: 50.0,
+                                      child: FadeInAnimation(
+                                        child: VideoCardH(
+                                            videoItem: videoItem,
+                                            source: 'later',
+                                            longPress: () => _laterController
+                                                .toViewDel(context,
+                                                    aid: videoItem.aid)),
+                                      ),
+                                    ),
+                                  );
                                 },
                                     childCount:
                                         _laterController.laterList.length),

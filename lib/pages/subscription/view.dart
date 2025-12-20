@@ -1,5 +1,6 @@
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import '../../common/constants.dart';
@@ -42,9 +43,18 @@ class _SubPageState extends State<SubPage> {
       appBar: AppBar(
         centerTitle: false,
         titleSpacing: 0,
-        title: Text(
-          '我的订阅',
-          style: Theme.of(context).textTheme.titleMedium,
+        title: Hero(
+          tag: 'media_title_我的订阅',
+          createRectTween: (Rect? begin, Rect? end) {
+            return RectTween(begin: begin, end: end);
+          },
+          child: Material(
+            color: Colors.transparent,
+            child: Text(
+              '我的订阅',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
         ),
       ),
       body: FutureBuilder(
@@ -68,10 +78,20 @@ class _SubPageState extends State<SubPage> {
                             childCount:
                                 _subController.subFolderData.value.list!.length,
                             (BuildContext context, int index) {
-                              return SubItem(
-                                  subFolderItem: _subController
-                                      .subFolderData.value.list![index],
-                                  cancelSub: _subController.cancelSub);
+                              return AnimationConfiguration.staggeredGrid(
+                                position: index,
+                                columnCount: 2,
+                                duration: const Duration(milliseconds: 375),
+                                child: SlideAnimation(
+                                  verticalOffset: 50.0,
+                                  child: FadeInAnimation(
+                                    child: SubItem(
+                                        subFolderItem: _subController
+                                            .subFolderData.value.list![index],
+                                        cancelSub: _subController.cancelSub),
+                                  ),
+                                ),
+                              );
                             },
                           ),
                         )
