@@ -195,9 +195,9 @@ class DynamicsController extends GetxController
             String bvid = episode.bvid!;
             int cid = episode.cid!;
             String pic = episode.cover!;
-            String heroTag = Utils.makeHeroTag(cid);
+            String heroTag = Utils.makeHeroTag(res['data'].seasonId);
             Get.toNamed(
-              '/video?bvid=$bvid&cid=$cid&seasonId=${res['data'].seasonId}&epid=$epId',
+              '/video?bvid=$bvid&cid=$cid&seasonId=${res['data'].seasonId}&epId=$epId',
               arguments: {
                 'pic': pic,
                 'heroTag': heroTag,

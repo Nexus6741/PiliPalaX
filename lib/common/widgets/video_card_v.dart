@@ -52,12 +52,14 @@ class VideoCardV extends StatelessWidget {
           var bangumiDetail = result['data'];
           int cid = bangumiDetail.episodes!.first.cid;
           String bvid = IdUtils.av2bv(bangumiDetail.episodes!.first.aid);
+          String bangumiHeroTag = Utils.makeHeroTag(bangumiDetail.seasonId);
           Get.toNamed(
-            '/video?bvid=$bvid&cid=$cid&epId=$epId',
+            '/video?bvid=$bvid&cid=$cid&seasonId=${bangumiDetail.seasonId}&epId=$epId',
             arguments: {
               'pic': videoItem.pic,
-              'heroTag': heroTag,
+              'heroTag': bangumiHeroTag,
               'videoType': SearchType.media_bangumi,
+              'bangumiItem': bangumiDetail,
             },
           );
         } else {

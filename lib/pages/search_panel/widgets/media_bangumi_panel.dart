@@ -169,18 +169,14 @@ Widget _buildBangumiItem(BuildContext context, dynamic i, TextStyle style) {
                           String bvid = episode.bvid!;
                           int cid = episode.cid!;
                           String pic = episode.cover!;
-                          String heroTag = Utils.makeHeroTag(cid);
+                          // 使用 seasonId 生成 heroTag，保持一致性
+                          String heroTag = Utils.makeHeroTag(i.seasonId);
                           Get.toNamed(
-                            '/video?bvid=$bvid&cid=$cid&seasonId=${i.seasonId}&epid=$epId',
+                            '/video?bvid=$bvid&cid=$cid&seasonId=${i.seasonId}&epId=$epId',
                             arguments: {
                               'pic': pic,
                               'heroTag': heroTag,
-                              'videoType': i.mediaType == 2 ||
-                                      i.mediaType == 3 ||
-                                      i.mediaType == 5 ||
-                                      i.mediaType == 7
-                                  ? SearchType.media_ft
-                                  : SearchType.media_bangumi,
+                              'videoType': SearchType.media_bangumi,
                               'bangumiItem': res['data'],
                             },
                           );

@@ -263,15 +263,16 @@ class PiliScheme {
         var bangumiDetail = result['data'];
         final int cid = bangumiDetail.episodes!.first.cid;
         final String bvid = IdUtils.av2bv(bangumiDetail.episodes!.first.aid);
-        final String heroTag = Utils.makeHeroTag(cid);
+        final String heroTag = Utils.makeHeroTag(bangumiDetail.seasonId);
         var epId = bangumiDetail.episodes!.first.id;
         SmartDialog.dismiss().then(
           (e) => Get.toNamed(
-            '/video?bvid=$bvid&cid=$cid&epId=$epId',
+            '/video?bvid=$bvid&cid=$cid&seasonId=${bangumiDetail.seasonId}&epId=$epId',
             arguments: <String, dynamic>{
               'pic': bangumiDetail.cover,
               'heroTag': heroTag,
               'videoType': SearchType.media_bangumi,
+              'bangumiItem': bangumiDetail,
             },
           ),
         );
