@@ -1,12 +1,10 @@
 import 'dart:async';
 
-import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/models/download/download_entry_info.dart';
 import 'package:PiliPalaX/models/download/download_page_info.dart';
 import 'package:PiliPalaX/pages/download/controller.dart';
 import 'package:PiliPalaX/services/download_service.dart';
-import 'package:PiliPalaX/utils/storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -57,6 +55,18 @@ class _DownloadPageState extends State<DownloadPage> {
                 : null,
             actions: enableMultiSelect
                 ? [
+                    // 全选按钮
+                    IconButton(
+                      icon: Icon(
+                        _controller.isAllSelected
+                            ? Icons.check_box
+                            : _controller.isPartialSelected
+                                ? Icons.indeterminate_check_box
+                                : Icons.check_box_outline_blank,
+                      ),
+                      onPressed: _controller.toggleSelectAll,
+                      tooltip: _controller.isAllSelected ? '取消全选' : '全选',
+                    ),
                     TextButton(
                       onPressed: () async {
                         final allChecked = _controller.allChecked.toSet();
@@ -92,11 +102,6 @@ class _DownloadPageState extends State<DownloadPage> {
                     ),
                   ]
                 : [
-                    IconButton(
-                      tooltip: '下载设置',
-                      onPressed: _showDownloadSettings,
-                      icon: const Icon(Icons.settings_outlined),
-                    ),
                     IconButton(
                       tooltip: '多选',
                       onPressed: _controller.handleSelect,
@@ -162,30 +167,32 @@ class _DownloadPageState extends State<DownloadPage> {
                         ),
                         SliverPadding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
-                          sliver: SliverGrid(
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 1,
-                              mainAxisSpacing: 8,
-                              crossAxisSpacing: 8,
-                              mainAxisExtent: 100,
-                            ),
+                          sliver: SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
                                 final item = _controller.pages[index];
                                 if (item.entries.length == 1) {
                                   final entry = item.entries.first;
-                                  return _buildSingleEntryItem(
-                                    entry,
-                                    item,
-                                    theme,
-                                    enableMultiSelect,
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: SizedBox(
+                                      height: 100,
+                                      child: _buildSingleEntryItem(
+                                        entry,
+                                        item,
+                                        theme,
+                                        enableMultiSelect,
+                                      ),
+                                    ),
                                   );
                                 }
-                                return _buildMultiEntryItem(
-                                  theme,
-                                  item,
-                                  enableMultiSelect,
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: _buildMultiEntryItem(
+                                    theme,
+                                    item,
+                                    enableMultiSelect,
+                                  ),
                                 );
                               },
                               childCount: _controller.pages.length,
@@ -364,16 +371,57 @@ class _DownloadPageState extends State<DownloadPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (entry.ownerName != null)
-                              Text(
-                                entry.ownerName!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: theme.colorScheme.outline,
-                                ),
-                              )
-                            else
-                              const Spacer(),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: theme
+                                              .colorScheme.primaryContainer,
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          entry.qualityPithyDescription,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: theme
+                                                .colorScheme.onPrimaryContainer,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      if (entry.ownerName != null)
+                                        Flexible(
+                                          child: Text(
+                                            entry.ownerName!,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: theme.colorScheme.outline,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    entry.formattedFileSize,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: theme.colorScheme.outline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                             entry.moreBtn(theme),
                           ],
                         ),
@@ -405,134 +453,348 @@ class _DownloadPageState extends State<DownloadPage> {
     bool enableMultiSelect,
   ) {
     final first = pageInfo.entries.first;
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: () {
-          if (enableMultiSelect) {
-            _controller.onSelect(pageInfo);
-            return;
-          }
-          // 跳转到合集详情页
-          // TODO: 实现合集详情页
-          SmartDialog.showToast('合集详情页开发中');
-        },
-        onLongPress: () {
-          if (!enableMultiSelect) {
-            _showPageOptions(pageInfo);
-          }
-        },
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  // 封面
-                  Stack(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 主卡片
+        Material(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () {
+              if (enableMultiSelect) {
+                _controller.onSelect(pageInfo);
+                return;
+              }
+              // 切换展开状态
+              _controller.toggleExpanded(pageInfo);
+            },
+            onLongPress: () {
+              if (!enableMultiSelect) {
+                _showPageOptions(pageInfo);
+              }
+            },
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: NetworkImgLayer(
-                          width: 120,
-                          height: 75,
-                          src: pageInfo.cover,
-                        ),
-                      ),
-                      Positioned(
-                        right: 4,
-                        bottom: 4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
+                      // 封面
+                      Stack(
+                        children: [
+                          ClipRRect(
                             borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '${pageInfo.entries.length}个视频',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
+                            child: NetworkImgLayer(
+                              width: 120,
+                              height: 75,
+                              src: pageInfo.cover,
                             ),
                           ),
-                        ),
-                      ),
-                      if (pageInfo.seasonType != null)
-                        Positioned(
-                          left: 4,
-                          top: 4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              _getSeasonTypeText(pageInfo.seasonType!),
-                              style: TextStyle(
-                                color: theme.colorScheme.onPrimary,
-                                fontSize: 11,
+                          Positioned(
+                            right: 4,
+                            bottom: 4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.6),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${pageInfo.entries.length}个画质',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(width: 8),
-                  // 信息
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          pageInfo.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        Row(
+                          if (pageInfo.seasonType != null)
+                            Positioned(
+                              left: 4,
+                              top: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  _getSeasonTypeText(pageInfo.seasonType!),
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onPrimary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      // 信息
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (first.ownerName != null)
-                              Text(
-                                first.ownerName!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: theme.colorScheme.outline,
+                            Text(
+                              pageInfo.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Wrap(
+                                    spacing: 4,
+                                    runSpacing: 4,
+                                    children: [
+                                      if (first.ownerName != null)
+                                        Text(
+                                          first.ownerName!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: theme.colorScheme.outline,
+                                          ),
+                                        ),
+                                      // 显示包含的画质信息
+                                      ...pageInfo.entries
+                                          .map((e) => e.qualityPithyDescription)
+                                          .toSet()
+                                          .take(3)
+                                          .map((quality) => Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 4,
+                                                  vertical: 1,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: theme.colorScheme
+                                                      .primaryContainer,
+                                                  borderRadius:
+                                                      BorderRadius.circular(3),
+                                                ),
+                                                child: Text(
+                                                  quality,
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: theme.colorScheme
+                                                        .onPrimaryContainer,
+                                                  ),
+                                                ),
+                                              )),
+                                    ],
+                                  ),
                                 ),
-                              )
-                            else
-                              const Spacer(),
-                            first.moreBtn(theme),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // 展开/收起图标
+                                    Icon(
+                                      pageInfo.isExpanded
+                                          ? Icons.expand_less
+                                          : Icons.expand_more,
+                                      size: 20,
+                                      color: theme.colorScheme.outline,
+                                    ),
+                                    first.moreBtn(theme),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (enableMultiSelect)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Checkbox(
+                      value: pageInfo.checked ?? false,
+                      onChanged: (_) => _controller.onSelect(pageInfo),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        // 展开的子项列表
+        if (pageInfo.isExpanded && !enableMultiSelect)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 4),
+            child: Column(
+              children: pageInfo.entries.map((entry) {
+                return _buildExpandedEntryItem(entry, theme);
+              }).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// 构建展开后的子项
+  Widget _buildExpandedEntryItem(
+    DownloadEntryInfo entry,
+    ThemeData theme,
+  ) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          // 跳转到视频播放页 - 离线播放
+          final heroTag =
+              '${entry.bvid}_${entry.cid}_${DateTime.now().millisecondsSinceEpoch}';
+
+          Get.toNamed(
+            '/video',
+            parameters: {
+              'bvid': entry.bvid,
+              'cid': entry.cid.toString(),
+            },
+            arguments: {
+              'sourceType': 'file',
+              'entry': entry,
+              'dirPath': entry.entryDirPath,
+              'heroTag': heroTag,
+              'pic': entry.cover,
+            },
+          );
+        },
+        onLongPress: () {
+          _showExpandedEntryOptions(entry);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Row(
+            children: [
+              // 画质标签
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  entry.qualityPithyDescription,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 信息
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.showTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Row(
+                      children: [
+                        if (entry.ownerName != null) ...[
+                          Flexible(
+                            child: Text(
+                              entry.ownerName!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.outline,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          entry.formattedFileSize,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.outline,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (enableMultiSelect)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Checkbox(
-                  value: pageInfo.checked ?? false,
-                  onChanged: (_) => _controller.onSelect(pageInfo),
+                  ],
                 ),
               ),
-          ],
+              // 播放图标
+              Icon(
+                Icons.play_circle_outline,
+                color: theme.colorScheme.primary,
+                size: 24,
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  /// 显示展开项的操作选项
+  void _showExpandedEntryOptions(DownloadEntryInfo entry) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text('删除 ${entry.qualityPithyDescription} 画质'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(() async {
+                    await _downloadService.deleteDownload(
+                      entry: entry,
+                      removeList: true,
+                    );
+                  });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.refresh),
+                title: const Text('更新弹幕'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  SmartDialog.showLoading(msg: '更新中...');
+                  final res = await _downloadService.downloadDanmaku(
+                    entry: entry,
+                    isUpdate: true,
+                  );
+                  SmartDialog.dismiss();
+                  if (res) {
+                    SmartDialog.showToast('更新成功');
+                  } else {
+                    SmartDialog.showToast('更新失败');
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -679,67 +941,35 @@ class _DownloadPageState extends State<DownloadPage> {
     );
   }
 
-  void _showDownloadSettings() {
-    final currentValue = _downloadService.maxConcurrentDownloads;
-    int selectedValue = currentValue;
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('下载设置'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('最大并发下载数'),
-            const SizedBox(height: 8),
-            const Text(
-              '同时下载的视频数量，范围：1-5',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            StatefulBuilder(
-              builder: (context, setState) {
-                return Column(
-                  children: List.generate(5, (index) {
-                    final value = index + 1;
-                    return RadioListTile<int>(
-                      title: Text('$value 个'),
-                      value: value,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedValue = value!;
-                        });
-                      },
-                    );
-                  }),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(
-              '取消',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+  /// 构建空状态
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.download_outlined,
+            size: 80,
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '暂无缓存内容',
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.outline,
             ),
           ),
-          TextButton(
-            onPressed: () {
-              GStorage.setting
-                  .put(SettingBoxKey.maxConcurrentDownloads, selectedValue);
-              Get.back();
-              SmartDialog.showToast('设置已保存');
-              // 如果增加了并发数，尝试启动更多下载
-              if (selectedValue > currentValue) {
-                _downloadService.nextDownload();
-              }
-            },
-            child: const Text('确定'),
+          const SizedBox(height: 8),
+          Text(
+            '在视频播放页面点击下载按钮开始缓存',
+            style: TextStyle(
+              fontSize: 14,
+              color:
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

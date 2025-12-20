@@ -10,7 +10,6 @@ import 'package:PiliPalaX/models/download/download_media_info.dart';
 import 'package:PiliPalaX/models/video/play/quality.dart';
 import 'package:PiliPalaX/models/video/play/url.dart';
 import 'package:PiliPalaX/services/download_manager.dart';
-import 'package:PiliPalaX/utils/storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -18,22 +17,6 @@ import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:synchronized/synchronized.dart';
-
-/// 下载任务类
-class _DownloadTask {
-  final DownloadEntryInfo entry;
-  DownloadManager? videoManager;
-  DownloadManager? audioManager;
-
-  _DownloadTask(this.entry);
-
-  Future<void> cancel({required bool isDelete}) async {
-    await videoManager?.cancel(isDelete: isDelete);
-    await audioManager?.cancel(isDelete: isDelete);
-    videoManager = null;
-    audioManager = null;
-  }
-}
 
 /// 下载服务
 class DownloadService extends GetxService {
@@ -51,10 +34,9 @@ class DownloadService extends GetxService {
   final waitDownloadQueue = RxList<DownloadEntryInfo>();
   final downloadList = <DownloadEntryInfo>[];
 
-  // 并发下载支持
-  final activeDownloads = <int, _DownloadTask>{};
-  int get maxConcurrentDownloads => GStorage.setting
-      .get(SettingBoxKey.maxConcurrentDownloads, defaultValue: 1);
+  // 单个下载管理
+  DownloadManager? videoManager;
+  DownloadManager? audioManager;
 
   int? _curCid;
   int? get curCid => _curCid;
@@ -65,9 +47,6 @@ class DownloadService extends GetxService {
       curDownload.value!.status.value = status;
     }
   }
-
-  DownloadManager? _downloadManager;
-  DownloadManager? _audioDownloadManager;
 
   late Future<void> waitForInitialization;
 
@@ -143,12 +122,17 @@ class DownloadService extends GetxService {
     String? ownerName,
     required VideoQuality videoQuality,
   }) {
-    if (downloadList.indexWhere((e) => e.cid == cid) != -1) {
-      SmartDialog.showToast('该视频已在下载列表中');
+    // 检查是否已经下载了相同画质的视频
+    if (downloadList.indexWhere((e) =>
+            e.cid == cid && e.preferedVideoQuality == videoQuality.code) !=
+        -1) {
+      SmartDialog.showToast('该画质视频已在下载列表中');
       return;
     }
-    if (waitDownloadQueue.indexWhere((e) => e.cid == cid) != -1) {
-      SmartDialog.showToast('该视频已在等待队列中');
+    if (waitDownloadQueue.indexWhere((e) =>
+            e.cid == cid && e.preferedVideoQuality == videoQuality.code) !=
+        -1) {
+      SmartDialog.showToast('该画质视频已在等待队列中');
       return;
     }
 
@@ -210,7 +194,7 @@ class DownloadService extends GetxService {
     waitDownloadQueue.add(entry);
     final currStatus = curDownload.value?.status.value?.index;
     if (currStatus == null || currStatus > 3) {
-      startDownload(entry);
+      startDownload();
     }
   }
 
@@ -220,11 +204,11 @@ class DownloadService extends GetxService {
     if (entry.ep != null) {
       final ep = entry.ep!;
       dirName = 's_${entry.seasonId}';
-      pageDirName = ep.episodeId.toString();
+      pageDirName = '${ep.episodeId}_${entry.preferedVideoQuality}';
     } else if (entry.pageData != null) {
       final page = entry.pageData!;
       dirName = entry.avid.toString();
-      pageDirName = 'c_${page.cid}';
+      pageDirName = 'c_${page.cid}_${entry.preferedVideoQuality}';
     } else {
       throw Exception('Invalid entry: no ep or pageData');
     }
@@ -247,39 +231,30 @@ class DownloadService extends GetxService {
     return dir.path;
   }
 
-  Future<void> startDownload(DownloadEntryInfo entry) {
+  Future<void> startDownload() {
     return _lock.synchronized(() async {
-      // 检查是否已经在下载
-      if (activeDownloads.containsKey(entry.cid)) {
+      if (waitDownloadQueue.isEmpty) {
+        return;
+      }
+      if (curDownload.value != null) {
         return;
       }
 
-      // 检查并发数量限制
-      if (activeDownloads.length >= maxConcurrentDownloads) {
-        // 如果达到并发限制，保持在等待队列中
-        return;
-      }
-
-      // 创建下载任务
-      final task = _DownloadTask(entry);
-      activeDownloads[entry.cid] = task;
-
-      // 从等待队列中移除
-      waitDownloadQueue.removeWhere((e) => e.cid == entry.cid);
-
-      // 设置当前下载（用于UI显示）
-      if (curDownload.value == null) {
-        _curCid = entry.cid;
-        curDownload.value = entry;
-      }
+      final entry = waitDownloadQueue.removeAt(0);
+      _curCid = entry.cid;
+      curDownload.value = entry;
 
       try {
-        await _startDownload(entry, task);
+        await _startDownload(entry);
       } catch (e) {
-        // 下载失败，从活动列表中移除
-        activeDownloads.remove(entry.cid);
+        if (kDebugMode) {
+          debugPrint('Error starting download: $e');
+        }
+        entry.status.value = DownloadStatus.failPlayUrl;
+        _curCid = null;
+        curDownload.value = null;
         // 启动下一个下载
-        _startNextDownload();
+        startDownload();
       }
     });
   }
@@ -347,8 +322,7 @@ class DownloadService extends GetxService {
     }
   }
 
-  Future<void> _startDownload(
-      DownloadEntryInfo entry, _DownloadTask task) async {
+  Future<void> _startDownload(DownloadEntryInfo entry) async {
     try {
       if (!await downloadDanmaku(entry: entry)) {
         return;
@@ -369,41 +343,30 @@ class DownloadService extends GetxService {
         _downloadCover(entry: entry),
       ]);
 
-      if (curDownload.value?.cid != entry.cid) {
-        return;
-      }
-
       if (mediaFileInfo is Type1MediaInfo) {
         final first = mediaFileInfo.segmentList.first;
-        task.videoManager = DownloadManager(
+        videoManager = DownloadManager(
           url: first.url,
           path: path.join(videoDir.path, _videoNameType1),
-          onReceiveProgress: (progress, total) =>
-              _onReceive(entry.cid, progress, total),
-          onDone: (error) => _onDone(entry.cid, error),
+          onReceiveProgress: _onReceive,
+          onDone: _onDone,
         );
-        // 保持向后兼容
-        _downloadManager = task.videoManager;
       } else if (mediaFileInfo is Type2MediaInfo) {
-        task.videoManager = DownloadManager(
+        videoManager = DownloadManager(
           url: mediaFileInfo.video.first.baseUrl,
           path: path.join(videoDir.path, _videoNameType2),
-          onReceiveProgress: (progress, total) =>
-              _onReceive(entry.cid, progress, total),
-          onDone: (error) => _onDone(entry.cid, error),
+          onReceiveProgress: _onReceive,
+          onDone: _onDone,
         );
         final audio = mediaFileInfo.audio;
         if (audio != null && audio.isNotEmpty) {
-          task.audioManager = DownloadManager(
+          audioManager = DownloadManager(
             url: audio.first.baseUrl,
             path: path.join(videoDir.path, _audioNameType2),
             onReceiveProgress: null,
-            onDone: (error) => _onAudioDone(entry.cid, error),
+            onDone: _onAudioDone,
           );
         }
-        // 保持向后兼容
-        _downloadManager = task.videoManager;
-        _audioDownloadManager = task.audioManager;
         final first = mediaFileInfo.video.first;
         if (entry.pageData != null) {
           entry.pageData!
@@ -430,10 +393,9 @@ class DownloadService extends GetxService {
     await entryJsonFile.writeAsString(jsonEncode(entry.toJson()));
   }
 
-  void _onReceive(int cid, int progress, int total) {
-    final task = activeDownloads[cid];
-    if (task != null) {
-      final entry = task.entry;
+  void _onReceive(int progress, int total) {
+    final entry = curDownload.value;
+    if (entry != null) {
       if (progress == 0 && total != 0) {
         entry.totalBytes.value = total;
         _updateBiliDownloadEntryJson(entry);
@@ -443,90 +405,65 @@ class DownloadService extends GetxService {
     }
   }
 
-  void _onDone(int cid, [Object? error]) {
-    final task = activeDownloads[cid];
-    if (task == null) return;
-
-    final entry = task.entry;
+  void _onDone([Object? error]) {
+    final entry = curDownload.value;
+    if (entry == null) return;
 
     if (error != null) {
-      entry.status.value = task.videoManager?.status ?? DownloadStatus.pause;
+      entry.status.value = videoManager?.status ?? DownloadStatus.pause;
       return;
     }
 
-    final status = task.audioManager?.status == DownloadStatus.downloading
+    final status = audioManager?.status == DownloadStatus.downloading
         ? DownloadStatus.audioDownloading
-        : task.audioManager?.status == DownloadStatus.failDownload
+        : audioManager?.status == DownloadStatus.failDownload
             ? DownloadStatus.failDownloadAudio
-            : task.videoManager?.status ?? DownloadStatus.pause;
+            : videoManager?.status ?? DownloadStatus.pause;
     entry.status.value = status;
 
     entry.downloadedBytes.value = entry.totalBytes.value;
     if (status == DownloadStatus.completed) {
-      _completeDownload(cid);
+      _completeDownload();
     } else {
       _updateBiliDownloadEntryJson(entry);
     }
   }
 
-  void _onAudioDone(int cid, [Object? error]) {
-    final task = activeDownloads[cid];
-    if (task == null) return;
-
-    if (task.videoManager?.status == DownloadStatus.completed) {
+  void _onAudioDone([Object? error]) {
+    if (videoManager?.status == DownloadStatus.completed) {
       if (error == null) {
-        _completeDownload(cid);
+        _completeDownload();
       } else {
-        final status = task.audioManager?.status ?? DownloadStatus.pause;
-        task.entry.status.value = status == DownloadStatus.failDownload
+        final status = audioManager?.status ?? DownloadStatus.pause;
+        curDownload.value?.status.value = status == DownloadStatus.failDownload
             ? DownloadStatus.failDownloadAudio
             : status;
       }
     }
   }
 
-  Future<void> _completeDownload(int cid) async {
-    final task = activeDownloads[cid];
-    if (task == null) return;
+  Future<void> _completeDownload() async {
+    final entry = curDownload.value;
+    if (entry == null) return;
 
-    final entry = task.entry;
     entry.downloadedBytes.value = entry.totalBytes.value;
     entry.isCompleted = true;
     await _updateBiliDownloadEntryJson(entry);
 
-    // 从活动下载中移除
-    activeDownloads.remove(cid);
-
-    // 从等待队列中移除（如果还在的话）
-    waitDownloadQueue.removeWhere((e) => e.cid == cid);
-
-    // 添加到完成列表
     downloadList.insert(0, entry);
     flagNotifier.refresh();
 
-    // 如果这是当前显示的下载，清除当前下载状态
-    if (curDownload.value?.cid == cid) {
-      _curCid = null;
-      curDownload.value = null;
-      _downloadManager = null;
-      _audioDownloadManager = null;
-    }
+    _curCid = null;
+    curDownload.value = null;
+    videoManager = null;
+    audioManager = null;
 
     // 启动下一个下载
-    _startNextDownload();
+    startDownload();
   }
 
   void nextDownload() {
-    _startNextDownload();
-  }
-
-  void _startNextDownload() {
-    // 启动等待队列中的下载，直到达到并发限制
-    while (waitDownloadQueue.isNotEmpty &&
-        activeDownloads.length < maxConcurrentDownloads) {
-      final nextEntry = waitDownloadQueue.first;
-      startDownload(nextEntry);
-    }
+    startDownload();
   }
 
   Future<void> deleteDownload({
@@ -542,8 +479,8 @@ class DownloadService extends GetxService {
     if (removeQueue) {
       waitDownloadQueue.remove(entry);
     }
-    if (activeDownloads.containsKey(entry.cid)) {
-      await cancelSpecificDownload(entry.cid, isDelete: true);
+    if (curDownload.value?.cid == entry.cid) {
+      await cancelDownload(isDelete: true);
     }
     final downloadDir = Directory(entry.pageDirPath);
     if (downloadDir.existsSync()) {
@@ -583,34 +520,74 @@ class DownloadService extends GetxService {
     required bool isDelete,
     bool downloadNext = true,
   }) async {
+    if (!isDelete && videoManager?.status == DownloadStatus.downloading) {
+      curDownload.value?.status.value = DownloadStatus.pause;
+    }
+    await videoManager?.cancel(isDelete: isDelete);
+    await audioManager?.cancel(isDelete: isDelete);
+
     final entry = curDownload.value;
     if (entry != null) {
-      await cancelSpecificDownload(entry.cid, isDelete: isDelete);
+      if (!isDelete) {
+        await _updateBiliDownloadEntryJson(entry);
+        entry.status.value = DownloadStatus.pause;
+        waitDownloadQueue.insert(0, entry);
+      } else {
+        // 删除操作：删除本地文件
+        await _deleteDownloadFiles(entry);
+      }
     }
+
+    _curCid = null;
+    curDownload.value = null;
+    videoManager = null;
+    audioManager = null;
     if (downloadNext) {
-      _startNextDownload();
+      startDownload();
     }
   }
 
-  Future<void> cancelSpecificDownload(int cid, {required bool isDelete}) async {
-    final task = activeDownloads[cid];
-    if (task != null) {
-      await task.cancel(isDelete: isDelete);
-      activeDownloads.remove(cid);
-
-      if (!isDelete) {
-        await _updateBiliDownloadEntryJson(task.entry);
-        task.entry.status.value = DownloadStatus.pause;
+  /// 删除下载相关的本地文件
+  Future<void> _deleteDownloadFiles(DownloadEntryInfo entry) async {
+    try {
+      final entryDir = Directory(entry.entryDirPath);
+      if (entryDir.existsSync()) {
+        await entryDir.delete(recursive: true);
       }
 
-      // 如果这是当前显示的下载，清除状态
-      if (curDownload.value?.cid == cid) {
-        _curCid = null;
-        curDownload.value = null;
-        _downloadManager = null;
-        _audioDownloadManager = null;
+      // 检查父目录是否为空，如果为空也删除
+      final pageDir = Directory(entry.pageDirPath);
+      if (pageDir.existsSync()) {
+        final list = await pageDir.list().toList();
+        if (list.isEmpty) {
+          await pageDir.delete(recursive: true);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to delete download files: $e');
       }
     }
+  }
+
+  /// 清空等待队列中的所有下载
+  Future<void> clearWaitingQueue() async {
+    final entries = List<DownloadEntryInfo>.from(waitDownloadQueue);
+    waitDownloadQueue.clear();
+
+    // 删除所有等待中的下载文件
+    for (final entry in entries) {
+      await _deleteDownloadFiles(entry);
+    }
+
+    flagNotifier.refresh();
+  }
+
+  /// 删除等待队列中的单个下载
+  Future<void> removeFromWaitingQueue(DownloadEntryInfo entry) async {
+    waitDownloadQueue.remove(entry);
+    await _deleteDownloadFiles(entry);
+    flagNotifier.refresh();
   }
 
   /// 获取视频播放地址

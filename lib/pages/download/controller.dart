@@ -18,6 +18,14 @@ class DownloadPageController extends GetxController {
   List<DownloadPageInfo> get allChecked =>
       pages.where((e) => e.checked == true).toList();
 
+  /// 检查是否全选
+  bool get isAllSelected =>
+      pages.isNotEmpty && pages.every((e) => e.checked == true);
+
+  /// 检查是否部分选择
+  bool get isPartialSelected =>
+      pages.any((e) => e.checked == true) && !isAllSelected;
+
   @override
   void onInit() {
     super.onInit();
@@ -127,5 +135,21 @@ class DownloadPageController extends GetxController {
         ],
       ),
     );
+  }
+
+  /// 切换页面展开状态
+  void toggleExpanded(DownloadPageInfo pageInfo) {
+    pageInfo.isExpanded = !pageInfo.isExpanded;
+    pages.refresh();
+  }
+
+  /// 全选/取消全选
+  void toggleSelectAll() {
+    final shouldSelectAll = !isAllSelected;
+    for (var page in pages) {
+      page.checked = shouldSelectAll;
+    }
+    rxCount.value = shouldSelectAll ? pages.length : 0;
+    pages.refresh();
   }
 }

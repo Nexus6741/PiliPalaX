@@ -13,6 +13,9 @@ class DownloadPageInfo {
   // 多选状态
   bool? checked;
 
+  // 展开状态
+  bool isExpanded;
+
   DownloadPageInfo({
     required this.pageId,
     required this.dirPath,
@@ -22,5 +25,6 @@ class DownloadPageInfo {
     this.seasonType,
     required this.entries,
     this.checked,
+    this.isExpanded = false,
   });
 }

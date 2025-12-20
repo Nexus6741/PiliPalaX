@@ -58,6 +58,23 @@ class DownloadEntryInfo {
     return 'Unknown Video';
   }
 
+  /// 获取格式化的文件大小
+  String get formattedFileSize {
+    final bytes = totalBytes.value;
+    if (bytes == 0) return '未知大小';
+
+    const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var i = 0;
+    double size = bytes.toDouble();
+
+    while (size >= 1024 && i < suffixes.length - 1) {
+      size /= 1024;
+      i++;
+    }
+
+    return '${size.toStringAsFixed(i == 0 ? 0 : 1)}${suffixes[i]}';
+  }
+
   Widget moreBtn(ThemeData theme) => SizedBox(
         width: 29,
         height: 29,
@@ -220,13 +237,14 @@ class DownloadEntryInfo {
       return true;
     }
     if (other is DownloadEntryInfo) {
-      return cid == other.cid;
+      return cid == other.cid &&
+          preferedVideoQuality == other.preferedVideoQuality;
     }
     return false;
   }
 
   @override
-  int get hashCode => cid.hashCode;
+  int get hashCode => Object.hash(cid, preferedVideoQuality);
 }
 
 /// 分P信息
