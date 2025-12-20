@@ -549,6 +549,7 @@ class PlPlayerController {
       _seasonId = seasonId;
       _enableHeart = enableHeart;
       isVideoLoaded.value = false;
+      print('🔥 [Controller] isVideoLoaded 设置为 false');
 
       // 切换视频时清除预览缓存
       if (showSeekPreview) {
@@ -637,6 +638,7 @@ class PlPlayerController {
     // 每次配置时先移除监听
     removeListeners();
     isBuffering.value = true;
+    print('🔥 [Controller] setDataSource: isBuffering 设置为 true');
     buffered.value = Duration.zero;
     _heartDuration = 0;
     _position.value = Duration.zero;
@@ -864,10 +866,14 @@ class PlPlayerController {
     subscriptions.addAll(
       [
         videoPlayerController!.stream.playing.listen((event) {
+          print(
+              '🔥 [Controller] stream.playing: $event, isBuffering: ${isBuffering.value}');
           if (event) {
             playerStatus.status.value = PlayerStatus.playing;
             if (!isBuffering.value) {
               isVideoLoaded.value = true;
+              print(
+                  '🔥 [Controller] isVideoLoaded 设置为 true (playing && !isBuffering)');
             }
             // 播放时启用防休眠
             // ignore: avoid_print
@@ -932,11 +938,15 @@ class PlPlayerController {
           updateBufferedSecond();
         }),
         videoPlayerController!.stream.buffering.listen((bool event) {
+          print(
+              '🔥 [Controller] stream.buffering: $event, playerStatus: ${playerStatus.status.value}');
           isBuffering.value = event;
           videoPlayerServiceHandler.onStatusChange(
               playerStatus.status.value, event);
           if (!event && playerStatus.status.value == PlayerStatus.playing) {
             isVideoLoaded.value = true;
+            print(
+                '🔥 [Controller] isVideoLoaded 设置为 true (buffering=false && playing)');
           }
         }),
         // videoPlayerController!.stream.log.listen((event) {

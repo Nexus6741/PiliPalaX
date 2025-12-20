@@ -1480,7 +1480,21 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         )),
         //
         Obx(() {
-          if (_.dataStatus.loading || _.isBuffering.value) {
+          // 🔥 调试日志
+          print('=== 缓冲状态调试 ===');
+          print('dataStatus.loading: ${_.dataStatus.loading}');
+          print('isBuffering.value: ${_.isBuffering.value}');
+          print('isVideoLoaded.value: ${_.isVideoLoaded.value}');
+          print(
+              '应该显示缓冲logo: ${_.dataStatus.loading || _.isBuffering.value || !_.isVideoLoaded.value}');
+          print('=====================');
+
+          // 🔥 修复：添加 !_.isVideoLoaded.value 条件
+          // 当视频首次加载（包括按历史进度加载）时，即使 isBuffering 为 false，
+          // 只要视频第一帧还没渲染（isVideoLoaded 为 false），也显示缓冲 logo
+          if (_.dataStatus.loading ||
+              _.isBuffering.value ||
+              !_.isVideoLoaded.value) {
             return Center(
               child: GestureDetector(
                 onTap: () {
@@ -1500,7 +1514,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                       height: 25,
                       semanticLabel: "加载中",
                     ),
-                    if (_.isBuffering.value)
+                    // 🔥 修复：当 isBuffering 或视频未加载时都显示缓冲文字
+                    if (_.isBuffering.value || !_.isVideoLoaded.value)
                       Obx(() {
                         if (_.buffered.value == Duration.zero) {
                           return const Text(

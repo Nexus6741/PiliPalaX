@@ -558,42 +558,86 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   // }
 
   Widget get plPlayer {
-    if (!_playerInitFinished) return const SizedBox();
+    // 🔥 修复：当播放器还没准备好时，显示缓冲 logo
+    Widget buildBufferingOverlay() {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(30),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [Colors.black26, Colors.transparent],
+            ),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Image.asset(
+              'assets/images/loading.gif',
+              height: 25,
+              semanticLabel: "加载中",
+            ),
+            const Text(
+              'Buffering...',
+              style: TextStyle(color: Colors.white, fontSize: 12),
+              semanticsLabel: '',
+            ),
+          ]),
+        ),
+      );
+    }
+
+    if (!_playerInitFinished) {
+      // 播放器初始化未完成，显示缓冲 logo
+      if (videoDetailController.autoPlay.value) {
+        return buildBufferingOverlay();
+      }
+      return const SizedBox();
+    }
     return FutureBuilder(
         future: _futureBuilderFuture,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.hasData && snapshot.data['status']) {
             return Obx(
-              () => (!videoDetailController.autoPlay.value &&
-                          videoDetailController.isShowCover.value) ||
-                      plPlayerController == null ||
-                      plPlayerController!.videoController == null
-                  ? nil
-                  : PLVideoPlayer(
-                      key: Key(heroTag),
-                      controller: plPlayerController!,
-                      videoIntroController:
-                          videoDetailController.videoType == SearchType.video
-                              ? videoIntroController
-                              : null,
-                      bangumiIntroController: videoDetailController.videoType ==
-                                  SearchType.media_bangumi ||
-                              videoDetailController.videoType ==
-                                  SearchType.media_ft
-                          ? bangumiIntroController
+              () {
+                // 🔥 修复：当播放器还没准备好时，显示缓冲 logo
+                if ((!videoDetailController.autoPlay.value &&
+                        videoDetailController.isShowCover.value) ||
+                    plPlayerController == null ||
+                    plPlayerController!.videoController == null) {
+                  // 如果是自动播放模式，显示缓冲 logo
+                  if (videoDetailController.autoPlay.value) {
+                    return buildBufferingOverlay();
+                  }
+                  return nil;
+                }
+                return PLVideoPlayer(
+                  key: Key(heroTag),
+                  controller: plPlayerController!,
+                  videoIntroController:
+                      videoDetailController.videoType == SearchType.video
+                          ? videoIntroController
                           : null,
-                      headerControl: videoDetailController.headerControl,
-                      danmuWidget: Obx(
-                        () => PlDanmaku(
-                          key: Key(videoDetailController.danmakuCid.value
-                              .toString()),
-                          cid: videoDetailController.danmakuCid.value,
-                          playerController: plPlayerController!,
-                        ),
-                      ),
+                  bangumiIntroController: videoDetailController.videoType ==
+                              SearchType.media_bangumi ||
+                          videoDetailController.videoType == SearchType.media_ft
+                      ? bangumiIntroController
+                      : null,
+                  headerControl: videoDetailController.headerControl,
+                  danmuWidget: Obx(
+                    () => PlDanmaku(
+                      key: Key(
+                          videoDetailController.danmakuCid.value.toString()),
+                      cid: videoDetailController.danmakuCid.value,
+                      playerController: plPlayerController!,
                     ),
+                  ),
+                );
+              },
             );
           } else {
+            // 🔥 修复：FutureBuilder 还没有数据时，显示缓冲 logo
+            if (videoDetailController.autoPlay.value) {
+              return buildBufferingOverlay();
+            }
             return const SizedBox();
           }
         });
