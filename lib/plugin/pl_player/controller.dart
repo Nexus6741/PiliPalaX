@@ -117,6 +117,9 @@ class PlPlayerController {
   // 视频是否已加载（第一帧渲染）
   final Rx<bool> isVideoLoaded = false.obs;
 
+  // 🔥 新增：是否正在进行初始 seek（用于历史进度跳转）
+  bool _isInitialSeeking = false;
+
   ///
   // ignore: prefer_final_fields
   Rx<bool> _isSliderMoving = false.obs;
@@ -829,7 +832,15 @@ class PlPlayerController {
 
     // 跳转播放
     if (seekTo != Duration.zero) {
+      // 🔥 修复：标记正在进行初始 seek，防止 isVideoLoaded 过早变为 true
+      _isInitialSeeking = true;
+      print('🔥 [Controller] 开始初始 seek，_isInitialSeeking = true');
       await this.seekTo(seekTo);
+      // 🔥 修复：seek 完成后，延迟一小段时间再允许 isVideoLoaded 变为 true
+      // 这样可以确保视频帧已经渲染
+      await Future.delayed(const Duration(milliseconds: 100));
+      _isInitialSeeking = false;
+      print('🔥 [Controller] 初始 seek 完成，_isInitialSeeking = false');
     }
 
     // 自动播放
@@ -867,13 +878,14 @@ class PlPlayerController {
       [
         videoPlayerController!.stream.playing.listen((event) {
           print(
-              '🔥 [Controller] stream.playing: $event, isBuffering: ${isBuffering.value}');
+              '🔥 [Controller] stream.playing: $event, isBuffering: ${isBuffering.value}, _isInitialSeeking: $_isInitialSeeking');
           if (event) {
             playerStatus.status.value = PlayerStatus.playing;
-            if (!isBuffering.value) {
+            // 🔥 修复：只有在非初始 seek 期间才设置 isVideoLoaded
+            if (!isBuffering.value && !_isInitialSeeking) {
               isVideoLoaded.value = true;
               print(
-                  '🔥 [Controller] isVideoLoaded 设置为 true (playing && !isBuffering)');
+                  '🔥 [Controller] isVideoLoaded 设置为 true (playing && !isBuffering && !_isInitialSeeking)');
             }
             // 播放时启用防休眠
             // ignore: avoid_print
@@ -939,14 +951,17 @@ class PlPlayerController {
         }),
         videoPlayerController!.stream.buffering.listen((bool event) {
           print(
-              '🔥 [Controller] stream.buffering: $event, playerStatus: ${playerStatus.status.value}');
+              '🔥 [Controller] stream.buffering: $event, playerStatus: ${playerStatus.status.value}, _isInitialSeeking: $_isInitialSeeking');
           isBuffering.value = event;
           videoPlayerServiceHandler.onStatusChange(
               playerStatus.status.value, event);
-          if (!event && playerStatus.status.value == PlayerStatus.playing) {
+          // 🔥 修复：只有在非初始 seek 期间才设置 isVideoLoaded
+          if (!event &&
+              playerStatus.status.value == PlayerStatus.playing &&
+              !_isInitialSeeking) {
             isVideoLoaded.value = true;
             print(
-                '🔥 [Controller] isVideoLoaded 设置为 true (buffering=false && playing)');
+                '🔥 [Controller] isVideoLoaded 设置为 true (buffering=false && playing && !_isInitialSeeking)');
           }
         }),
         // videoPlayerController!.stream.log.listen((event) {

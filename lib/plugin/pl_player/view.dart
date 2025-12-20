@@ -954,8 +954,11 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
               _initialFocalPoint = Offset.zero;
               _gestureType = null;
             },
-            child: Opacity(
+            child: AnimatedOpacity(
+              // 🔥 优化：使用 AnimatedOpacity 实现视频画面平滑淡入
               opacity: _.isVideoLoaded.value ? 1 : 0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
               child: Video(
                 key: ValueKey(
                     '${_.videoFit.value}${_.continuePlayInBackground.value}'),

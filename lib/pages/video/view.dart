@@ -807,28 +807,68 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             // if (isShowing) plPlayer,
                             plPlayer,
 
-                            /// 关闭自动播放时 手动播放
-                            if (!videoDetailController
-                                .autoPlay.value) ...<Widget>[
+                            // 🔥 优化：自动播放模式下的封面淡出动画
+                            if (videoDetailController.autoPlay.value)
                               Obx(
-                                () => Visibility(
-                                  visible:
-                                      videoDetailController.isShowCover.value,
-                                  child: Positioned(
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    child: GestureDetector(
-                                      onTap: handlePlay,
-                                      // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                                () => Positioned.fill(
+                                  child: IgnorePointer(
+                                    ignoring: plPlayerController
+                                            ?.isVideoLoaded.value ??
+                                        false,
+                                    child: AnimatedOpacity(
+                                      opacity: (plPlayerController
+                                                  ?.isVideoLoaded.value ??
+                                              false)
+                                          ? 0.0
+                                          : 1.0,
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.easeOut,
                                       child: NetworkImgLayer(
                                         key: ValueKey(videoDetailController
                                             .videoItem['pic']),
-                                        type: 'emote',
                                         src: videoDetailController
                                             .videoItem['pic'],
                                         width: videoWidth,
                                         height: videoHeight,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            /// 关闭自动播放时 手动播放
+                            if (!videoDetailController
+                                .autoPlay.value) ...<Widget>[
+                              // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
+                              Obx(
+                                () => Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: IgnorePointer(
+                                    ignoring: !videoDetailController
+                                        .isShowCover.value,
+                                    child: AnimatedOpacity(
+                                      opacity: videoDetailController
+                                              .isShowCover.value
+                                          ? 1.0
+                                          : 0.0,
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                      curve: Curves.easeOut,
+                                      child: GestureDetector(
+                                        onTap: handlePlay,
+                                        // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                                        child: NetworkImgLayer(
+                                          key: ValueKey(videoDetailController
+                                              .videoItem['pic']),
+                                          type: 'emote',
+                                          src: videoDetailController
+                                              .videoItem['pic'],
+                                          width: videoWidth,
+                                          height: videoHeight,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -973,25 +1013,59 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   // if (isShowing) plPlayer,
                   plPlayer,
 
-                  /// 关闭自动播放时 手动播放
-                  if (!videoDetailController.autoPlay.value) ...<Widget>[
+                  // 🔥 优化：自动播放模式下的封面淡出动画
+                  if (videoDetailController.autoPlay.value)
                     Obx(
-                      () => Visibility(
-                        visible: videoDetailController.isShowCover.value,
-                        child: Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: handlePlay,
-                            // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                      () => Positioned.fill(
+                        child: IgnorePointer(
+                          ignoring:
+                              plPlayerController?.isVideoLoaded.value ?? false,
+                          child: AnimatedOpacity(
+                            opacity: (plPlayerController?.isVideoLoaded.value ??
+                                    false)
+                                ? 0.0
+                                : 1.0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
                             child: NetworkImgLayer(
                               key: ValueKey(
                                   videoDetailController.videoItem['pic']),
-                              type: 'emote',
                               src: videoDetailController.videoItem['pic'],
                               width: videoWidth,
                               height: videoHeight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  /// 关闭自动播放时 手动播放
+                  if (!videoDetailController.autoPlay.value) ...<Widget>[
+                    // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
+                    Obx(
+                      () => Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: IgnorePointer(
+                          ignoring: !videoDetailController.isShowCover.value,
+                          child: AnimatedOpacity(
+                            opacity: videoDetailController.isShowCover.value
+                                ? 1.0
+                                : 0.0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                            child: GestureDetector(
+                              onTap: handlePlay,
+                              // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                              child: NetworkImgLayer(
+                                key: ValueKey(
+                                    videoDetailController.videoItem['pic']),
+                                type: 'emote',
+                                src: videoDetailController.videoItem['pic'],
+                                width: videoWidth,
+                                height: videoHeight,
+                              ),
                             ),
                           ),
                         ),
@@ -1104,25 +1178,59 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 // if (isShowing) plPlayer,
                 plPlayer,
 
-                /// 关闭自动播放时 手动播放
-                if (!videoDetailController.autoPlay.value) ...<Widget>[
+                // 🔥 优化：自动播放模式下的封面淡出动画
+                if (videoDetailController.autoPlay.value)
                   Obx(
-                    () => Visibility(
-                      visible: videoDetailController.isShowCover.value,
-                      child: Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: handlePlay,
-                          // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                    () => Positioned.fill(
+                      child: IgnorePointer(
+                        ignoring:
+                            plPlayerController?.isVideoLoaded.value ?? false,
+                        child: AnimatedOpacity(
+                          opacity:
+                              (plPlayerController?.isVideoLoaded.value ?? false)
+                                  ? 0.0
+                                  : 1.0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
                           child: NetworkImgLayer(
                             key: ValueKey(
                                 videoDetailController.videoItem['pic']),
-                            type: 'emote',
                             src: videoDetailController.videoItem['pic'],
                             width: videoWidth,
                             height: videoHeight,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                /// 关闭自动播放时 手动播放
+                if (!videoDetailController.autoPlay.value) ...<Widget>[
+                  // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
+                  Obx(
+                    () => Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: IgnorePointer(
+                        ignoring: !videoDetailController.isShowCover.value,
+                        child: AnimatedOpacity(
+                          opacity: videoDetailController.isShowCover.value
+                              ? 1.0
+                              : 0.0,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOut,
+                          child: GestureDetector(
+                            onTap: handlePlay,
+                            // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                            child: NetworkImgLayer(
+                              key: ValueKey(
+                                  videoDetailController.videoItem['pic']),
+                              type: 'emote',
+                              src: videoDetailController.videoItem['pic'],
+                              width: videoWidth,
+                              height: videoHeight,
+                            ),
                           ),
                         ),
                       ),
@@ -1271,25 +1379,60 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     // if (isShowing) plPlayer,
                     plPlayer,
 
-                    /// 关闭自动播放时 手动播放
-                    if (!videoDetailController.autoPlay.value) ...<Widget>[
+                    // 🔥 优化：自动播放模式下的封面淡出动画
+                    if (videoDetailController.autoPlay.value)
                       Obx(
-                        () => Visibility(
-                          visible: videoDetailController.isShowCover.value,
-                          child: Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: handlePlay,
-                              // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                        () => Positioned.fill(
+                          child: IgnorePointer(
+                            ignoring: plPlayerController?.isVideoLoaded.value ??
+                                false,
+                            child: AnimatedOpacity(
+                              opacity:
+                                  (plPlayerController?.isVideoLoaded.value ??
+                                          false)
+                                      ? 0.0
+                                      : 1.0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
                               child: NetworkImgLayer(
                                 key: ValueKey(
                                     videoDetailController.videoItem['pic']),
-                                type: 'emote',
                                 src: videoDetailController.videoItem['pic'],
                                 width: videoWidth,
                                 height: videoHeight,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    /// 关闭自动播放时 手动播放
+                    if (!videoDetailController.autoPlay.value) ...<Widget>[
+                      // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
+                      Obx(
+                        () => Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: IgnorePointer(
+                            ignoring: !videoDetailController.isShowCover.value,
+                            child: AnimatedOpacity(
+                              opacity: videoDetailController.isShowCover.value
+                                  ? 1.0
+                                  : 0.0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                              child: GestureDetector(
+                                onTap: handlePlay,
+                                // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                                child: NetworkImgLayer(
+                                  key: ValueKey(
+                                      videoDetailController.videoItem['pic']),
+                                  type: 'emote',
+                                  src: videoDetailController.videoItem['pic'],
+                                  width: videoWidth,
+                                  height: videoHeight,
+                                ),
                               ),
                             ),
                           ),
@@ -1397,25 +1540,62 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       // if (isShowing) plPlayer,
                       plPlayer,
 
-                      /// 关闭自动播放时 手动播放
-                      if (!videoDetailController.autoPlay.value) ...<Widget>[
+                      // 🔥 优化：自动播放模式下的封面淡出动画
+                      if (videoDetailController.autoPlay.value)
                         Obx(
-                          () => Visibility(
-                            visible: videoDetailController.isShowCover.value,
-                            child: Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: handlePlay,
-                                // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                          () => Positioned.fill(
+                            child: IgnorePointer(
+                              ignoring:
+                                  plPlayerController?.isVideoLoaded.value ??
+                                      false,
+                              child: AnimatedOpacity(
+                                opacity:
+                                    (plPlayerController?.isVideoLoaded.value ??
+                                            false)
+                                        ? 0.0
+                                        : 1.0,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
                                 child: NetworkImgLayer(
                                   key: ValueKey(
                                       videoDetailController.videoItem['pic']),
-                                  type: 'emote',
                                   src: videoDetailController.videoItem['pic'],
                                   width: videoWidth,
                                   height: videoHeight,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      /// 关闭自动播放时 手动播放
+                      if (!videoDetailController.autoPlay.value) ...<Widget>[
+                        // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
+                        Obx(
+                          () => Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: IgnorePointer(
+                              ignoring:
+                                  !videoDetailController.isShowCover.value,
+                              child: AnimatedOpacity(
+                                opacity: videoDetailController.isShowCover.value
+                                    ? 1.0
+                                    : 0.0,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOut,
+                                child: GestureDetector(
+                                  onTap: handlePlay,
+                                  // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
+                                  child: NetworkImgLayer(
+                                    key: ValueKey(
+                                        videoDetailController.videoItem['pic']),
+                                    type: 'emote',
+                                    src: videoDetailController.videoItem['pic'],
+                                    width: videoWidth,
+                                    height: videoHeight,
+                                  ),
                                 ),
                               ),
                             ),
