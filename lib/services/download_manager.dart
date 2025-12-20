@@ -89,8 +89,9 @@ class DownloadManager {
       await for (final chunk in data.stream) {
         sink.add(chunk);
         received += chunk.length;
-        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        if (last != now) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        // 每100ms更新一次进度，提高更新频率
+        if (last == null || now - last > 100) {
           last = now;
           onReceiveProgress?.call(received, contentLength);
         }

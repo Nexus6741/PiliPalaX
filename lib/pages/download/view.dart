@@ -116,12 +116,7 @@ class _DownloadPageState extends State<DownloadPage> {
               slivers: [
                 // 正在下载的项
                 Obx(() {
-                  final entry =
-                      _downloadService.waitDownloadQueue.firstWhereOrNull(
-                            (e) => e.cid == _downloadService.curCid,
-                          ) ??
-                          _downloadService.waitDownloadQueue.firstOrNull;
-                  if (entry != null) {
+                  if (_downloadService.waitDownloadQueue.isNotEmpty) {
                     return SliverMainAxisGroup(
                       slivers: [
                         SliverPadding(
@@ -131,14 +126,78 @@ class _DownloadPageState extends State<DownloadPage> {
                             bottom: 7,
                           ),
                           sliver: SliverToBoxAdapter(
-                            child: Text(
-                              '正在缓存 (${_downloadService.waitDownloadQueue.length})',
-                              style: theme.textTheme.titleSmall,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '缓存队列 (${_downloadService.waitDownloadQueue.length})',
+                                  style: theme.textTheme.titleSmall,
+                                ),
+                                if (_downloadService.waitDownloadQueue.length >
+                                    1)
+                                  TextButton(
+                                    onPressed: () {
+                                      Get.dialog(
+                                        AlertDialog(
+                                          title: const Text('清空缓存队列'),
+                                          content:
+                                              const Text('确定要清空所有等待中的缓存任务吗？'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Get.back(),
+                                              child: Text(
+                                                '取消',
+                                                style: TextStyle(
+                                                  color:
+                                                      theme.colorScheme.outline,
+                                                ),
+                                              ),
+                                            ),
+                                            TextButton(
+                                              onPressed: () async {
+                                                Get.back();
+                                                await _downloadService
+                                                    .clearWaitingQueue();
+                                                SmartDialog.showToast(
+                                                    '已清空缓存队列');
+                                              },
+                                              child: const Text('确定'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      '清空队列',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
-                        SliverToBoxAdapter(
-                          child: _buildDownloadingItem(entry, theme),
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final entry =
+                                    _downloadService.waitDownloadQueue[index];
+                                final isCurrentDownloading =
+                                    entry.cid == _downloadService.curCid;
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: _buildDownloadingItem(entry, theme,
+                                      isCurrentDownloading, index),
+                                );
+                              },
+                              childCount:
+                                  _downloadService.waitDownloadQueue.length,
+                            ),
+                          ),
                         ),
                       ],
                     );
@@ -221,7 +280,12 @@ class _DownloadPageState extends State<DownloadPage> {
   }
 
   /// 构建正在下载的项
-  Widget _buildDownloadingItem(DownloadEntryInfo entry, ThemeData theme) {
+  Widget _buildDownloadingItem(
+    DownloadEntryInfo entry,
+    ThemeData theme,
+    bool isCurrentDownloading,
+    int queueIndex,
+  ) {
     return Obx(() {
       final status = entry.status.value;
       final totalBytes = entry.totalBytes.value;
@@ -229,7 +293,7 @@ class _DownloadPageState extends State<DownloadPage> {
       final progress = totalBytes > 0 ? downloadedBytes / totalBytes : 0.0;
 
       return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         child: InkWell(
           onTap: () {
             // 可以跳转到详情页
@@ -238,12 +302,40 @@ class _DownloadPageState extends State<DownloadPage> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
+                // 队列序号指示器
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: isCurrentDownloading
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outline.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: isCurrentDownloading
+                        ? Icon(
+                            Icons.download,
+                            size: 14,
+                            color: theme.colorScheme.onPrimary,
+                          )
+                        : Text(
+                            '${queueIndex + 1}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 // 封面
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: NetworkImgLayer(
-                    width: 120,
-                    height: 75,
+                    width: 100,
+                    height: 60,
                     src: entry.cover,
                   ),
                 ),
@@ -257,39 +349,266 @@ class _DownloadPageState extends State<DownloadPage> {
                         entry.showTitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        status?.message ?? '等待中',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.colorScheme.outline,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 13,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor:
-                            theme.colorScheme.surfaceContainerHighest,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(
+                              entry.qualityPithyDescription,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              isCurrentDownloading
+                                  ? (status?.message ?? '等待中')
+                                  : '等待中',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.outline,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${(progress * 100).toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.colorScheme.outline,
+                      const SizedBox(height: 6),
+                      // 进度条和进度信息
+                      if (isCurrentDownloading) ...[
+                        // 正在下载：显示动态进度条
+                        LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
+                          minHeight: 3,
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${(progress * 100).toStringAsFixed(1)}%',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                            if (totalBytes > 0)
+                              Text(
+                                '${_formatBytes(downloadedBytes)}/${_formatBytes(totalBytes)}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: theme.colorScheme.outline,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ] else ...[
+                        // 等待中：如果有进度则显示，否则显示空进度条
+                        if (totalBytes > 0 && downloadedBytes > 0) ...[
+                          // 有进度：显示静态进度条
+                          LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor:
+                                theme.colorScheme.surfaceContainerHighest,
+                            minHeight: 3,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '已暂停 ${(progress * 100).toStringAsFixed(1)}%',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: theme.colorScheme.outline,
+                                ),
+                              ),
+                              Text(
+                                '${_formatBytes(downloadedBytes)}/${_formatBytes(totalBytes)}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: theme.colorScheme.outline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else ...[
+                          // 无进度：显示空进度条
+                          Container(
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(1.5),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '队列中第${queueIndex + 1}位',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      ],
                     ],
                   ),
                 ),
                 // 操作按钮
-                IconButton(
-                  icon: const Icon(Icons.pause),
-                  onPressed: () {
-                    _downloadService.cancelDownload(isDelete: false);
-                  },
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isCurrentDownloading) ...[
+                      // 正在下载的视频：暂停/继续按钮
+                      if (status == DownloadStatus.pause)
+                        // 继续按钮
+                        IconButton(
+                          icon: const Icon(Icons.play_arrow),
+                          iconSize: 20,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          onPressed: () {
+                            _downloadService.resumeDownload(entry);
+                            SmartDialog.showToast('继续下载');
+                          },
+                          tooltip: '继续下载',
+                        )
+                      else
+                        // 暂停按钮
+                        IconButton(
+                          icon: const Icon(Icons.pause),
+                          iconSize: 20,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                          onPressed: () {
+                            // 暂停时不启动下一个下载
+                            _downloadService.cancelDownload(
+                              isDelete: false,
+                              downloadNext: false,
+                            );
+                            SmartDialog.showToast('已暂停下载');
+                          },
+                          tooltip: '暂停下载',
+                        ),
+                      // 取消按钮（统一使用X图标）
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        onPressed: () {
+                          Get.dialog(
+                            AlertDialog(
+                              title: const Text('取消缓存'),
+                              content: Text('确定要取消缓存"${entry.showTitle}"吗？'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: Text(
+                                    '取消',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.outline,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Get.back();
+                                    await _downloadService
+                                        .removeFromWaitingQueue(entry);
+                                    SmartDialog.showToast('已取消缓存');
+                                  },
+                                  child: const Text('确定'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        tooltip: '取消缓存',
+                      ),
+                    ] else ...[
+                      // 等待中的视频：开始下载按钮
+                      IconButton(
+                        icon: const Icon(Icons.play_arrow),
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        onPressed: () {
+                          _downloadService.prioritizeDownload(entry);
+                          SmartDialog.showToast('开始下载');
+                        },
+                        tooltip: '立即下载',
+                      ),
+                      // 取消按钮（统一使用X图标）
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        onPressed: () {
+                          Get.dialog(
+                            AlertDialog(
+                              title: const Text('取消缓存'),
+                              content: Text('确定要取消缓存"${entry.showTitle}"吗？'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: Text(
+                                    '取消',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.outline,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Get.back();
+                                    await _downloadService
+                                        .removeFromWaitingQueue(entry);
+                                    SmartDialog.showToast('已取消缓存');
+                                  },
+                                  child: const Text('确定'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        tooltip: '取消缓存',
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -939,6 +1258,19 @@ class _DownloadPageState extends State<DownloadPage> {
         ],
       ),
     );
+  }
+
+  /// 格式化字节大小
+  String _formatBytes(int bytes) {
+    if (bytes == 0) return '0B';
+    const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var i = 0;
+    double size = bytes.toDouble();
+    while (size >= 1024 && i < suffixes.length - 1) {
+      size /= 1024;
+      i++;
+    }
+    return '${size.toStringAsFixed(i == 0 ? 0 : 1)}${suffixes[i]}';
   }
 
   /// 构建空状态

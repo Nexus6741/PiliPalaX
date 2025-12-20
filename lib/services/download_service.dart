@@ -93,13 +93,23 @@ class DownloadService extends GetxService {
             final entry = DownloadEntryInfo.fromJson(jsonDecode(entryJson))
               ..pageDirPath = pageDir.path
               ..entryDirPath = entryDir.path;
+
+            if (kDebugMode) {
+              debugPrint(
+                  '读取条目 ${entry.cid}: downloaded=${entry.downloadedBytes.value}, total=${entry.totalBytes.value}, completed=${entry.isCompleted}');
+            }
+
             if (entry.isCompleted) {
               result.add(entry);
             } else {
               entry.status.value = DownloadStatus.wait;
               waitDownloadQueue.add(entry);
             }
-          } catch (_) {}
+          } catch (e) {
+            if (kDebugMode) {
+              debugPrint('读取条目失败: $e');
+            }
+          }
         }
       }
     }
@@ -240,22 +250,21 @@ class DownloadService extends GetxService {
         return;
       }
 
-      final entry = waitDownloadQueue.removeAt(0);
+      // 查找第一个未暂停的视频
+      final entry = waitDownloadQueue.firstWhereOrNull(
+        (e) => e.status.value != DownloadStatus.pause,
+      );
+
+      if (entry == null) {
+        // 队列中都是暂停的视频
+        return;
+      }
+
       _curCid = entry.cid;
       curDownload.value = entry;
 
-      try {
-        await _startDownload(entry);
-      } catch (e) {
-        if (kDebugMode) {
-          debugPrint('Error starting download: $e');
-        }
-        entry.status.value = DownloadStatus.failPlayUrl;
-        _curCid = null;
-        curDownload.value = null;
-        // 启动下一个下载
-        startDownload();
-      }
+      // _startDownload 内部会处理异常和启动下一个下载
+      await _startDownload(entry);
     });
   }
 
@@ -325,7 +334,10 @@ class DownloadService extends GetxService {
   Future<void> _startDownload(DownloadEntryInfo entry) async {
     try {
       if (!await downloadDanmaku(entry: entry)) {
-        return;
+        // 弹幕下载失败，但继续下载视频
+        if (kDebugMode) {
+          debugPrint('Failed to download danmaku, but continue with video');
+        }
       }
 
       _updateCurStatus(DownloadStatus.getPlayUrl);
@@ -385,6 +397,14 @@ class DownloadService extends GetxService {
       if (kDebugMode) {
         debugPrint('get download url error: $e');
       }
+      // 失败后从队列移除并启动下一个
+      waitDownloadQueue.remove(entry);
+      _curCid = null;
+      curDownload.value = null;
+      videoManager = null;
+      audioManager = null;
+      // 启动下一个下载
+      startDownload();
     }
   }
 
@@ -393,15 +413,40 @@ class DownloadService extends GetxService {
     await entryJsonFile.writeAsString(jsonEncode(entry.toJson()));
   }
 
+  Timer? _progressSaveTimer;
+  int _lastSavedProgress = 0;
+
   void _onReceive(int progress, int total) {
     final entry = curDownload.value;
     if (entry != null) {
-      if (progress == 0 && total != 0) {
+      // 更新总大小
+      if (total != 0 && entry.totalBytes.value != total) {
         entry.totalBytes.value = total;
+        // 异步保存，但不阻塞进度更新
         _updateBiliDownloadEntryJson(entry);
       }
+
+      // 更新已下载大小
       entry.downloadedBytes.value = progress;
       entry.status.value = DownloadStatus.downloading;
+
+      // 每隔5秒或进度变化超过5MB时保存一次进度
+      final progressDiff = (progress - _lastSavedProgress).abs();
+      if (progressDiff > 5 * 1024 * 1024) {
+        _lastSavedProgress = progress;
+        // 异步保存，但不阻塞进度更新
+        _updateBiliDownloadEntryJson(entry);
+      } else {
+        // 使用定时器延迟保存，避免频繁写入
+        _progressSaveTimer?.cancel();
+        _progressSaveTimer = Timer(const Duration(seconds: 5), () {
+          _lastSavedProgress = progress;
+          _updateBiliDownloadEntryJson(entry);
+        });
+      }
+
+      // 强制刷新UI
+      waitDownloadQueue.refresh();
     }
   }
 
@@ -409,8 +454,27 @@ class DownloadService extends GetxService {
     final entry = curDownload.value;
     if (entry == null) return;
 
+    // 取消进度保存定时器
+    _progressSaveTimer?.cancel();
+    _progressSaveTimer = null;
+    _lastSavedProgress = 0;
+
     if (error != null) {
       entry.status.value = videoManager?.status ?? DownloadStatus.pause;
+      // 如果是暂停，保留在队列中；如果是失败，从队列中移除
+      if (entry.status.value != DownloadStatus.pause) {
+        waitDownloadQueue.remove(entry);
+        // 清理状态
+        _curCid = null;
+        curDownload.value = null;
+        videoManager = null;
+        audioManager = null;
+        // 启动下一个下载
+        startDownload();
+      } else {
+        // 暂停时立即保存进度
+        _updateBiliDownloadEntryJson(entry);
+      }
       return;
     }
 
@@ -426,6 +490,18 @@ class DownloadService extends GetxService {
       _completeDownload();
     } else {
       _updateBiliDownloadEntryJson(entry);
+      // 如果失败，从队列中移除
+      if (status == DownloadStatus.failDownload ||
+          status == DownloadStatus.failDownloadAudio) {
+        waitDownloadQueue.remove(entry);
+        // 清理状态
+        _curCid = null;
+        curDownload.value = null;
+        videoManager = null;
+        audioManager = null;
+        // 启动下一个下载
+        startDownload();
+      }
     }
   }
 
@@ -446,10 +522,18 @@ class DownloadService extends GetxService {
     final entry = curDownload.value;
     if (entry == null) return;
 
+    // 取消进度保存定时器
+    _progressSaveTimer?.cancel();
+    _progressSaveTimer = null;
+    _lastSavedProgress = 0;
+
     entry.downloadedBytes.value = entry.totalBytes.value;
     entry.isCompleted = true;
     await _updateBiliDownloadEntryJson(entry);
 
+    // 从等待队列中移除已完成的项
+    waitDownloadQueue.remove(entry);
+    // 添加到已完成列表
     downloadList.insert(0, entry);
     flagNotifier.refresh();
 
@@ -520,6 +604,11 @@ class DownloadService extends GetxService {
     required bool isDelete,
     bool downloadNext = true,
   }) async {
+    // 取消进度保存定时器
+    _progressSaveTimer?.cancel();
+    _progressSaveTimer = null;
+    _lastSavedProgress = 0;
+
     if (!isDelete && videoManager?.status == DownloadStatus.downloading) {
       curDownload.value?.status.value = DownloadStatus.pause;
     }
@@ -529,11 +618,19 @@ class DownloadService extends GetxService {
     final entry = curDownload.value;
     if (entry != null) {
       if (!isDelete) {
+        // 暂停时立即保存当前进度
         await _updateBiliDownloadEntryJson(entry);
         entry.status.value = DownloadStatus.pause;
-        waitDownloadQueue.insert(0, entry);
+
+        if (kDebugMode) {
+          debugPrint(
+              '保存暂停进度 ${entry.cid}: ${entry.downloadedBytes.value}/${entry.totalBytes.value}');
+        }
+
+        // 暂停时保持在队列中，不需要重新插入
       } else {
-        // 删除操作：删除本地文件
+        // 删除操作：从队列中移除并删除本地文件
+        waitDownloadQueue.remove(entry);
         await _deleteDownloadFiles(entry);
       }
     }
@@ -542,6 +639,10 @@ class DownloadService extends GetxService {
     curDownload.value = null;
     videoManager = null;
     audioManager = null;
+
+    // 强制刷新队列UI
+    waitDownloadQueue.refresh();
+
     if (downloadNext) {
       startDownload();
     }
@@ -572,6 +673,11 @@ class DownloadService extends GetxService {
 
   /// 清空等待队列中的所有下载
   Future<void> clearWaitingQueue() async {
+    // 先取消当前下载
+    if (curDownload.value != null) {
+      await cancelDownload(isDelete: true, downloadNext: false);
+    }
+
     final entries = List<DownloadEntryInfo>.from(waitDownloadQueue);
     waitDownloadQueue.clear();
 
@@ -583,11 +689,125 @@ class DownloadService extends GetxService {
     flagNotifier.refresh();
   }
 
+  /// 跳过当前下载，继续下一个
+  Future<void> skipCurrentDownload() async {
+    return _lock.synchronized(() async {
+      final entry = curDownload.value;
+      if (entry == null) return;
+
+      // 取消进度保存定时器
+      _progressSaveTimer?.cancel();
+      _progressSaveTimer = null;
+      _lastSavedProgress = 0;
+
+      // 取消当前下载
+      await videoManager?.cancel(isDelete: false);
+      await audioManager?.cancel(isDelete: false);
+
+      // 标记为暂停状态并立即保存进度
+      entry.status.value = DownloadStatus.pause;
+      await _updateBiliDownloadEntryJson(entry);
+
+      // 清理状态
+      _curCid = null;
+      curDownload.value = null;
+      videoManager = null;
+      audioManager = null;
+
+      // 启动下一个下载（跳过暂停的）
+      _startNextDownload();
+    });
+  }
+
+  /// 启动下一个未暂停的下载
+  void _startNextDownload() {
+    // 查找第一个未暂停的视频
+    final nextEntry = waitDownloadQueue.firstWhereOrNull(
+      (e) => e.status.value != DownloadStatus.pause,
+    );
+
+    if (nextEntry != null) {
+      startDownload();
+    }
+  }
+
+  /// 优先下载指定视频（暂停当前，立即开始该视频）
+  Future<void> prioritizeDownload(DownloadEntryInfo entry) async {
+    return _lock.synchronized(() async {
+      // 如果该视频已经在下载，不做处理
+      if (curDownload.value?.cid == entry.cid) {
+        return;
+      }
+
+      // 如果有正在下载的视频，先暂停它
+      if (curDownload.value != null) {
+        final currentEntry = curDownload.value!;
+
+        // 取消进度保存定时器
+        _progressSaveTimer?.cancel();
+        _progressSaveTimer = null;
+        _lastSavedProgress = 0;
+
+        // 取消当前下载
+        await videoManager?.cancel(isDelete: false);
+        await audioManager?.cancel(isDelete: false);
+
+        // 标记为暂停状态并立即保存进度
+        currentEntry.status.value = DownloadStatus.pause;
+        await _updateBiliDownloadEntryJson(currentEntry);
+
+        if (kDebugMode) {
+          debugPrint(
+              '暂停视频 ${currentEntry.cid}: ${currentEntry.downloadedBytes.value}/${currentEntry.totalBytes.value}');
+        }
+
+        // 清理状态
+        _curCid = null;
+        curDownload.value = null;
+        videoManager = null;
+        audioManager = null;
+
+        // 强制刷新队列UI
+        waitDownloadQueue.refresh();
+      }
+
+      // 将目标视频状态改为等待
+      if (entry.status.value == DownloadStatus.pause) {
+        entry.status.value = DownloadStatus.wait;
+        await _updateBiliDownloadEntryJson(entry);
+      }
+
+      // 立即开始下载该视频
+      _curCid = entry.cid;
+      curDownload.value = entry;
+      await _startDownload(entry);
+    });
+  }
+
+  /// 继续下载（恢复暂停的下载）
+  Future<void> resumeDownload(DownloadEntryInfo entry) async {
+    if (entry.status.value != DownloadStatus.pause) return;
+
+    // 重置状态为等待
+    entry.status.value = DownloadStatus.wait;
+    await _updateBiliDownloadEntryJson(entry);
+
+    // 如果当前没有下载，立即开始
+    if (curDownload.value == null) {
+      startDownload();
+    }
+  }
+
   /// 删除等待队列中的单个下载
   Future<void> removeFromWaitingQueue(DownloadEntryInfo entry) async {
-    waitDownloadQueue.remove(entry);
-    await _deleteDownloadFiles(entry);
-    flagNotifier.refresh();
+    // 如果是当前正在下载的，需要先取消
+    if (curDownload.value?.cid == entry.cid) {
+      await cancelDownload(isDelete: true, downloadNext: true);
+    } else {
+      waitDownloadQueue.remove(entry);
+      await _deleteDownloadFiles(entry);
+      flagNotifier.refresh();
+    }
   }
 
   /// 获取视频播放地址
