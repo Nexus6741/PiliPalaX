@@ -127,6 +127,8 @@ class VideoDetailController extends GetxController
     print("🔍 VideoDetailController.onInit() - 开始初始化");
     print("🔍 Get.arguments: $argMap");
     print("🔍 Get.parameters: ${Get.parameters}");
+    print(
+        "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi ? '番剧' : '普通视频'})");
     userInfo = userInfoCache.get('userInfoCache');
 
     var keys = argMap.keys.toList();

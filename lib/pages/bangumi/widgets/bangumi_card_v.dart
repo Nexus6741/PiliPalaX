@@ -39,6 +39,7 @@ class BangumiCardV extends StatelessWidget {
         child: InkWell(
           onTap: () async {
             final int seasonId = bangumiItem.seasonId;
+            print('🔍 番剧卡片点击: seasonId=$seasonId');
             SmartDialog.showLoading(msg: '获取中...');
             final res = await SearchHttp.bangumiInfo(seasonId: seasonId);
             SmartDialog.dismiss().then((value) {
@@ -62,8 +63,10 @@ class BangumiCardV extends StatelessWidget {
                 String bvid = episode.bvid!;
                 int cid = episode.cid!;
                 String pic = episode.cover!;
-                print('epId');
-                print(epId);
+                print(
+                    '🔍 番剧卡片-番剧信息获取成功: seasonId=$seasonId, epId=$epId, bvid=$bvid, cid=$cid');
+                print(
+                    '🔍 番剧卡片-传递参数: videoType=SearchType.media_bangumi, heroTag=$heroTag');
                 // 使用卡片的 heroTag，保持 Hero 动画一致性
                 Get.toNamed(
                   '/video?bvid=$bvid&cid=$cid&seasonId=$seasonId&epId=$epId',

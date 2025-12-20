@@ -37,6 +37,12 @@ class HistoryItem extends StatelessWidget {
     String heroTag = Utils.makeHeroTag(aid);
     return InkWell(
       onTap: () async {
+        print('🔍 历史记录点击: aid=$aid, bvid=$bvid');
+        print(
+            '🔍 历史记录-badge: ${videoItem.badge}, tagName: ${videoItem.tagName}');
+        print('🔍 历史记录-business: ${videoItem.history.business}');
+        print('🔍 历史记录-epid: ${videoItem.history.epid}');
+
         if (ctr!.enableMultiple.value) {
           feedBack();
           onChoose!();
@@ -74,67 +80,42 @@ class HistoryItem extends StatelessWidget {
           } else {
             SmartDialog.showToast('直播未开播');
           }
-        } else if (videoItem.badge == '番剧' ||
-            videoItem.tagName.contains('动画')) {
-          /// hack
-          var bvid = videoItem.history.bvid;
-          if (bvid != null && bvid != '') {
-            var result = await VideoHttp.videoIntro(bvid: bvid);
-            if (result['status']) {
-              String bvid = result['data'].bvid!;
-              int cid = result['data'].cid!;
-              String pic = result['data'].pic!;
-              String heroTag = Utils.makeHeroTag(cid);
-              var epid = result['data'].epId;
-              if (epid != null) {
-                Get.toNamed(
-                  '/video?bvid=$bvid&cid=$cid&epId=${result['data'].epId}',
-                  arguments: {
-                    'pic': pic,
-                    'heroTag': heroTag,
-                    'videoType': SearchType.media_bangumi,
-                  },
-                );
-              } else {
-                int cid = videoItem.history.cid ??
-                    // videoItem.history.oid ??
-                    await SearchHttp.ab2c(aid: aid, bvid: bvid);
-                Get.toNamed('/video?bvid=$bvid&cid=$cid',
-                    arguments: {'heroTag': heroTag, 'pic': videoItem.cover});
-              }
-            } else {
-              SmartDialog.showToast(result['msg']);
-            }
-          } else {
-            if (videoItem.history.epid != '') {
-              SmartDialog.showLoading(msg: '获取中...');
-              var res =
-                  await SearchHttp.bangumiInfo(epId: videoItem.history.epid);
-              SmartDialog.dismiss();
-              if (res['status']) {
-                EpisodeItem episode = res['data'].episodes.first;
-                for (EpisodeItem i in res['data'].episodes) {
-                  if (i.epId == videoItem.history.epid) {
-                    episode = i;
-                    break;
-                  }
+        } else if (videoItem.history.business == 'pgc') {
+          // PGC内容（番剧、国创、电影、纪录片等）
+          print('🔍 历史记录-PGC内容: epid=${videoItem.history.epid}');
+
+          if (videoItem.history.epid != null && videoItem.history.epid != '') {
+            print('🔍 历史记录-通过epid获取番剧信息');
+            SmartDialog.showLoading(msg: '获取中...');
+            var res =
+                await SearchHttp.bangumiInfo(epId: videoItem.history.epid);
+            SmartDialog.dismiss();
+            if (res['status']) {
+              EpisodeItem episode = res['data'].episodes.first;
+              for (EpisodeItem i in res['data'].episodes) {
+                if (i.epId == videoItem.history.epid) {
+                  episode = i;
+                  break;
                 }
-                String bvid = episode.bvid!;
-                int cid = episode.cid!;
-                String pic = episode.cover!;
-                String heroTag = Utils.makeHeroTag(cid);
-                Get.toNamed(
-                  '/video?bvid=$bvid&cid=$cid&seasonId=${res['data'].seasonId}&epid=${episode.epId}',
-                  arguments: {
-                    'pic': pic,
-                    'heroTag': heroTag,
-                    'videoType': SearchType.media_bangumi,
-                    'bangumiItem': res['data'],
-                  },
-                );
-              } else {
-                SmartDialog.showToast(res['msg']);
               }
+              String bvid = episode.bvid!;
+              int cid = episode.cid!;
+              String pic = episode.cover!;
+              print(
+                  '🔍 历史记录-番剧信息获取成功: seasonId=${res['data'].seasonId}, bvid=$bvid, cid=$cid');
+              print(
+                  '🔍 历史记录-传递参数: videoType=SearchType.media_bangumi, heroTag=$heroTag');
+              Get.toNamed(
+                '/video?bvid=$bvid&cid=$cid&seasonId=${res['data'].seasonId}&epId=${episode.epId}',
+                arguments: {
+                  'pic': pic,
+                  'heroTag': heroTag,
+                  'videoType': SearchType.media_bangumi,
+                  'bangumiItem': res['data'],
+                },
+              );
+            } else {
+              SmartDialog.showToast(res['msg']);
             }
           }
         } else {
