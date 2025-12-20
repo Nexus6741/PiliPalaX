@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/models/common/search_type.dart';
 import 'package:PiliPalaX/models/download/download_entry_info.dart';
 import 'package:PiliPalaX/models/download/download_episode_info.dart';
 import 'package:PiliPalaX/models/download/download_page_info.dart';
@@ -8,6 +9,7 @@ import 'package:PiliPalaX/pages/download/controller.dart';
 import 'package:PiliPalaX/services/download_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
 
 class DownloadPage extends StatefulWidget {
@@ -231,27 +233,32 @@ class _DownloadPageState extends State<DownloadPage> {
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
                                 final item = _controller.pages[index];
-                                if (item.entries.length == 1) {
-                                  final entry = item.entries.first;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: SizedBox(
-                                      height: 100,
-                                      child: _buildSingleEntryItem(
-                                        entry,
-                                        item,
-                                        theme,
-                                        enableMultiSelect,
+                                return AnimationConfiguration.staggeredList(
+                                  position: index,
+                                  duration: const Duration(milliseconds: 375),
+                                  child: SlideAnimation(
+                                    verticalOffset: 50.0,
+                                    child: FadeInAnimation(
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8),
+                                        child: item.entries.length == 1
+                                            ? SizedBox(
+                                                height: 100,
+                                                child: _buildSingleEntryItem(
+                                                  item.entries.first,
+                                                  item,
+                                                  theme,
+                                                  enableMultiSelect,
+                                                ),
+                                              )
+                                            : _buildMultiEntryItem(
+                                                theme,
+                                                item,
+                                                enableMultiSelect,
+                                              ),
                                       ),
                                     ),
-                                  );
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: _buildMultiEntryItem(
-                                    theme,
-                                    item,
-                                    enableMultiSelect,
                                   ),
                                 );
                               },
@@ -637,23 +644,7 @@ class _DownloadPageState extends State<DownloadPage> {
             return;
           }
           // 跳转到视频播放页 - 离线播放
-          final heroTag =
-              '${entry.bvid}_${entry.cid}_${DateTime.now().millisecondsSinceEpoch}';
-
-          Get.toNamed(
-            '/video',
-            parameters: {
-              'bvid': entry.bvid,
-              'cid': entry.cid.toString(),
-            },
-            arguments: {
-              'sourceType': 'file',
-              'entry': entry,
-              'dirPath': entry.entryDirPath,
-              'heroTag': heroTag,
-              'pic': entry.cover, // 直接传递 pic，不传递 videoItem Map
-            },
-          );
+          _playVideo(entry);
         },
         onLongPress: () {
           if (!enableMultiSelect) {
@@ -961,20 +952,50 @@ class _DownloadPageState extends State<DownloadPage> {
           ),
         ),
         // 展开的子项列表
-        if (pageInfo.isExpanded && !enableMultiSelect)
-          Padding(
-            padding: const EdgeInsets.only(left: 16, top: 4),
-            child: Column(
-              children: useThreeLevelStructure
-                  ? pageInfo.episodes!
-                      .map((episode) =>
-                          _buildEpisodeItem(episode, theme, pageInfo))
-                      .toList()
-                  : pageInfo.entries
-                      .map((entry) => _buildExpandedEntryItem(entry, theme))
-                      .toList(),
-            ),
-          ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: pageInfo.isExpanded && !enableMultiSelect
+              ? Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 4),
+                  child: Column(
+                    children: useThreeLevelStructure
+                        ? pageInfo.episodes!
+                            .asMap()
+                            .entries
+                            .map((entry) =>
+                                AnimationConfiguration.staggeredList(
+                                  position: entry.key,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: SlideAnimation(
+                                    verticalOffset: 30.0,
+                                    child: FadeInAnimation(
+                                      child: _buildEpisodeItem(
+                                          entry.value, theme, pageInfo),
+                                    ),
+                                  ),
+                                ))
+                            .toList()
+                        : pageInfo.entries
+                            .asMap()
+                            .entries
+                            .map((entry) =>
+                                AnimationConfiguration.staggeredList(
+                                  position: entry.key,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: SlideAnimation(
+                                    verticalOffset: 30.0,
+                                    child: FadeInAnimation(
+                                      child: _buildExpandedEntryItem(
+                                          entry.value, theme),
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
       ],
     );
   }
@@ -1059,15 +1080,31 @@ class _DownloadPageState extends State<DownloadPage> {
           ),
         ),
         // 展开的画质列表（三级）
-        if (episode.isExpanded && hasMultipleQualities)
-          Padding(
-            padding: const EdgeInsets.only(left: 16, top: 0, bottom: 4),
-            child: Column(
-              children: episode.entries
-                  .map((entry) => _buildQualityItem(entry, theme))
-                  .toList(),
-            ),
-          ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          child: episode.isExpanded && hasMultipleQualities
+              ? Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 0, bottom: 4),
+                  child: Column(
+                    children: episode.entries
+                        .asMap()
+                        .entries
+                        .map((entry) => AnimationConfiguration.staggeredList(
+                              position: entry.key,
+                              duration: const Duration(milliseconds: 250),
+                              child: SlideAnimation(
+                                horizontalOffset: 30.0,
+                                child: FadeInAnimation(
+                                  child: _buildQualityItem(entry.value, theme),
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
       ],
     );
   }
@@ -1135,20 +1172,39 @@ class _DownloadPageState extends State<DownloadPage> {
     final heroTag =
         '${entry.bvid}_${entry.cid}_${DateTime.now().millisecondsSinceEpoch}';
 
-    Get.toNamed(
-      '/video',
-      parameters: {
-        'bvid': entry.bvid,
-        'cid': entry.cid.toString(),
-      },
-      arguments: {
-        'sourceType': 'file',
-        'entry': entry,
-        'dirPath': entry.entryDirPath,
-        'heroTag': heroTag,
-        'pic': entry.cover,
-      },
-    );
+    // 判断是否为番剧/影视
+    final isBangumi = entry.seasonId != null && entry.ep != null;
+
+    if (isBangumi) {
+      // 番剧/影视：使用与在线播放相同的跳转方式
+      Get.toNamed(
+        '/video?bvid=${entry.bvid}&cid=${entry.cid}&seasonId=${entry.seasonId}&epId=${entry.ep!.episodeId}',
+        arguments: {
+          'sourceType': 'file',
+          'entry': entry,
+          'dirPath': entry.entryDirPath,
+          'pic': entry.cover,
+          'heroTag': heroTag,
+          'videoType': SearchType.media_bangumi,
+        },
+      );
+    } else {
+      // 普通视频
+      Get.toNamed(
+        '/video',
+        parameters: {
+          'bvid': entry.bvid,
+          'cid': entry.cid.toString(),
+        },
+        arguments: {
+          'sourceType': 'file',
+          'entry': entry,
+          'dirPath': entry.entryDirPath,
+          'heroTag': heroTag,
+          'pic': entry.cover,
+        },
+      );
+    }
   }
 
   /// 显示选集操作选项
@@ -1198,23 +1254,7 @@ class _DownloadPageState extends State<DownloadPage> {
         borderRadius: BorderRadius.circular(8),
         onTap: () {
           // 跳转到视频播放页 - 离线播放
-          final heroTag =
-              '${entry.bvid}_${entry.cid}_${DateTime.now().millisecondsSinceEpoch}';
-
-          Get.toNamed(
-            '/video',
-            parameters: {
-              'bvid': entry.bvid,
-              'cid': entry.cid.toString(),
-            },
-            arguments: {
-              'sourceType': 'file',
-              'entry': entry,
-              'dirPath': entry.entryDirPath,
-              'heroTag': heroTag,
-              'pic': entry.cover,
-            },
-          );
+          _playVideo(entry);
         },
         onLongPress: () {
           _showExpandedEntryOptions(entry);

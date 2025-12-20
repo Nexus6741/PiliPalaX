@@ -14,6 +14,7 @@ import 'package:PiliPalaX/models/video/play/quality.dart';
 import 'package:PiliPalaX/models/video/play/url.dart';
 import 'package:PiliPalaX/pages/video/index.dart';
 import 'package:PiliPalaX/pages/video/reply/index.dart';
+import 'package:PiliPalaX/pages/video/widgets/batch_download_panel.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPalaX/services/download_service.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
@@ -483,60 +484,149 @@ class BangumiIntroController extends GetxController {
         return;
       }
 
-      // 显示加载提示
-      SmartDialog.showLoading(msg: '获取画质信息...');
-
-      // 获取视频真实可用的画质列表
-      final res = await VideoHttp.videoUrl(
-        bvid: currentEpisode.bvid!,
-        cid: currentEpisode.cid!,
-      );
-
-      SmartDialog.dismiss();
-
-      if (!res['status']) {
-        SmartDialog.showToast('获取画质信息失败: ${res['msg']}');
-        return;
-      }
-
-      final PlayUrlModel playUrlData = res['data'];
-      final List<FormatItem>? supportFormats = playUrlData.supportFormats;
-
-      if (supportFormats == null || supportFormats.isEmpty) {
-        SmartDialog.showToast('无可用画质');
-        return;
-      }
-
-      // 显示画质选择对话框
-      showDialog(
-        context: Get.context!,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('选择画质'),
-            content: SingleChildScrollView(
-              child: Column(
+      // 如果有多集，显示选择对话框
+      if (bangumiDetail.value.episodes!.length > 1) {
+        showDialog(
+          context: Get.context!,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('下载选项'),
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: supportFormats.map((format) {
-                  final quality = VideoQualityCode.fromCode(format.quality!);
-                  if (quality == null) return const SizedBox.shrink();
-
-                  return ListTile(
-                    title: Text(format.newDesc ?? quality.description),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.download),
+                    title: const Text('下载当前集'),
+                    subtitle: Text(currentEpisode!.longTitle ?? ''),
                     onTap: () {
                       Get.back();
-                      _startDownload(downloadService, currentEpisode!, quality);
+                      _showQualityDialog(downloadService, currentEpisode!);
                     },
-                  );
-                }).toList(),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.download_for_offline),
+                    title: const Text('批量下载'),
+                    subtitle:
+                        Text('共 ${bangumiDetail.value.episodes!.length} 集'),
+                    onTap: () {
+                      Get.back();
+                      _showBatchDownloadPanel();
+                    },
+                  ),
+                ],
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
+      } else {
+        // 只有一集，直接显示画质选择
+        _showQualityDialog(downloadService, currentEpisode);
+      }
     } catch (e) {
       SmartDialog.dismiss();
       SmartDialog.showToast('下载失败: $e');
     }
+  }
+
+  // 显示画质选择对话框
+  Future<void> _showQualityDialog(
+    DownloadService downloadService,
+    EpisodeItem currentEpisode,
+  ) async {
+    // 显示加载提示
+    SmartDialog.showLoading(msg: '获取画质信息...');
+
+    // 获取视频真实可用的画质列表
+    final res = await VideoHttp.videoUrl(
+      bvid: currentEpisode.bvid!,
+      cid: currentEpisode.cid!,
+    );
+
+    SmartDialog.dismiss();
+
+    if (!res['status']) {
+      SmartDialog.showToast('获取画质信息失败: ${res['msg']}');
+      return;
+    }
+
+    final PlayUrlModel playUrlData = res['data'];
+    final List<FormatItem>? supportFormats = playUrlData.supportFormats;
+
+    if (supportFormats == null || supportFormats.isEmpty) {
+      SmartDialog.showToast('无可用画质');
+      return;
+    }
+
+    // 显示画质选择对话框
+    showDialog(
+      context: Get.context!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('选择画质'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: supportFormats.map((format) {
+                final quality = VideoQualityCode.fromCode(format.quality!);
+                if (quality == null) return const SizedBox.shrink();
+
+                return ListTile(
+                  title: Text(format.newDesc ?? quality.description),
+                  onTap: () {
+                    Get.back();
+                    _startDownload(downloadService, currentEpisode, quality);
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 显示批量下载面板
+  void _showBatchDownloadPanel() {
+    if (bangumiDetail.value.episodes == null ||
+        bangumiDetail.value.episodes!.isEmpty) {
+      SmartDialog.showToast('无可用剧集');
+      return;
+    }
+
+    // 导入批量下载面板
+    final episodes = bangumiDetail.value.episodes!.map((episode) {
+      return BatchDownloadItem(
+        index: episode.id ?? 0,
+        title: episode.title ?? '',
+        subtitle: episode.longTitle,
+        cid: episode.cid!,
+        bvid: episode.bvid!,
+        aid: episode.aid!,
+        duration: episode.duration ?? 0,
+        cover: episode.cover,
+        danmakuCount: null,
+        page: 1,
+        part: null,
+        episodeId: episode.id,
+        longTitle: episode.longTitle,
+      );
+    }).toList();
+
+    showModalBottomSheet(
+      context: Get.context!,
+      isScrollControlled: true,
+      builder: (context) {
+        return BatchDownloadPanel(
+          episodes: episodes,
+          title: bangumiDetail.value.title ?? '',
+          cover: bangumiDetail.value.cover ?? '',
+          ownerId: null,
+          ownerName: null,
+          seasonId: seasonId?.toString(),
+          seasonType: bangumiDetail.value.type,
+        );
+      },
+    );
   }
 
   void _startDownload(

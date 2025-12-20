@@ -14,6 +14,7 @@ import 'package:PiliPalaX/models/video/video_tag.dart';
 import 'package:PiliPalaX/models/video_detail_res.dart';
 import 'package:PiliPalaX/pages/video/controller.dart';
 import 'package:PiliPalaX/pages/video/reply/index.dart';
+import 'package:PiliPalaX/pages/video/widgets/batch_download_panel.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/id_utils.dart';
@@ -810,60 +811,148 @@ class VideoIntroController extends GetxController {
         return;
       }
 
-      // 显示加载提示
-      SmartDialog.showLoading(msg: '获取画质信息...');
-
-      // 获取视频真实可用的画质列表
-      final res = await VideoHttp.videoUrl(
-        bvid: bvid,
-        cid: currentPage.cid!,
-      );
-
-      SmartDialog.dismiss();
-
-      if (!res['status']) {
-        SmartDialog.showToast('获取画质信息失败: ${res['msg']}');
-        return;
-      }
-
-      final PlayUrlModel playUrlData = res['data'];
-      final List<FormatItem>? supportFormats = playUrlData.supportFormats;
-
-      if (supportFormats == null || supportFormats.isEmpty) {
-        SmartDialog.showToast('无可用画质');
-        return;
-      }
-
-      // 显示画质选择对话框
-      showDialog(
-        context: Get.context!,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('选择画质'),
-            content: SingleChildScrollView(
-              child: Column(
+      // 如果有多个分P，显示选择对话框
+      if (videoDetail.value.pages!.length > 1) {
+        showDialog(
+          context: Get.context!,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('下载选项'),
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: supportFormats.map((format) {
-                  final quality = VideoQualityCode.fromCode(format.quality!);
-                  if (quality == null) return const SizedBox.shrink();
-
-                  return ListTile(
-                    title: Text(format.newDesc ?? quality.description),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.download),
+                    title: const Text('下载当前分P'),
+                    subtitle:
+                        Text(currentPage!.pagePart ?? 'P${currentPage.page}'),
                     onTap: () {
                       Get.back();
-                      _startDownload(downloadService, currentPage!, quality);
+                      _showQualityDialog(downloadService, currentPage!);
                     },
-                  );
-                }).toList(),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.download_for_offline),
+                    title: const Text('批量下载'),
+                    subtitle: Text('共 ${videoDetail.value.pages!.length} 个分P'),
+                    onTap: () {
+                      Get.back();
+                      _showBatchDownloadPanel();
+                    },
+                  ),
+                ],
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
+      } else {
+        // 只有一个分P，直接显示画质选择
+        _showQualityDialog(downloadService, currentPage);
+      }
     } catch (e) {
       SmartDialog.dismiss();
       SmartDialog.showToast('下载失败: $e');
     }
+  }
+
+  // 显示画质选择对话框
+  Future<void> _showQualityDialog(
+    DownloadService downloadService,
+    Part currentPage,
+  ) async {
+    // 显示加载提示
+    SmartDialog.showLoading(msg: '获取画质信息...');
+
+    // 获取视频真实可用的画质列表
+    final res = await VideoHttp.videoUrl(
+      bvid: bvid,
+      cid: currentPage.cid!,
+    );
+
+    SmartDialog.dismiss();
+
+    if (!res['status']) {
+      SmartDialog.showToast('获取画质信息失败: ${res['msg']}');
+      return;
+    }
+
+    final PlayUrlModel playUrlData = res['data'];
+    final List<FormatItem>? supportFormats = playUrlData.supportFormats;
+
+    if (supportFormats == null || supportFormats.isEmpty) {
+      SmartDialog.showToast('无可用画质');
+      return;
+    }
+
+    // 显示画质选择对话框
+    showDialog(
+      context: Get.context!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('选择画质'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: supportFormats.map((format) {
+                final quality = VideoQualityCode.fromCode(format.quality!);
+                if (quality == null) return const SizedBox.shrink();
+
+                return ListTile(
+                  title: Text(format.newDesc ?? quality.description),
+                  onTap: () {
+                    Get.back();
+                    _startDownload(downloadService, currentPage, quality);
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 显示批量下载面板
+  void _showBatchDownloadPanel() {
+    if (videoDetail.value.pages == null || videoDetail.value.pages!.isEmpty) {
+      SmartDialog.showToast('无可用分P');
+      return;
+    }
+
+    // 导入批量下载面板
+    final episodes = videoDetail.value.pages!.map((page) {
+      return BatchDownloadItem(
+        index: page.page ?? 1,
+        title: 'P${page.page}',
+        subtitle: page.pagePart,
+        cid: page.cid!,
+        bvid: bvid,
+        aid: IdUtils.bv2av(bvid),
+        duration: page.duration ?? 0,
+        cover: null,
+        danmakuCount: videoDetail.value.stat?.danmu,
+        page: page.page ?? 1,
+        part: page.pagePart,
+        episodeId: null,
+        longTitle: null,
+      );
+    }).toList();
+
+    showModalBottomSheet(
+      context: Get.context!,
+      isScrollControlled: true,
+      builder: (context) {
+        return BatchDownloadPanel(
+          episodes: episodes,
+          title: videoDetail.value.title ?? '',
+          cover: videoDetail.value.pic ?? '',
+          ownerId: videoDetail.value.owner?.mid,
+          ownerName: videoDetail.value.owner?.name,
+          seasonId: null,
+          seasonType: null,
+        );
+      },
+    );
   }
 
   void _startDownload(
