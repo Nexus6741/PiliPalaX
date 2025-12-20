@@ -290,7 +290,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
           if (videoDetailController.videoType == SearchType.video) {
             notExitFlag = videoIntroController.nextPlay();
           }
-          if (videoDetailController.videoType == SearchType.media_bangumi) {
+          if (videoDetailController.videoType == SearchType.media_bangumi ||
+              videoDetailController.videoType == SearchType.media_ft) {
             notExitFlag = bangumiIntroController.nextPlay();
           }
         }
@@ -480,7 +481,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               Get.find<VideoIntroController>(tag: Get.arguments['heroTag']);
           videoIntroController.videoDetail.refresh();
         } else if (videoDetailController.videoType ==
-            SearchType.media_bangumi) {
+                SearchType.media_bangumi ||
+            videoDetailController.videoType == SearchType.media_ft) {
           final bangumiIntroController =
               Get.find<BangumiIntroController>(tag: Get.arguments['heroTag']);
           bangumiIntroController.bangumiDetail.refresh();
@@ -575,7 +577,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                               ? videoIntroController
                               : null,
                       bangumiIntroController: videoDetailController.videoType ==
-                              SearchType.media_bangumi
+                                  SearchType.media_bangumi ||
+                              videoDetailController.videoType ==
+                                  SearchType.media_ft
                           ? bangumiIntroController
                           : null,
                       headerControl: videoDetailController.headerControl,
@@ -826,7 +830,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                       SearchType.video) ...[
                                     VideoIntroPanel(heroTag: heroTag),
                                   ] else if (videoDetailController.videoType ==
-                                      SearchType.media_bangumi) ...[
+                                          SearchType.media_bangumi ||
+                                      videoDetailController.videoType ==
+                                          SearchType.media_ft) ...[
                                     Obx(() => BangumiIntroPanel(
                                         heroTag: heroTag,
                                         cid: videoDetailController.cid.value)),
@@ -967,7 +973,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                   SearchType.video) ...[
                                 VideoIntroPanel(heroTag: heroTag),
                               ] else if (videoDetailController.videoType ==
-                                  SearchType.media_bangumi) ...[
+                                      SearchType.media_bangumi ||
+                                  videoDetailController.videoType ==
+                                      SearchType.media_ft) ...[
                                 Obx(() => BangumiIntroPanel(
                                     heroTag: heroTag,
                                     cid: videoDetailController.cid.value)),
@@ -1088,7 +1096,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                           VideoIntroPanel(heroTag: heroTag),
                           RelatedVideoPanel(heroTag: heroTag),
                         ] else if (videoDetailController.videoType ==
-                            SearchType.media_bangumi) ...[
+                                SearchType.media_bangumi ||
+                            videoDetailController.videoType ==
+                                SearchType.media_ft) ...[
                           Obx(() => BangumiIntroPanel(
                               heroTag: heroTag,
                               cid: videoDetailController.cid.value)),
@@ -1144,7 +1154,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             VideoIntroPanel(heroTag: heroTag),
                             RelatedVideoPanel(heroTag: heroTag),
                           ] else if (videoDetailController.videoType ==
-                              SearchType.media_bangumi) ...[
+                                  SearchType.media_bangumi ||
+                              videoDetailController.videoType ==
+                                  SearchType.media_ft) ...[
                             Obx(() => BangumiIntroPanel(
                                 heroTag: heroTag,
                                 cid: videoDetailController.cid.value)),
@@ -1370,7 +1382,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                               VideoIntroPanel(heroTag: heroTag),
                               // RelatedVideoPanel(heroTag: heroTag),
                             ] else if (videoDetailController.videoType ==
-                                SearchType.media_bangumi) ...[
+                                    SearchType.media_bangumi ||
+                                videoDetailController.videoType ==
+                                    SearchType.media_ft) ...[
                               Obx(() => BangumiIntroPanel(
                                   heroTag: heroTag,
                                   cid: videoDetailController.cid.value)),
@@ -1495,10 +1509,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     videoDetailController.videoType == SearchType.video
                         ? videoIntroController
                         : null,
-                bangumiIntroController:
-                    videoDetailController.videoType == SearchType.media_bangumi
-                        ? bangumiIntroController
-                        : null,
+                bangumiIntroController: videoDetailController.videoType ==
+                            SearchType.media_bangumi ||
+                        videoDetailController.videoType == SearchType.media_ft
+                    ? bangumiIntroController
+                    : null,
                 headerControl: HeaderControl(
                   controller: plPlayerController,
                   videoDetailCtr: videoDetailController,

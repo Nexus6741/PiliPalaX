@@ -128,7 +128,7 @@ class VideoDetailController extends GetxController
     print("🔍 Get.arguments: $argMap");
     print("🔍 Get.parameters: ${Get.parameters}");
     print(
-        "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi ? '番剧' : '普通视频'})");
+        "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
     userInfo = userInfoCache.get('userInfoCache');
 
     var keys = argMap.keys.toList();
@@ -352,7 +352,8 @@ class VideoDetailController extends GetxController
       // 获取番剧参数（如果是番剧的话）
       int? epid;
       int? seasonId;
-      if (videoType == SearchType.media_bangumi) {
+      if (videoType == SearchType.media_bangumi ||
+          videoType == SearchType.media_ft) {
         try {
           final bangumiCtr = Get.find<BangumiIntroController>(tag: heroTag);
           epid = bangumiCtr.epId;
@@ -417,7 +418,8 @@ class VideoDetailController extends GetxController
     }
 
     // 根据视频类型选择不同的API
-    if (videoType == SearchType.media_bangumi) {
+    if (videoType == SearchType.media_bangumi ||
+        videoType == SearchType.media_ft) {
       // 获取番剧参数
       int? epid;
       try {
@@ -442,7 +444,8 @@ class VideoDetailController extends GetxController
       data = result['data'];
 
       // 对于普通视频，额外获取播放信息
-      if (videoType != SearchType.media_bangumi) {
+      if (videoType != SearchType.media_bangumi &&
+          videoType != SearchType.media_ft) {
         try {
           var playInfoResult =
               await VideoHttp.playInfo(bvid: bvid, cid: cid.value);
@@ -675,7 +678,8 @@ class VideoDetailController extends GetxController
     Future.delayed(const Duration(milliseconds: 500), () {
       try {
         // 判断是番剧还是普通视频
-        if (videoType == SearchType.media_bangumi) {
+        if (videoType == SearchType.media_bangumi ||
+            videoType == SearchType.media_ft) {
           final bangumiIntroController =
               Get.find<BangumiIntroController>(tag: heroTag);
           final episodes = bangumiIntroController.bangumiDetail.value.episodes;
@@ -739,7 +743,8 @@ class VideoDetailController extends GetxController
         // 控制器可能还未初始化，再延迟一次尝试
         Future.delayed(const Duration(milliseconds: 1000), () {
           try {
-            if (videoType == SearchType.media_bangumi) {
+            if (videoType == SearchType.media_bangumi ||
+                videoType == SearchType.media_ft) {
               final bangumiIntroController =
                   Get.find<BangumiIntroController>(tag: heroTag);
               final episodes =
@@ -903,7 +908,8 @@ class VideoDetailController extends GetxController
     segmentList.clear();
 
     // 如果是番剧，从 API 获取片头片尾信息
-    if (videoType == SearchType.media_bangumi) {
+    if (videoType == SearchType.media_bangumi ||
+        videoType == SearchType.media_ft) {
       await _queryPgcSkipSegments();
     } else if (enableSponsorBlock) {
       // 普通视频从 SponsorBlock 获取

@@ -107,6 +107,7 @@ class SearchHttp {
             data = SearchUserModel.fromJson(res.data['data']);
             break;
           case SearchType.media_bangumi:
+          case SearchType.media_ft:
             data = SearchMBangumiModel.fromJson(res.data['data']);
             break;
           case SearchType.article:

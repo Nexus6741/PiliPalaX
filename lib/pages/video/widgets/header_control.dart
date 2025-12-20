@@ -1578,7 +1578,8 @@ class _HeaderControlState extends State<HeaderControl> {
           widget.controller!.controls = false;
           BangumiIntroController? bangumiIntroController;
           VideoIntroController? videoIntroCtr;
-          if (widget.videoDetailCtr!.videoType == SearchType.media_bangumi) {
+          if (widget.videoDetailCtr!.videoType == SearchType.media_bangumi ||
+              widget.videoDetailCtr!.videoType == SearchType.media_ft) {
             try {
               bangumiIntroController =
                   Get.find<BangumiIntroController>(tag: heroTag);

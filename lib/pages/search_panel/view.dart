@@ -92,6 +92,7 @@ class _SearchPanelState extends State<SearchPanel>
                         list: list.value,
                       );
                     case SearchType.media_bangumi:
+                    case SearchType.media_ft:
                       return searchBangumiPanel(context, ctr, list);
                     case SearchType.bili_user:
                       return searchUserPanel(context, ctr, list);
@@ -152,6 +153,7 @@ class _SearchPanelState extends State<SearchPanel>
                             case SearchType.video:
                               return const VideoCardHSkeleton();
                             case SearchType.media_bangumi:
+                            case SearchType.media_ft:
                               return const MediaBangumiSkeleton();
                             case SearchType.bili_user:
                               return const VideoCardHSkeleton();
