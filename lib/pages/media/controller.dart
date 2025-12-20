@@ -11,14 +11,14 @@ class MediaController extends GetxController {
   RxBool userLogin = false.obs;
   List list = [
     {
-      'icon': Icons.file_download_outlined,
-      'title': '离线缓存',
-      'onTap': () => Get.toNamed('/download'),
-    },
-    {
       'icon': Icons.history,
       'title': '观看记录',
       'onTap': () => Get.toNamed('/history'),
+    },
+    {
+      'icon': Icons.file_download_outlined,
+      'title': '离线缓存',
+      'onTap': () => Get.toNamed('/download'),
     },
     {
       'icon': Icons.subscriptions_outlined,

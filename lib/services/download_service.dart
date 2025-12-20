@@ -692,6 +692,25 @@ class DownloadService extends GetxService {
     flagNotifier.refresh();
   }
 
+  /// 清除所有正在缓存的视频（包括正在下载的和等待中的）
+  Future<void> clearAllCachingVideos() async {
+    // 先取消当前下载
+    if (curDownload.value != null) {
+      await cancelDownload(isDelete: true, downloadNext: false);
+    }
+
+    // 复制队列列表，避免在迭代时修改
+    final entries = List<DownloadEntryInfo>.from(waitDownloadQueue);
+    waitDownloadQueue.clear();
+
+    // 删除所有缓存任务的文件
+    for (final entry in entries) {
+      await _deleteDownloadFiles(entry);
+    }
+
+    flagNotifier.refresh();
+  }
+
   /// 跳过当前下载，继续下一个
   Future<void> skipCurrentDownload() async {
     return _lock.synchronized(() async {

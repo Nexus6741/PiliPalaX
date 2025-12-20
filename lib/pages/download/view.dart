@@ -136,15 +136,15 @@ class _DownloadPageState extends State<DownloadPage> {
                                   '缓存队列 (${_downloadService.waitDownloadQueue.length})',
                                   style: theme.textTheme.titleSmall,
                                 ),
-                                if (_downloadService.waitDownloadQueue.length >
-                                    1)
+                                if (_downloadService
+                                    .waitDownloadQueue.isNotEmpty)
                                   TextButton(
                                     onPressed: () {
                                       Get.dialog(
                                         AlertDialog(
-                                          title: const Text('清空缓存队列'),
+                                          title: const Text('清除列表'),
                                           content:
-                                              const Text('确定要清空所有等待中的缓存任务吗？'),
+                                              const Text('确定要清除所有正在缓存的视频吗？'),
                                           actions: [
                                             TextButton(
                                               onPressed: () => Get.back(),
@@ -160,9 +160,9 @@ class _DownloadPageState extends State<DownloadPage> {
                                               onPressed: () async {
                                                 Get.back();
                                                 await _downloadService
-                                                    .clearWaitingQueue();
+                                                    .clearAllCachingVideos();
                                                 SmartDialog.showToast(
-                                                    '已清空缓存队列');
+                                                    '已清除所有缓存任务');
                                               },
                                               child: const Text('确定'),
                                             ),
@@ -171,7 +171,7 @@ class _DownloadPageState extends State<DownloadPage> {
                                       );
                                     },
                                     child: Text(
-                                      '清空队列',
+                                      '清除列表',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: theme.colorScheme.primary,
