@@ -4,12 +4,15 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:PiliPalaX/http/bangumi.dart';
 import 'package:PiliPalaX/models/bangumi/list.dart';
+import 'package:PiliPalaX/models/bangumi/timeline.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 
 class BangumiController extends GetxController {
   final ScrollController scrollController = ScrollController();
   RxList<BangumiListItemModel> bangumiList = <BangumiListItemModel>[].obs;
   RxList<BangumiListItemModel> bangumiFollowList = <BangumiListItemModel>[].obs;
+  RxList<TimelineModel> timelineList = <TimelineModel>[].obs;
+  RxBool timelineLoading = true.obs;
   int _currentPage = 1;
   bool isLoadingMore = true;
   Box userInfoCache = GStorage.userInfo;
@@ -25,6 +28,8 @@ class BangumiController extends GetxController {
       mid = userInfo.mid;
     }
     userLogin.value = userInfo != null;
+    // 加载追番时间表
+    queryBangumiTimeline();
   }
 
   Future queryBangumiListFeed({type = 'init'}) async {
@@ -65,5 +70,38 @@ class BangumiController extends GetxController {
   // 返回顶部并刷新
   void animateToTop() {
     scrollController.animToTop();
+  }
+
+  // 查询追番时间表
+  Future<void> queryBangumiTimeline() async {
+    timelineLoading.value = true;
+    try {
+      // 同时获取番剧和国创的时间表
+      final results = await Future.wait([
+        BangumiHttp.bangumiTimeline(types: 1, before: 6, after: 6), // 番剧
+        BangumiHttp.bangumiTimeline(types: 4, before: 6, after: 6), // 国创
+      ]);
+
+      List<TimelineModel>? list1 = results[0]['data'];
+      List<TimelineModel>? list2 = results[1]['data'];
+
+      // 合并番剧和国创的数据
+      if (list1 != null &&
+          list2 != null &&
+          list1.isNotEmpty &&
+          list2.isNotEmpty) {
+        for (var i = 0; i < list1.length && i < list2.length; i++) {
+          list1[i].addAll(list2[i]);
+        }
+      } else {
+        list1 ??= list2;
+      }
+
+      timelineList.value = list1 ?? [];
+    } catch (e) {
+      timelineList.value = [];
+    } finally {
+      timelineLoading.value = false;
+    }
   }
 }

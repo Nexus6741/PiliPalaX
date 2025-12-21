@@ -661,7 +661,7 @@ class Api {
   static const String pgcIndexCondition = '/pgc/season/index/condition';
 
   /// PGC时间表
-  static const String pgcTimeline = '/pgc/web/timeline/web_timeline';
+  static const String pgcTimeline = '/pgc/web/timeline';
 
   /// 收藏PGC (追番/追剧列表)
   static const String favPgc = '/x/space/bangumi/follow/list';

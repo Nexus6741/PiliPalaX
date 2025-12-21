@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:PiliPalaX/common/widgets/http_error.dart';
 import '../../utils/grid.dart';
 import 'controller.dart';
 import 'widgets/bangumi_card_v.dart';
+import 'widgets/bangumi_card_timeline.dart';
 import '../pgc_rank/controller.dart' show RankType;
 
 class BangumiPage extends StatefulWidget {
@@ -78,12 +80,14 @@ class _BangumiPageState extends State<BangumiPage>
       edgeOffset: 10.0,
       onRefresh: () async {
         await _bangumiController.queryBangumiListFeed();
-        return _bangumiController.queryBangumiFollow();
+        await _bangumiController.queryBangumiFollow();
+        return _bangumiController.queryBangumiTimeline();
       },
       child: CustomScrollView(
         controller: _bangumiController.scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
+          // 最近追番
           SliverToBoxAdapter(
             child: Obx(
               () => Visibility(
@@ -174,6 +178,21 @@ class _BangumiPageState extends State<BangumiPage>
                 ),
               ),
             ),
+          ),
+          // 追番时间表
+          SliverToBoxAdapter(
+            child: Obx(() {
+              if (_bangumiController.timelineLoading.value) {
+                return const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (_bangumiController.timelineList.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              return _buildTimeline();
+            }),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -275,6 +294,117 @@ class _BangumiPageState extends State<BangumiPage>
             );
           },
           childCount: bangumiList!.isNotEmpty ? bangumiList!.length : 10,
+        ),
+      ),
+    );
+  }
+
+  // 追番时间表
+  Widget _buildTimeline() {
+    final timelineList = _bangumiController.timelineList;
+    if (timelineList.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // 找到今天的索引
+    final initialIndex = max(
+      0,
+      timelineList.indexWhere((item) => item.isToday == 1),
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(top: StyleString.safeSpace),
+      height: Grid.maxRowWidth / 2 / 0.75 +
+          MediaQuery.textScalerOf(context).scale(96),
+      child: DefaultTabController(
+        initialIndex: initialIndex,
+        length: timelineList.length,
+        child: Column(
+          children: [
+            // 标题和Tab栏
+            Row(
+              children: [
+                const SizedBox(width: 16),
+                Text(
+                  '追番时间表',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    dividerHeight: 0,
+                    overlayColor: const WidgetStatePropertyAll(
+                      Colors.transparent,
+                    ),
+                    splashFactory: NoSplash.splashFactory,
+                    padding: const EdgeInsets.only(right: 10),
+                    indicatorPadding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 10,
+                    ),
+                    indicator: BoxDecoration(
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(20),
+                      ),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor:
+                        Theme.of(context).colorScheme.onSecondaryContainer,
+                    labelStyle: const TextStyle(fontSize: 14),
+                    dividerColor: Colors.transparent,
+                    tabs: timelineList.map((item) {
+                      return Tab(
+                        text:
+                            '${item.date} ${item.isToday == 1 ? '今天' : '周${const [
+                                '一',
+                                '二',
+                                '三',
+                                '四',
+                                '五',
+                                '六',
+                                '日',
+                              ][item.dayOfWeek! - 1]}'}',
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+            // 内容区域
+            Expanded(
+              child: TabBarView(
+                physics: const NeverScrollableScrollPhysics(),
+                children: timelineList.map((item) {
+                  if (item.episodes == null || item.episodes!.isEmpty) {
+                    return const Center(child: Text('暂无更新'));
+                  }
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: item.episodes!.length,
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        width: Grid.maxRowWidth / 2,
+                        margin: EdgeInsets.only(
+                          left: StyleString.safeSpace,
+                          right: index == item.episodes!.length - 1
+                              ? StyleString.safeSpace
+                              : 0,
+                        ),
+                        child: BangumiCardTimeline(
+                          item: item.episodes![index],
+                        ),
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         ),
       ),
     );
