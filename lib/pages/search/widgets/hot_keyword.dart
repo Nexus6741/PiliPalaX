@@ -6,15 +6,26 @@ class HotKeyword extends StatelessWidget {
   final double? width;
   final List? hotSearchList;
   final Function? onClick;
+  final bool showRecommendReason;
+
   const HotKeyword({
     this.width,
     this.hotSearchList,
     this.onClick,
+    this.showRecommendReason = false,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final outlineColor = theme.colorScheme.outline;
+
+
+    if (hotSearchList == null || hotSearchList!.isEmpty) {
+      return const SizedBox();
+    }
+
     return Wrap(
       runSpacing: 0.4,
       spacing: 5.0,
@@ -26,7 +37,9 @@ class HotKeyword extends StatelessWidget {
               borderRadius: BorderRadius.circular(3),
               clipBehavior: Clip.hardEdge,
               child: InkWell(
-                onTap: () => onClick!(i.keyword),
+                onTap: () {
+                  onClick!(i.keyword);
+                },
                 child: Padding(
                   padding: EdgeInsets.only(
                       left: 2,
@@ -50,7 +63,46 @@ class HotKeyword extends StatelessWidget {
                           SizedBox(
                             height: 15,
                             child: CachedNetworkImage(
-                                imageUrl: i.icon!, height: 15.0),
+                              imageUrl: i.icon!,
+                              height: 15.0,
+                              errorWidget: (context, url, error) =>
+                                  const SizedBox(),
+                            ),
+                          )
+                        else if (i.showLiveIcon == true)
+                          Container(
+                            margin: const EdgeInsets.only(left: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6699),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: const Text(
+                              'LIVE',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        else if (showRecommendReason &&
+                            i.recommendReason != null &&
+                            i.recommendReason != '')
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Text(
+                                i.recommendReason!,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: outlineColor,
+                                ),
+                              ),
+                            ),
                           ),
                       ],
                     ),

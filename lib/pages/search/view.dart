@@ -18,7 +18,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> with RouteAware {
   final SSearchController _searchController = Get.put(SSearchController());
   late Future? _futureBuilderFuture;
-  bool _showContent = false; // 控制内容动画的显示
+  bool _showContent = false; // 控制内容动画的显�?
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
     }
 
     // 延迟显示内容动画，等待展开动画接近完成
-    // 展开动画 400ms，延迟 280ms 后开始内容动画
+    // 展开动画 400ms，延�?280ms 后开始内容动�?
     Future.delayed(const Duration(milliseconds: 180), () {
       if (mounted) {
         setState(() {
@@ -45,7 +45,7 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
   }
 
   @override
-  // 返回当前页面时
+  // 返回当前页面�?
   void didPopNext() async {
     _searchController.searchFocusNode.requestFocus();
     super.didPopNext();
@@ -60,7 +60,7 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
 
   @override
   void dispose() {
-    // 只有从搜索结果页面跳转过来的才不清空搜索框，其他情况都清空
+    // 只有从搜索结果页面跳转过来的才不清空搜索框，其他情况都清�?
     if (Get.parameters['searchType'] != 'fromSearchResult') {
       // 页面销毁时清空搜索框内容，确保下次进入时搜索框为空
       _searchController.controller.value.clear();
@@ -79,11 +79,11 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         toolbarHeight: 60,
-        automaticallyImplyLeading: false, // 移除默认的返回按钮
+        automaticallyImplyLeading: false, // 移除默认的返回按�?
         titleSpacing: 14,
         title: Row(
           children: [
-            // 搜索框容器
+            // 搜索框容�?
             Expanded(
               child: Container(
                 height: 44,
@@ -168,7 +168,11 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
               _history(),
               Visibility(
                 visible: _searchController.enableHotKey,
-                child: hotSearch(_searchController),
+                child: hotSearch(_searchController, isTrending: true),
+              ),
+              Visibility(
+                visible: _searchController.enableSearchRcmd,
+                child: hotSearch(_searchController, isTrending: false),
               ),
             ],
             SizedBox(height: MediaQuery.of(context).padding.bottom + 50),
@@ -223,10 +227,15 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
     );
   }
 
-  Widget hotSearch(ctr) {
+  Widget hotSearch(ctr, {bool isTrending = true}) {
+    final String title = isTrending ? '大家都在�? : '搜索发现';
+    final Future Function() refreshFn =
+        isTrending ? ctr.queryHotSearchList : ctr.queryRecommendList;
+
     return AnimationLimiter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 14, 4, 20),
+        padding: EdgeInsets.fromLTRB(
+            10, !isTrending && _searchController.enableHotKey ? 4 : 14, 4, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: AnimationConfiguration.toStaggeredList(
@@ -243,13 +252,52 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '大家都在搜',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium!
-                          .copyWith(fontWeight: FontWeight.bold),
-                    ),
+                    if (isTrending)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium!
+                                .copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 14),
+                          SizedBox(
+                            height: 34,
+                            child: TextButton(
+                              onPressed: () => Get.toNamed('/searchTrending'),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '完整榜单',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color:
+                                          Theme.of(context).colorScheme.outline,
+                                    ),
+                                  ),
+                                  Icon(
+                                    size: 18,
+                                    Icons.keyboard_arrow_right,
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Text(
+                        title,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .copyWith(fontWeight: FontWeight.bold),
+                      ),
                     SizedBox(
                       height: 34,
                       child: TextButton.icon(
@@ -258,7 +306,7 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
                               const EdgeInsets.only(
                                   left: 10, top: 6, bottom: 6, right: 10)),
                         ),
-                        onPressed: () => ctr.queryHotSearchList(),
+                        onPressed: refreshFn,
                         icon: const Icon(Icons.refresh_outlined, size: 18),
                         label: const Text('刷新'),
                       ),
@@ -269,56 +317,106 @@ class _SearchPageState extends State<SearchPage> with RouteAware {
               LayoutBuilder(
                 builder: (context, boxConstraints) {
                   final double width = boxConstraints.maxWidth;
-                  return FutureBuilder(
-                    future: _futureBuilderFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.data == null) {
-                          return const SizedBox();
-                        }
-                        Map data = snapshot.data as Map;
-                        if (data['status']) {
-                          return Obx(
-                            () => HotKeyword(
-                              width: width,
-                              // ignore: invalid_use_of_protected_member
-                              hotSearchList:
-                                  _searchController.hotSearchList.value,
-                              onClick: (keyword) async {
-                                _searchController.searchFocusNode.unfocus();
-                                await Future.delayed(
-                                    const Duration(milliseconds: 150));
-                                _searchController.onClickKeyword(keyword);
+                  print(
+                      '🎨 [视图] LayoutBuilder: isTrending=$isTrending, width=$width');
+                  if (isTrending) {
+                    print('🎨 [视图] 构建热搜列表');
+                    return FutureBuilder(
+                      future: _futureBuilderFuture,
+                      builder: (context, snapshot) {
+                        print(
+                            '🎨 [视图] FutureBuilder状�? ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.data == null) {
+                            print('🎨 [视图] 热搜数据为null');
+                            return const SizedBox();
+                          }
+                          Map data = snapshot.data as Map;
+                          print(
+                              '🎨 [视图] 热搜数据: status=${data['status']}, msg=${data['msg']}');
+                          if (data['status']) {
+                            return Obx(
+                              () {
+                                print(
+                                    '🎨 [视图] 热搜列表长度: ${_searchController.hotSearchList.length}');
+                                print(
+                                    '🎨 [视图] 热搜列表类型: ${_searchController.hotSearchList.runtimeType}');
+                                if (_searchController.hotSearchList.isEmpty) {
+                                  print('🎨 [视图] 热搜列表为空');
+                                  return const SizedBox();
+                                }
+                                return HotKeyword(
+                                  width: width,
+                                  hotSearchList:
+                                      _searchController.hotSearchList.toList(),
+                                  onClick: (keyword) async {
+                                    _searchController.searchFocusNode.unfocus();
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 150));
+                                    _searchController.onClickKeyword(keyword);
+                                  },
+                                );
                               },
-                            ),
-                          );
+                            );
+                          } else {
+                            print('🎨 [视图] 热搜请求失败');
+                            return CustomScrollView(
+                              shrinkWrap: true,
+                              slivers: [
+                                HttpError(
+                                  errMsg: data['msg'],
+                                  fn: () => setState(() {
+                                    _futureBuilderFuture =
+                                        _searchController.queryHotSearchList();
+                                  }),
+                                ),
+                              ],
+                            );
+                          }
                         } else {
-                          return CustomScrollView(
-                            shrinkWrap: true,
-                            slivers: [
-                              HttpError(
-                                errMsg: data['msg'],
-                                fn: () => setState(() {
-                                  _futureBuilderFuture =
-                                      _searchController.queryHotSearchList();
-                                }),
-                              ),
-                            ],
-                          );
+                          // 缓存数据
+                          print(
+                              '🎨 [视图] 使用缓存数据: ${_searchController.hotSearchList.length}');
+                          if (_searchController.hotSearchList.isNotEmpty) {
+                            return HotKeyword(
+                              width: width,
+                              hotSearchList:
+                                  _searchController.hotSearchList.toList(),
+                            );
+                          } else {
+                            return const SizedBox();
+                          }
                         }
-                      } else {
-                        // 缓存数据
-                        if (_searchController.hotSearchList.isNotEmpty) {
-                          return HotKeyword(
-                            width: width,
-                            hotSearchList: _searchController.hotSearchList,
-                          );
-                        } else {
+                      },
+                    );
+                  } else {
+                    // 搜索发现
+                    print('🎨 [视图] 构建搜索发现列表');
+                    return Obx(
+                      () {
+                        print(
+                            '🎨 [视图] 搜索发现列表长度: ${_searchController.recommendList.length}');
+                        print(
+                            '🎨 [视图] 搜索发现列表类型: ${_searchController.recommendList.runtimeType}');
+                        if (_searchController.recommendList.isEmpty) {
+                          print('🎨 [视图] 搜索发现列表为空');
                           return const SizedBox();
                         }
-                      }
-                    },
-                  );
+                        return HotKeyword(
+                          width: width,
+                          hotSearchList:
+                              _searchController.recommendList.toList(),
+                          showRecommendReason: true,
+                          onClick: (keyword) async {
+                            _searchController.searchFocusNode.unfocus();
+                            await Future.delayed(
+                                const Duration(milliseconds: 150));
+                            _searchController.onClickKeyword(keyword);
+                          },
+                        );
+                      },
+                    );
+                  }
                 },
               ),
             ],

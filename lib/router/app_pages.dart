@@ -50,6 +50,7 @@ import '../pages/member_series/view.dart';
 import '../pages/msg_feed_top/sys_msg/view.dart';
 import '../pages/search/index.dart';
 import '../pages/search_result/index.dart';
+import '../pages/search_trending/view.dart';
 import '../pages/setting/extra_setting.dart';
 import '../pages/setting/index.dart';
 import '../pages/setting/pages/color_select.dart';
@@ -146,6 +147,11 @@ class Routes {
       popGesture: true,
       preventDuplicates: true,
       opaque: true,
+    ),
+    // 搜索热搜榜单
+    CustomGetPage(
+      name: '/searchTrending',
+      page: () => const SearchTrendingPage(),
     ),
     // 动态
     CustomGetPage(name: '/dynamics', page: () => const DynamicsPage()),

@@ -55,13 +55,15 @@ class HotSearchItemAdapter extends TypeAdapter<HotSearchItem> {
       showName: fields[1] as String?,
       wordType: fields[2] as int?,
       icon: fields[3] as String?,
+      showLiveIcon: fields[4] as bool?,
+      recommendReason: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, HotSearchItem obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.keyword)
       ..writeByte(1)
@@ -69,7 +71,11 @@ class HotSearchItemAdapter extends TypeAdapter<HotSearchItem> {
       ..writeByte(2)
       ..write(obj.wordType)
       ..writeByte(3)
-      ..write(obj.icon);
+      ..write(obj.icon)
+      ..writeByte(4)
+      ..write(obj.showLiveIcon)
+      ..writeByte(5)
+      ..write(obj.recommendReason);
   }
 
   @override

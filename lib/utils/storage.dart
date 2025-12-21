@@ -174,6 +174,7 @@ class SettingBoxKey {
       replySortType = 'replySortType',
       defaultDynamicType = 'defaultDynamicType',
       enableHotKey = 'enableHotKey',
+      enableSearchRcmd = 'enableSearchRcmd',
       enableQuickFav = 'enableQuickFav',
       enableWordRe = 'enableWordRe',
       enableSearchWord = 'enableSearchWord',

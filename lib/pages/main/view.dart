@@ -53,7 +53,7 @@ class _MainAppState extends State<MainApp> with SingleTickerProviderStateMixin {
     // 使用动画切换页面，提供丝滑流畅的体验
     _mainController.pageController.animateToPage(
       value,
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.fastOutSlowIn,
     );
     var currentPage = _mainController.pages[value];

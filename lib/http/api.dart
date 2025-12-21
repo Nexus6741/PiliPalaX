@@ -226,6 +226,12 @@ class Api {
   static const String hotSearchList =
       'https://s.search.bilibili.com/main/hotword';
 
+  // 热搜榜单（完整）
+  static const String searchTrending = '/x/v2/search/trending/ranking';
+
+  // 搜索发现
+  static const String searchRecommend = '/x/v2/search/recommend';
+
   // 默认搜索词
   static const String searchDefault = '/x/web-interface/wbi/search/default';
 

@@ -6,6 +6,7 @@ import '../models/common/search_type.dart';
 import '../models/search/hot.dart';
 import '../models/search/result.dart';
 import '../models/search/suggest.dart';
+import '../models/search/trending.dart';
 import '../utils/storage.dart';
 import 'index.dart';
 
@@ -169,6 +170,67 @@ class SearchHttp {
         'status': false,
         'data': [],
         'msg': res.data['message'],
+      };
+    }
+  }
+
+  // 获取热搜榜单（完整）
+  static Future<Map<String, dynamic>> searchTrending({int limit = 30}) async {
+    try {
+      var res = await Request().get(Api.searchTrending, data: {'limit': limit});
+      if (res.data['code'] == 0) {
+        var model = SearchTrendingModel.fromJson(res.data['data']);
+        return {
+          'status': true,
+          'data': model,
+        };
+      } else {
+        return {
+          'status': false,
+          'data': null,
+          'msg': res.data['message'] ?? '请求错误',
+        };
+      }
+    } catch (e) {
+      return {
+        'status': false,
+        'data': null,
+        'msg': e.toString(),
+      };
+    }
+  }
+
+  // 获取搜索发现
+  static Future<Map<String, dynamic>> searchRecommend() async {
+    try {
+      var res = await Request().get(Api.searchRecommend, data: {
+        'build': 8430300,
+        'channel': 'master',
+        'version': '8.43.0',
+        'c_locale': 'zh_CN',
+        'mobi_app': 'android',
+        'platform': 'android',
+        's_locale': 'zh_CN',
+        'from': 2,
+      });
+      if (res.data['code'] == 0) {
+        var model = SearchRecommendModel.fromJson(res.data['data']);
+        return {
+          'status': true,
+          'data': model,
+        };
+      } else {
+        return {
+          'status': false,
+          'data': null,
+          'msg': res.data['message'] ?? '请求错误',
+        };
+      }
+    } catch (e) {
+      return {
+        'status': false,
+        'data': null,
+        'msg': e.toString(),
       };
     }
   }

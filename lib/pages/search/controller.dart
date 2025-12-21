@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:PiliPalaX/http/search.dart';
 import 'package:PiliPalaX/models/search/hot.dart';
 import 'package:PiliPalaX/models/search/suggest.dart';
+import 'package:PiliPalaX/models/search/trending.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 
 class SSearchController extends GetxController {
@@ -22,10 +23,13 @@ class SSearchController extends GetxController {
   RxString defaultSearch = ''.obs;
   Box setting = GStorage.setting;
   bool enableHotKey = true;
+  bool enableSearchRcmd = true;
+  RxList<SearchTrendingItem> recommendList = <SearchTrendingItem>[].obs;
 
   @override
   void onInit() {
     super.onInit();
+
     // 其他页面跳转过来
     if (Get.parameters.keys.isNotEmpty) {
       // 检查是否是从搜索结果页面跳转的，需要保留关键词
@@ -49,9 +53,18 @@ class SSearchController extends GetxController {
         searchKeyWord.value = hintText;
       }
     }
+
     historyCacheList = List<String>.from(historyWord.get('cacheList') ?? []);
     historyList.value = historyCacheList;
+
     enableHotKey = setting.get(SettingBoxKey.enableHotKey, defaultValue: true);
+    enableSearchRcmd =
+        setting.get(SettingBoxKey.enableSearchRcmd, defaultValue: true);
+
+    // 加载搜索发现
+    if (enableSearchRcmd) {
+      queryRecommendList();
+    }
   }
 
   void onChange(value) {
@@ -97,11 +110,29 @@ class SSearchController extends GetxController {
 
   // 获取热搜关键词
   Future queryHotSearchList() async {
-    var result = await SearchHttp.hotSearchList();
-    if (result['status']) {
-      hotSearchList.value = result['data'].list;
+    try {
+      var result = await SearchHttp.hotSearchList();
+      if (result['status']) {
+        hotSearchList.value = result['data'].list;
+      }
+      return result;
+    } catch (e) {
+      return {'status': false, 'msg': e.toString()};
     }
-    return result;
+  }
+
+  // 获取搜索发现
+  Future queryRecommendList() async {
+    try {
+      var result = await SearchHttp.searchRecommend();
+      if (result['status']) {
+        SearchRecommendModel data = result['data'];
+        recommendList.value = data.list ?? [];
+      }
+      return result;
+    } catch (e) {
+      return {'status': false, 'msg': e.toString()};
+    }
   }
 
   // 点击热搜关键词

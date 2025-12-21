@@ -25,6 +25,8 @@ class HotSearchItem {
     this.showName,
     this.wordType,
     this.icon,
+    this.showLiveIcon,
+    this.recommendReason,
   });
 
   @HiveField(0)
@@ -36,11 +38,18 @@ class HotSearchItem {
   int? wordType;
   @HiveField(3)
   String? icon;
+  @HiveField(4)
+  bool? showLiveIcon;
+  @HiveField(5)
+  String? recommendReason;
 
   HotSearchItem.fromJson(Map<String, dynamic> json) {
     keyword = json['keyword'];
     showName = json['show_name'];
     wordType = json['word_type'];
     icon = json['icon'];
+    showLiveIcon = json['show_live_icon'];
+    recommendReason =
+        json['recommend_reason']?.toString().replaceFirst('·', ' ');
   }
 }
