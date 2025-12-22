@@ -672,6 +672,16 @@ class VideoHttp {
     }
   }
 
+  // 批量查询用户关系（用于合作视频）
+  static Future relations({required String fids}) async {
+    var res = await Request().get(Api.relations, data: {'fids': fids});
+    if (res.data['code'] == 0) {
+      return {'status': true, 'data': res.data['data']};
+    } else {
+      return {'status': false, 'data': {}};
+    }
+  }
+
   // 操作用户关系
   static Future relationMod(
       {required int mid, required int act, required int reSrc}) async {

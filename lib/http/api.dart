@@ -129,6 +129,9 @@ class Api {
   // 查询用户与自己关系_仅查关注
   static const String hasFollow = '/x/relation';
 
+  // 批量查询用户关系（用于合作视频）
+  static const String relations = '/x/relation/relations';
+
   // 操作用户关系
   static const String relationMod = '/x/relation/modify';
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:PiliPalaX/models/video_detail_res_staff.dart';
 
 class VideoDetailResponse {
   int? code;
@@ -67,6 +68,7 @@ class VideoDetailData {
   String? likeIcon;
   bool? needJumpBv;
   String? epId;
+  List<Staff>? staff; // 合作视频的UP主列表
 
   VideoDetailData({
     this.bvid,
@@ -103,6 +105,7 @@ class VideoDetailData {
     this.likeIcon,
     this.needJumpBv,
     this.epId,
+    this.staff,
   });
 
   VideoDetailData.fromJson(Map<String, dynamic> json) {
@@ -152,6 +155,9 @@ class VideoDetailData {
         : HonorReply.fromJson(json["honor_reply"]);
     likeIcon = json["like_icon"];
     needJumpBv = json["need_jump_bv"];
+    staff = json["staff"] == null
+        ? null
+        : List<Staff>.from(json["staff"]!.map((e) => Staff.fromJson(e)));
     if (json['redirect_url'] != null) {
       epId = resolveEpId(json['redirect_url']);
     }
@@ -206,6 +212,9 @@ class VideoDetailData {
         "honor_reply": honorReply?.toJson(),
         "like_icon": likeIcon,
         "need_jump_bv": needJumpBv,
+        "staff": staff == null
+            ? null
+            : List<dynamic>.from(staff!.map((e) => e.toJson())),
       };
 }
 

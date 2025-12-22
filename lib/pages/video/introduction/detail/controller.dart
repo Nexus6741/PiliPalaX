@@ -67,6 +67,8 @@ class VideoIntroController extends GetxController {
   List delMediaIdsNew = [];
   // 关注状态 默认未关注
   RxMap followStatus = {}.obs;
+  // 合作视频UP主关注状态
+  RxMap staffRelations = {}.obs;
 
   RxInt lastPlayCid = 0.obs;
   var userInfo;
@@ -197,11 +199,40 @@ class VideoIntroController extends GetxController {
 
   // 获取up主粉丝数
   Future queryUserStat() async {
+    // 如果是合作视频，查询所有UP主的关注状态
+    if (videoDetail.value.staff != null &&
+        videoDetail.value.staff!.isNotEmpty) {
+      await queryStaffRelations();
+      return;
+    }
+
+    // 单个UP主的粉丝数查询
     var result = await UserHttp.userStat(mid: videoDetail.value.owner!.mid!);
     if (result['status']) {
       print(result['data']);
       userStat.value = result['data'];
       userStat.refresh();
+    }
+  }
+
+  // 查询合作视频UP主的关注状态
+  Future<void> queryStaffRelations() async {
+    if (videoDetail.value.staff == null || videoDetail.value.staff!.isEmpty) {
+      return;
+    }
+
+    try {
+      final fids = videoDetail.value.staff!.map((item) => item.mid).join(',');
+      var result = await VideoHttp.relations(fids: fids);
+      if (result['status']) {
+        staffRelations.value = {
+          'status': true,
+          if (result['data'] != null) ...result['data'],
+        };
+        staffRelations.refresh();
+      }
+    } catch (e) {
+      print('查询合作UP主关注状态失败: $e');
     }
   }
 
@@ -469,6 +500,11 @@ class VideoIntroController extends GetxController {
     if (videoDetail.value.owner == null) {
       return;
     }
+    // 如果是合作视频，不查询单个UP主的关注状态
+    if (videoDetail.value.staff != null &&
+        videoDetail.value.staff!.isNotEmpty) {
+      return;
+    }
     var result = await VideoHttp.hasFollow(mid: videoDetail.value.owner!.mid!);
     if (result['status']) {
       followStatus.value = result['data'];
@@ -482,6 +518,12 @@ class VideoIntroController extends GetxController {
       SmartDialog.showToast('账号未登录');
       return;
     }
+    // 合作视频不支持快速关注
+    if (videoDetail.value.staff != null &&
+        videoDetail.value.staff!.isNotEmpty) {
+      SmartDialog.showToast('合作视频请点击UP主头像进入主页关注');
+      return;
+    }
     feedBack();
     int mid = videoDetail.value.owner!.mid!;
     MemberController _ = Get.put<MemberController>(MemberController(mid: mid),
@@ -491,6 +533,37 @@ class VideoIntroController extends GetxController {
     followStatus['attribute'] = _.attribute.value;
     followStatus.refresh();
     Get.delete<MemberController>(tag: mid.toString());
+  }
+
+  // 关注合作视频的某个UP主
+  Future actionStaffRelationMod(int mid) async {
+    if (userInfo == null) {
+      SmartDialog.showToast('账号未登录');
+      return;
+    }
+    feedBack();
+
+    // 检查当前关注状态
+    final isFollowed = staffRelations['$mid'] != null;
+
+    var result = await VideoHttp.relationMod(
+      mid: mid,
+      act: isFollowed ? 2 : 1, // 1:关注 2:取消关注
+      reSrc: 11,
+    );
+
+    if (result['status']) {
+      if (isFollowed) {
+        staffRelations.remove('$mid');
+        SmartDialog.showToast('已取消关注');
+      } else {
+        staffRelations['$mid'] = true;
+        SmartDialog.showToast('关注成功');
+      }
+      staffRelations.refresh();
+    } else {
+      SmartDialog.showToast(result['msg'] ?? '操作失败');
+    }
   }
 
   // 修改分P或番剧分集

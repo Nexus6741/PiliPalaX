@@ -14,7 +14,6 @@ import 'package:PiliPalaX/common/widgets/stat/danmu.dart';
 import 'package:PiliPalaX/common/widgets/stat/view.dart';
 import 'package:PiliPalaX/models/video_detail_res.dart';
 import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
-import 'package:PiliPalaX/pages/video/widgets/ai_detail.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:PiliPalaX/utils/utils.dart';
@@ -27,6 +26,8 @@ import 'package:PiliPalaX/pages/video/introduction/widgets/fav_panel.dart';
 import 'package:PiliPalaX/pages/video/introduction/widgets/intro_detail.dart';
 import 'package:PiliPalaX/pages/video/introduction/widgets/page.dart';
 import 'package:PiliPalaX/pages/video/introduction/widgets/season.dart';
+import 'package:PiliPalaX/pages/video/introduction/widgets/staff_item.dart';
+import 'package:PiliPalaX/models/video_detail_res_staff.dart';
 
 class VideoIntroPanel extends StatefulWidget {
   const VideoIntroPanel({required this.heroTag, super.key});
@@ -236,59 +237,7 @@ class _VideoInfoState extends State<VideoInfo> with TickerProviderStateMixin {
               ),
               children: [
                 Row(children: [
-                  Expanded(
-                      child: GestureDetector(
-                    onTap: onPushMember,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 1, horizontal: 0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          NetworkImgLayer(
-                            type: 'avatar',
-                            src: loadingStatus
-                                ? videoItem['owner']?.face ?? ""
-                                : widget.videoDetail!.owner!.face,
-                            width: 30,
-                            height: 30,
-                            fadeInDuration: Duration.zero,
-                            fadeOutDuration: Duration.zero,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                              child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                loadingStatus
-                                    ? videoItem['owner']?.name ?? ""
-                                    : widget.videoDetail!.owner!.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 12, color: t.colorScheme.primary),
-                                // semanticsLabel: "Up主：${owner.name}",
-                              ),
-                              const SizedBox(height: 0),
-                              Obx(() => Text(
-                                    Utils.numFormat(videoIntroController
-                                        .userStat.value['follower']),
-                                    semanticsLabel:
-                                        "${Utils.numFormat(videoIntroController.userStat.value['follower'])}粉丝",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: t.colorScheme.outline,
-                                    ),
-                                  )),
-                            ],
-                          )),
-                          followButton(context, t),
-                        ],
-                      ),
-                    ),
-                  )),
+                  Expanded(child: _buildOwnerSection(context, t, isHorizontal)),
                   if (isHorizontal) ...[
                     const SizedBox(width: 10),
                     Expanded(child: actionGrid(context, videoIntroController)),
@@ -646,5 +595,118 @@ class _VideoInfoState extends State<VideoInfo> with TickerProviderStateMixin {
           //     : '-',
           text: '转发'),
     ]);
+  }
+
+  // 构建 UP 主区域（支持单个 UP 主和合作视频）
+  Widget _buildOwnerSection(
+      BuildContext context, ThemeData t, bool isHorizontal) {
+    // 检查是否为合作视频
+    final bool isCollaboration = !loadingStatus &&
+        widget.videoDetail?.staff != null &&
+        widget.videoDetail!.staff!.isNotEmpty;
+
+    if (isCollaboration) {
+      // 合作视频：显示多个 UP 主
+      return _buildStaffList(context, t);
+    } else {
+      // 普通视频：显示单个 UP 主
+      return _buildSingleOwner(context, t);
+    }
+  }
+
+  // 构建单个 UP 主
+  Widget _buildSingleOwner(BuildContext context, ThemeData t) {
+    return GestureDetector(
+      onTap: onPushMember,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            NetworkImgLayer(
+              type: 'avatar',
+              src: loadingStatus
+                  ? videoItem['owner']?.face ?? ""
+                  : widget.videoDetail!.owner!.face,
+              width: 30,
+              height: 30,
+              fadeInDuration: Duration.zero,
+              fadeOutDuration: Duration.zero,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  loadingStatus
+                      ? videoItem['owner']?.name ?? ""
+                      : widget.videoDetail!.owner!.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12, color: t.colorScheme.primary),
+                ),
+                const SizedBox(height: 0),
+                Obx(() => Text(
+                      Utils.numFormat(
+                          videoIntroController.userStat.value['follower']),
+                      semanticsLabel:
+                          "${Utils.numFormat(videoIntroController.userStat.value['follower'])}粉丝",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: t.colorScheme.outline,
+                      ),
+                    )),
+              ],
+            )),
+            followButton(context, t),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 构建合作视频 UP 主列表
+  Widget _buildStaffList(BuildContext context, ThemeData t) {
+    final List<Staff> staffList = widget.videoDetail!.staff!;
+    final int? ownerMid = widget.videoDetail!.owner?.mid;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Obx(
+        () => Row(
+          children: staffList.map((staff) {
+            final bool isFollowed =
+                videoIntroController.staffRelations['status'] == true &&
+                    videoIntroController.staffRelations['${staff.mid}'] != null;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 25),
+              child: StaffItem(
+                staff: staff,
+                ownerMid: ownerMid,
+                isFollowed: isFollowed,
+                onTap: () {
+                  // 点击跳转到 UP 主主页
+                  feedBack();
+                  Get.toNamed(
+                    '/member?mid=${staff.mid}',
+                    arguments: {
+                      'face': staff.face,
+                      'heroTag': Utils.makeHeroTag(staff.mid),
+                    },
+                  );
+                },
+                onFollow: () {
+                  // 点击关注按钮
+                  videoIntroController.actionStaffRelationMod(staff.mid!);
+                },
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
   }
 }
