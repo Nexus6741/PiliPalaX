@@ -11,6 +11,9 @@ import '../member_home/view.dart';
 import '../member_bangumi/view.dart';
 import '../member_favorite/view.dart';
 import '../member_contribute/view.dart';
+import '../login_log/controller.dart';
+import '../coin_log/controller.dart';
+import '../exp_log/controller.dart';
 import 'widgets/user_info_card.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
 
@@ -313,10 +316,7 @@ class _MemberPageState extends State<MemberPage>
             const PopupMenuDivider(),
             // 登录设备
             PopupMenuItem(
-              onTap: () {
-                // TODO: 实现登录设备页面
-                SmartDialog.showToast('登录设备功能开发中');
-              },
+              onTap: () => Get.toNamed('/loginDevices'),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -328,10 +328,8 @@ class _MemberPageState extends State<MemberPage>
             ),
             // 登录记录
             PopupMenuItem(
-              onTap: () {
-                // TODO: 实现登录记录页面
-                SmartDialog.showToast('登录记录功能开发中');
-              },
+              onTap: () =>
+                  Get.toNamed('/logTable', arguments: LoginLogController()),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -343,10 +341,8 @@ class _MemberPageState extends State<MemberPage>
             ),
             // 硬币记录
             PopupMenuItem(
-              onTap: () {
-                // TODO: 实现硬币记录页面
-                SmartDialog.showToast('硬币记录功能开发中');
-              },
+              onTap: () =>
+                  Get.toNamed('/logTable', arguments: CoinLogController()),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -358,10 +354,8 @@ class _MemberPageState extends State<MemberPage>
             ),
             // 经验记录
             PopupMenuItem(
-              onTap: () {
-                // TODO: 实现经验记录页面
-                SmartDialog.showToast('经验记录功能开发中');
-              },
+              onTap: () =>
+                  Get.toNamed('/logTable', arguments: ExpLogController()),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -373,10 +367,7 @@ class _MemberPageState extends State<MemberPage>
             ),
             // 空间设置
             PopupMenuItem(
-              onTap: () {
-                // TODO: 实现空间设置页面
-                SmartDialog.showToast('空间设置功能开发中');
-              },
+              onTap: () => Get.toNamed('/spaceSetting'),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

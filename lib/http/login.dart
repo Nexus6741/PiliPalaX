@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
 import '../common/constants.dart';
 import '../models/login/index.dart';
+import '../models/login_devices/login_device.dart';
 import '../utils/login.dart';
 import '../utils/utils.dart';
 import 'index.dart';
@@ -530,6 +531,75 @@ class LoginHttp {
         'msg': res.data['message'],
         'data': res.data['data']
       };
+    }
+  }
+
+  // 获取登录设备列表
+  static Future<Map<String, dynamic>> loginDevices() async {
+    print('========== loginDevices API START ==========');
+    try {
+      print('Calling Request().get with Api.loginDevices: ${Api.loginDevices}');
+
+      final params = {
+        'local_id': buvid,
+        'buvid': buvid,
+        'device_name': 'android',
+        'device_platform': 'android',
+        'csrf': await Request.getCsrf(),
+        'mobi_app': 'android_hd',
+        'platform': 'android',
+        'statistics': Constants.statistics,
+        'ts': (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString(),
+      };
+
+      print('Params before sign: $params');
+      String sign = Utils.appSign(params, Constants.appKey, Constants.appSec);
+      params['sign'] = sign;
+      print('Params after sign: $params');
+
+      var res = await Request().get(
+        Api.loginDevices,
+        data: params,
+      );
+      print('Response code: ${res.data['code']}');
+      print('Response message: ${res.data['message']}');
+      print('Response data: ${res.data['data']}');
+
+      if (res.data['code'] == 0) {
+        final dynamic data = res.data['data'];
+
+        if (data is Map) {
+          print('Data is Map, keys: ${data.keys}');
+          final List<dynamic>? devices = data['devices'];
+          print('Devices from API: ${devices?.length ?? 0}');
+
+          if (devices != null) {
+            final List<LoginDevice> deviceList = devices.map((e) {
+              return LoginDevice.fromJson(e);
+            }).toList();
+            print('Processed device list: ${deviceList.length}');
+            return {'status': true, 'data': deviceList};
+          }
+        }
+
+        return {'status': true, 'data': []};
+      } else {
+        print('API error: ${res.data['message']}');
+        return {
+          'status': false,
+          'code': res.data['code'],
+          'msg': res.data['message'],
+        };
+      }
+    } catch (e, stackTrace) {
+      print('Exception in loginDevices: $e');
+      print('StackTrace: $stackTrace');
+      return {
+        'status': false,
+        'msg': e.toString(),
+      };
+    } finally {
+      print('========== loginDevices API END ==========');
     }
   }
 }

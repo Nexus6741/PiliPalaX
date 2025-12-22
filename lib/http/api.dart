@@ -632,6 +632,25 @@ class Api {
       '${HttpString.passBaseUrl}/x/passport-tv-login/qrcode/poll';
 
   /// 置顶视频
+
+  /// 登录设备列表
+  static const String loginDevices =
+      '${HttpString.passBaseUrl}/x/safecenter/user_login_devices';
+
+  /// 登录记录
+  static const String loginLog = '/x/member/web/login/log';
+
+  /// 硬币记录
+  static const String coinLog = '/x/member/web/coin/log';
+
+  /// 经验记录
+  static const String expLog = '/x/member/web/exp/log';
+
+  /// 空间设置
+  static const String spaceSetting = '/x/space/setting/app';
+
+  /// 修改空间设置
+  static const String spaceSettingMod = '/x/space/privacy/batch/modify';
   static const getTopVideoApi = '/x/space/top/arc';
 
   /// 主页 - 最近投币的视频

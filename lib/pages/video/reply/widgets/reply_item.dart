@@ -84,6 +84,7 @@ class ReplyItem extends StatelessWidget {
 
   Widget lfAvtar(BuildContext context, String heroTag) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         Hero(
           tag: heroTag,
@@ -94,6 +95,19 @@ class ReplyItem extends StatelessWidget {
             type: 'avatar',
           ),
         ),
+        // 头像框
+        if (replyItem!.member!.pendant?.image?.isNotEmpty == true)
+          Positioned(
+            top: -0.375 * 34, // -(34 * 1.75 - 34) / 2
+            left: -0.375 * 34,
+            child: IgnorePointer(
+              child: NetworkImgLayer(
+                src: replyItem!.member!.pendant!.image,
+                width: 34 * 1.75,
+                height: 34 * 1.75,
+              ),
+            ),
+          ),
         if (replyItem!.member!.vip!['vipStatus'] > 0)
           Positioned(
             right: 0,

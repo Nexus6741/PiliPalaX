@@ -42,6 +42,9 @@ import '../pages/pgc/controller.dart';
 import '../pages/pgc_index/view.dart';
 import '../pages/pgc_rank/view.dart';
 import '../pages/download/view.dart';
+import '../pages/login_devices/view.dart';
+import '../pages/log_table/view.dart';
+import '../pages/space_setting/view.dart';
 import '../pages/member_coin/index.dart';
 import '../pages/member_like/index.dart';
 import '../pages/member_search/index.dart';
@@ -283,6 +286,12 @@ class Routes {
     CustomGetPage(name: '/musicDetail', page: () => const MusicDetailPage()),
     // 离线缓存
     CustomGetPage(name: '/download', page: () => const DownloadPage()),
+    // 登录设备
+    CustomGetPage(name: '/loginDevices', page: () => const LoginDevicesPage()),
+    // 日志表格页面（登录记录、硬币记录、经验记录）
+    CustomGetPage(name: '/logTable', page: () => const LogPage()),
+    // 空间设置
+    CustomGetPage(name: '/spaceSetting', page: () => const SpaceSettingPage()),
   ];
 }
 

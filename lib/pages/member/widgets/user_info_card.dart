@@ -434,6 +434,7 @@ class UserInfoCard extends StatelessWidget {
           },
           child: Stack(
             alignment: Alignment.bottomCenter,
+            clipBehavior: Clip.none,
             children: [
               // 头像边框
               Container(
@@ -454,14 +455,14 @@ class UserInfoCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // 挂件
+              // 挂件 - 头像框
               if (card.pendant?.image?.isNotEmpty == true)
                 Positioned(
-                  top: -30,
+                  top: -0.375 * (80 - 4), // -(80 * 1.75 - 80) / 2
                   child: IgnorePointer(
                     child: CachedNetworkImage(
-                      width: 140,
-                      height: 140,
+                      width: 80 * 1.75,
+                      height: 80 * 1.75,
                       imageUrl: card.pendant!.image!,
                       errorWidget: (context, url, error) =>
                           const SizedBox.shrink(),
