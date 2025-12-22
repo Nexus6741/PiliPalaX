@@ -170,14 +170,23 @@ class _SeasonPanelState extends State<SeasonPanel> {
           child: InkWell(
             onTap: () {
               ListSheet(
-                      episodes: episodes,
-                      bvid: _videoDetailController.bvid,
-                      aid: _videoDetailController.oid.value,
-                      currentCid: cid,
-                      changeFucCall: widget.changeFuc,
-                      context: context,
-                      pages: _videoIntroController.videoDetail.value.pages)
-                  .buildShowBottomSheet();
+                  sections: widget.ugcSeason.sections, // 传递所有sections
+                  bvid: _videoDetailController.bvid,
+                  aid: _videoDetailController.oid.value,
+                  currentCid: cid,
+                  changeFucCall: widget.changeFuc,
+                  context: context,
+                  pages: _videoIntroController.videoDetail.value.pages,
+                  ugcSeason: widget.ugcSeason, // 传递合集信息
+                  onSubscriptionChanged: (isSubscribed) {
+                    // 更新videoDetail中的signState
+                    if (_videoIntroController.videoDetail.value.ugcSeason !=
+                        null) {
+                      _videoIntroController.videoDetail.value.ugcSeason!
+                          .signState = isSubscribed ? 1 : 0;
+                      _videoIntroController.videoDetail.refresh();
+                    }
+                  }).buildShowBottomSheet();
             },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),

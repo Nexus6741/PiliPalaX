@@ -720,6 +720,12 @@ class Api {
   /// 取消订阅-合集
   static const String unfavSeason = '/x/v3/fav/season/unfav';
 
+  /// 订阅合集
+  static const String favSeason = '/x/v3/fav/season/fav';
+
+  /// 查询视频关系（点赞、投币、收藏、合集订阅等）
+  static const String videoRelation = '/x/web-interface/archive/relation';
+
   /// 取消订阅-播单
   static const String unfavFolder = '/x/v3/fav/folder/unfav';
 

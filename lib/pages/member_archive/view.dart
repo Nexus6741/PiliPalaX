@@ -87,6 +87,15 @@ class _MemberArchivePageState extends State<MemberArchivePage> {
         child: CustomScrollView(
           physics: const ClampingScrollPhysics(),
           slivers: [
+            // Section分类Tab（仅在合集类型且有多个section时显示）
+            Obx(() {
+              if (_memberArchivesController.sections.length > 1) {
+                return SliverToBoxAdapter(
+                  child: _buildSectionTabs(context),
+                );
+              }
+              return const SliverToBoxAdapter();
+            }),
             SliverToBoxAdapter(
               child: Row(children: [
                 TextButton.icon(
@@ -151,6 +160,57 @@ class _MemberArchivePageState extends State<MemberArchivePage> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  // 构建Section分类Tab
+  Widget _buildSectionTabs(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _memberArchivesController.sections.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final section = _memberArchivesController.sections[index];
+          return Obx(() {
+            final isSelected =
+                _memberArchivesController.currentSection.value?.id ==
+                    section.id;
+            return Material(
+              color: isSelected
+                  ? theme.colorScheme.secondaryContainer
+                  : theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  _memberArchivesController.changeSection(section);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Center(
+                    child: Text(
+                      section.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isSelected
+                            ? theme.colorScheme.onSecondaryContainer
+                            : theme.colorScheme.outline,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          });
+        },
       ),
     );
   }

@@ -32,6 +32,7 @@ class SpaceArchiveItem {
   String? author;
   String? styles;
   String? label;
+  int? sectionId; // 合集分组ID
 
   SpaceArchiveItem({
     required this.title,
@@ -65,6 +66,7 @@ class SpaceArchiveItem {
     this.author,
     this.styles,
     this.label,
+    this.sectionId,
   });
 
   factory SpaceArchiveItem.fromJson(Map<String, dynamic> json) {
@@ -100,6 +102,7 @@ class SpaceArchiveItem {
       author: json['author'],
       styles: json['styles'],
       label: json['label'],
+      sectionId: json['section_id'],
     );
   }
 

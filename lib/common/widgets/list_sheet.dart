@@ -3,6 +3,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
+import '../../http/user.dart';
 import '../../models/video_detail_res.dart';
 import '../../utils/storage.dart';
 import '../../utils/utils.dart';
@@ -10,22 +11,28 @@ import 'network_img_layer.dart';
 
 class ListSheet {
   ListSheet({
-    required this.episodes,
+    this.episodes,
+    this.sections, // 新增：支持多个sections
     this.bvid,
     this.aid,
     required this.currentCid,
     required this.changeFucCall,
     required this.context,
     this.pages,
+    this.ugcSeason, // 新增：合集信息（用于订阅功能）
+    this.onSubscriptionChanged, // 新增：订阅状态改变回调
   });
 
-  final dynamic episodes;
+  final dynamic episodes; // 单个section的episodes列表（兼容旧代码）
+  final List<SectionItem>? sections; // 多个sections（新功能）
   final String? bvid;
   final int? aid;
   final int currentCid;
   final Function changeFucCall;
   final BuildContext context;
   final List<Part>? pages;
+  final UgcSeason? ugcSeason; // 合集信息
+  final Function(bool isSubscribed)? onSubscriptionChanged; // 订阅状态改变回调
 
   late PersistentBottomSheetController bottomSheetController;
 
@@ -48,12 +55,15 @@ class ListSheet {
                 color: Colors.black.withOpacity(0.8),
                 child: ListSheetContent(
                   episodes: episodes,
+                  sections: sections, // 传递sections
                   bvid: bvid,
                   aid: aid,
                   currentCid: currentCid,
                   changeFucCall: changeFucCall,
                   onClose: () => Navigator.of(context).pop(),
                   pages: pages,
+                  ugcSeason: ugcSeason, // 传递合集信息
+                  onSubscriptionChanged: onSubscriptionChanged, // 传递回调
                 ),
               ),
             ),
@@ -83,12 +93,15 @@ class ListSheet {
               color: Colors.transparent,
               child: ListSheetContent(
                 episodes: episodes,
+                sections: sections, // 传递sections
                 bvid: bvid,
                 aid: aid,
                 currentCid: currentCid,
                 changeFucCall: changeFucCall,
                 onClose: () => Navigator.of(context).pop(),
                 pages: pages,
+                ugcSeason: ugcSeason, // 传递合集信息
+                onSubscriptionChanged: onSubscriptionChanged, // 传递回调
               ),
             ),
           );
@@ -109,22 +122,28 @@ class ListSheet {
 class ListSheetContent extends StatefulWidget {
   const ListSheetContent({
     super.key,
-    required this.episodes,
+    this.episodes,
+    this.sections, // 新增：支持多个sections
     this.bvid,
     this.aid,
     required this.currentCid,
     required this.changeFucCall,
     required this.onClose,
     this.pages,
+    this.ugcSeason, // 新增：合集信息
+    this.onSubscriptionChanged, // 新增：订阅状态改变回调
   });
 
-  final dynamic episodes;
+  final dynamic episodes; // 单个section的episodes列表（兼容旧代码）
+  final List<SectionItem>? sections; // 多个sections（新功能）
   final String? bvid;
   final int? aid;
   final int currentCid;
   final Function changeFucCall;
   final Function() onClose;
   final List<Part>? pages;
+  final UgcSeason? ugcSeason; // 合集信息
+  final Function(bool isSubscribed)? onSubscriptionChanged; // 订阅状态改变回调
 
   @override
   State<ListSheetContent> createState() => _ListSheetContentState();
@@ -136,27 +155,212 @@ class _ListSheetContentState extends State<ListSheetContent> {
   bool reverse = false;
   bool isCurrentExpanded = true; // 控制当前选集列表的展开/收起
 
+  // Section相关
+  late List<dynamic> displayEpisodes; // 当前显示的episodes
+  int currentSectionIndex = 0; // 当前选中的section索引
+  List<SectionItem>? allSections; // 所有sections
+
+  // 订阅状态
+  bool isSubscribed = false;
+  bool isSubscribing = false;
+
   @override
   void initState() {
     super.initState();
+
+    // 初始化订阅状态
+    if (widget.ugcSeason != null) {
+      isSubscribed = widget.ugcSeason!.signState == 1;
+      // 异步检查实际订阅状态（确保状态同步）
+      _checkSubscriptionStatus();
+    }
+
+    // 初始化sections和episodes
+    if (widget.sections != null && widget.sections!.isNotEmpty) {
+      allSections = widget.sections;
+      // 找到包含当前视频的section
+      for (int i = 0; i < allSections!.length; i++) {
+        final section = allSections![i];
+        final found = section.episodes!.any((e) =>
+            e.cid == widget.currentCid ||
+            e.bvid == widget.bvid ||
+            e.aid == widget.aid);
+        if (found) {
+          currentSectionIndex = i;
+          break;
+        }
+      }
+      displayEpisodes = allSections![currentSectionIndex].episodes!;
+    } else {
+      displayEpisodes = widget.episodes!;
+    }
+
     currentIndex =
-        widget.episodes!.indexWhere((dynamic e) => e.cid == widget.currentCid);
+        displayEpisodes.indexWhere((dynamic e) => e.cid == widget.currentCid);
     if (currentIndex == -1 && widget.bvid != null) {
       currentIndex =
-          widget.episodes!.indexWhere((dynamic e) => e.bvid == widget.bvid);
+          displayEpisodes.indexWhere((dynamic e) => e.bvid == widget.bvid);
     }
     if (currentIndex == -1 && widget.aid != null) {
       currentIndex =
-          widget.episodes!.indexWhere((dynamic e) => e.aid == widget.aid);
+          displayEpisodes.indexWhere((dynamic e) => e.aid == widget.aid);
     }
     if (currentIndex == -1) {
       currentIndex = 0;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentIndex >= 0 && currentIndex < widget.episodes!.length) {
+      if (currentIndex >= 0 && currentIndex < displayEpisodes.length) {
         itemScrollController.jumpTo(index: currentIndex);
       }
     });
+  }
+
+  // 检查订阅状态（确保与服务器同步）
+  Future<void> _checkSubscriptionStatus() async {
+    if (widget.ugcSeason?.id == null) return;
+
+    try {
+      // 查询视频关系，获取真实的订阅状态
+      final res = await UserHttp.queryVideoRelation(
+        bvid: widget.bvid,
+        aid: widget.aid,
+      );
+
+      if (res['status'] && res['data'] != null) {
+        final data = res['data'];
+        // season_fav字段表示是否订阅了合集
+        final seasonFav = data['season_fav'] ?? false;
+
+        if (mounted) {
+          setState(() {
+            isSubscribed = seasonFav;
+          });
+
+          // 如果状态与ugcSeason不一致，更新它
+          if (widget.ugcSeason!.signState != (seasonFav ? 1 : 0)) {
+            widget.ugcSeason!.signState = seasonFav ? 1 : 0;
+            // 通知外部状态已更新
+            widget.onSubscriptionChanged?.call(seasonFav);
+          }
+        }
+      }
+    } catch (e) {
+      // 查询失败时，使用ugcSeason中的状态
+      if (mounted) {
+        setState(() {
+          isSubscribed = widget.ugcSeason!.signState == 1;
+        });
+      }
+    }
+  }
+
+  // 切换section
+  void _changeSection(int index) {
+    if (allSections == null || index == currentSectionIndex) return;
+    setState(() {
+      currentSectionIndex = index;
+      displayEpisodes = allSections![index].episodes!;
+      // 重新定位到第一个
+      currentIndex = 0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (itemScrollController.isAttached) {
+          itemScrollController.jumpTo(index: 0);
+        }
+      });
+    });
+  }
+
+  // 订阅/取消订阅合集
+  Future<void> _toggleSubscribe() async {
+    if (widget.ugcSeason == null || isSubscribing) return;
+
+    setState(() {
+      isSubscribing = true;
+    });
+
+    try {
+      final seasonId = widget.ugcSeason!.id;
+      if (seasonId == null) {
+        SmartDialog.showToast('合集ID无效');
+        return;
+      }
+
+      dynamic res;
+      if (isSubscribed) {
+        // 取消订阅
+        res = await UserHttp.unsubscribeSeason(seasonId: seasonId);
+      } else {
+        // 订阅
+        res = await UserHttp.subscribeSeason(seasonId: seasonId);
+      }
+
+      if (res['status']) {
+        setState(() {
+          isSubscribed = !isSubscribed;
+          // 更新UgcSeason的signState
+          widget.ugcSeason!.signState = isSubscribed ? 1 : 0;
+        });
+        // 通知外部订阅状态已改变
+        widget.onSubscriptionChanged?.call(isSubscribed);
+        SmartDialog.showToast(isSubscribed ? '订阅成功' : '已取消订阅');
+      } else {
+        SmartDialog.showToast(res['msg'] ?? '操作失败');
+      }
+    } catch (e) {
+      SmartDialog.showToast('操作失败：$e');
+    } finally {
+      setState(() {
+        isSubscribing = false;
+      });
+    }
+  }
+
+  // 定位到当前播放的视频
+  void _locateCurrentPlaying() {
+    // 在所有sections中查找当前播放的视频
+    if (allSections != null) {
+      for (int i = 0; i < allSections!.length; i++) {
+        final section = allSections![i];
+        final index = section.episodes!.indexWhere((e) =>
+            e.cid == widget.currentCid ||
+            e.bvid == widget.bvid ||
+            e.aid == widget.aid);
+        if (index != -1) {
+          // 找到了，切换到对应的section
+          if (i != currentSectionIndex) {
+            setState(() {
+              currentSectionIndex = i;
+              displayEpisodes = allSections![i].episodes!;
+              currentIndex = index;
+            });
+          } else {
+            currentIndex = index;
+          }
+          // 滚动到对应位置
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (itemScrollController.isAttached) {
+              itemScrollController.scrollTo(
+                index: currentIndex,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          });
+          SmartDialog.showToast('已定位到当前播放');
+          return;
+        }
+      }
+    } else {
+      // 单个列表，直接滚动
+      if (currentIndex >= 0 && currentIndex < displayEpisodes.length) {
+        itemScrollController.scrollTo(
+          index: currentIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+        SmartDialog.showToast('已定位到当前播放');
+      }
+    }
   }
 
   Widget buildEpisodeListItem(
@@ -452,7 +656,8 @@ class _ListSheetContentState extends State<ListSheetContent> {
     SmartDialog.showToast('切换到：$title');
     widget.onClose();
     if (episode.runtimeType.toString() == "EpisodeItem") {
-      widget.changeFucCall(episode.bvid, episode.cid, episode.aid, epid: episode.id);
+      widget.changeFucCall(episode.bvid, episode.cid, episode.aid,
+          epid: episode.id);
     } else {
       widget.changeFucCall(widget.bvid!, episode.cid, widget.aid!);
     }
@@ -460,46 +665,73 @@ class _ListSheetContentState extends State<ListSheetContent> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       height: Utils.getSheetHeight(context),
-      color: Theme.of(context).colorScheme.surface,
+      color: theme.colorScheme.surface,
       child: Column(
         children: [
+          // 标题栏
           Container(
             height: 45,
             padding: const EdgeInsets.only(left: 14, right: 14),
             child: Row(
               children: [
                 Text(
-                  '合集（${widget.episodes!.length}）',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  '合集（${displayEpisodes.length}）',
+                  style: theme.textTheme.titleMedium,
+                ),
+                // 订阅按钮（仅合集显示）
+                if (widget.ugcSeason != null)
+                  TextButton.icon(
+                    onPressed: isSubscribing ? null : _toggleSubscribe,
+                    icon: Icon(
+                      isSubscribed ? Icons.star : Icons.star_border,
+                      size: 18,
+                      color: isSubscribed ? Colors.amber : null,
+                    ),
+                    label: Text(
+                      isSubscribed ? '已订阅' : '订阅',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(0, 32),
+                    ),
+                  ),
+                const Spacer(),
+                // 定位当前播放按钮
+                IconButton(
+                  tooltip: '定位当前播放',
+                  icon: const Icon(Icons.my_location, size: 20),
+                  onPressed: _locateCurrentPlaying,
                 ),
                 IconButton(
                   tooltip: '跳至顶部',
-                  icon: const Icon(Icons.vertical_align_top),
+                  icon: const Icon(Icons.vertical_align_top, size: 20),
                   onPressed: () {
                     itemScrollController.scrollTo(
-                      index: !reverse ? 0 : widget.episodes!.length - 1,
+                      index: !reverse ? 0 : displayEpisodes.length - 1,
                       duration: const Duration(milliseconds: 200),
                     );
                   },
                 ),
                 IconButton(
                   tooltip: '跳至底部',
-                  icon: const Icon(Icons.vertical_align_bottom),
+                  icon: const Icon(Icons.vertical_align_bottom, size: 20),
                   onPressed: () {
                     itemScrollController.scrollTo(
-                      index: !reverse ? widget.episodes!.length - 1 : 0,
+                      index: !reverse ? displayEpisodes.length - 1 : 0,
                       duration: const Duration(milliseconds: 200),
                     );
                   },
                 ),
-                const Spacer(),
                 IconButton(
                   tooltip: '反序',
-                  icon: Icon(!reverse
-                      ? MdiIcons.sortAscending
-                      : MdiIcons.sortDescending),
+                  icon: Icon(
+                    !reverse ? MdiIcons.sortAscending : MdiIcons.sortDescending,
+                    size: 20,
+                  ),
                   onPressed: () {
                     setState(() {
                       reverse = !reverse;
@@ -508,7 +740,7 @@ class _ListSheetContentState extends State<ListSheetContent> {
                 ),
                 IconButton(
                   tooltip: '关闭',
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, size: 20),
                   onPressed: widget.onClose,
                 ),
               ],
@@ -516,18 +748,69 @@ class _ListSheetContentState extends State<ListSheetContent> {
           ),
           Divider(
             height: 1,
-            color: Theme.of(context).dividerColor.withOpacity(0.1),
+            color: theme.dividerColor.withValues(alpha: 0.1),
           ),
+          // Section Tab（如果有多个sections）- 放在标题栏下方
+          if (allSections != null && allSections!.length > 1)
+            Container(
+              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: theme.dividerColor.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: allSections!.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final section = allSections![index];
+                  final isSelected = index == currentSectionIndex;
+                  return Material(
+                    color: isSelected
+                        ? theme.colorScheme.secondaryContainer
+                        : theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(20),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => _changeSection(index),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Center(
+                          child: Text(
+                            section.title ?? '分组${index + 1}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isSelected
+                                  ? theme.colorScheme.onSecondaryContainer
+                                  : theme.colorScheme.outline,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           Expanded(
             child: Material(
               child: ScrollablePositionedList.separated(
                 padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).padding.bottom + 20),
                 reverse: reverse,
-                itemCount: widget.episodes!.length,
+                itemCount: displayEpisodes.length,
                 itemBuilder: (BuildContext context, int index) {
                   return buildEpisodeListItem(
-                    widget.episodes![index],
+                    displayEpisodes[index],
                     index,
                     currentIndex == index,
                   );
@@ -535,7 +818,7 @@ class _ListSheetContentState extends State<ListSheetContent> {
                 itemScrollController: itemScrollController,
                 separatorBuilder: (_, index) => Divider(
                   height: 1,
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: theme.dividerColor.withValues(alpha: 0.1),
                 ),
               ),
             ),

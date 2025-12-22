@@ -437,6 +437,67 @@ class UserHttp {
     }
   }
 
+  // 订阅合集
+  static Future subscribeSeason({required int seasonId}) async {
+    var res = await Request().post(
+      Api.favSeason,
+      queryParameters: {
+        'platform': 'web',
+        'season_id': seasonId,
+        'csrf': await Request.getCsrf(),
+      },
+    );
+    if (res.data['code'] == 0) {
+      return {'status': true};
+    } else {
+      return {'status': false, 'msg': res.data['message']};
+    }
+  }
+
+  // 取消订阅合集
+  static Future unsubscribeSeason({required int seasonId}) async {
+    var res = await Request().post(
+      Api.unfavSeason,
+      queryParameters: {
+        'platform': 'web',
+        'season_id': seasonId,
+        'csrf': await Request.getCsrf(),
+      },
+    );
+    if (res.data['code'] == 0) {
+      return {'status': true};
+    } else {
+      return {'status': false, 'msg': res.data['message']};
+    }
+  }
+
+  // 查询视频关系（包括合集订阅状态）
+  static Future<dynamic> queryVideoRelation({String? bvid, int? aid}) async {
+    if (bvid == null && aid == null) {
+      return {'status': false, 'msg': 'bvid和aid至少需要一个'};
+    }
+
+    var res = await Request().get(
+      Api.videoRelation,
+      data: {
+        if (bvid != null) 'bvid': bvid,
+        if (aid != null) 'aid': aid,
+      },
+    );
+
+    if (res.data['code'] == 0) {
+      // 返回关系数据，包括：
+      // - attention: 是否关注UP主
+      // - favorite: 是否收藏视频
+      // - season_fav: 是否订阅合集
+      // - like: 是否点赞
+      // - coin: 投币数量
+      return {'status': true, 'data': res.data['data']};
+    } else {
+      return {'status': false, 'msg': res.data['message']};
+    }
+  }
+
   // 收藏话题
   static Future<dynamic> addFavTopic(String topicId) async {
     try {

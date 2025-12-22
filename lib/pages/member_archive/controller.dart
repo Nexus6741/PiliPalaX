@@ -4,6 +4,19 @@ import 'package:get/get.dart';
 import 'package:PiliPalaX/http/member.dart';
 import 'package:PiliPalaX/models/space_archive/space_archive_item.dart';
 
+// 合集分组信息
+class SectionInfo {
+  final int? id;
+  final String title;
+  final int? seasonId;
+
+  SectionInfo({
+    this.id,
+    required this.title,
+    this.seasonId,
+  });
+}
+
 class MemberArchiveController extends GetxController {
   MemberArchiveController({
     required this.mid,
@@ -33,6 +46,11 @@ class MemberArchiveController extends GetxController {
   ];
   RxList<SpaceArchiveItem> archivesList = <SpaceArchiveItem>[].obs;
 
+  // 合集分组相关
+  RxList<SectionInfo> sections = <SectionInfo>[].obs;
+  Rx<SectionInfo?> currentSection = Rx<SectionInfo?>(null);
+  RxList<SpaceArchiveItem> allArchivesList = <SpaceArchiveItem>[].obs; // 存储所有视频
+
   @override
   void onInit() {
     super.onInit();
@@ -50,6 +68,7 @@ class MemberArchiveController extends GetxController {
     }
     if (loadType == 'refresh') {
       archivesList.clear();
+      allArchivesList.clear();
     }
 
     // 如果已经到达末尾，直接返回
@@ -67,6 +86,7 @@ class MemberArchiveController extends GetxController {
     print('Next: $next');
     print('Is End: $isEnd');
     print('Load Type: $loadType');
+    print('Current Section: ${currentSection.value?.title}');
     print('==============================================');
 
     // 使用新的spaceArchive API
@@ -102,12 +122,46 @@ class MemberArchiveController extends GetxController {
         print('Last item title: ${(data['item'] as List).last['title']}');
       }
       print('Current archivesList length: ${archivesList.length}');
+
+      // 检查是否有sections数据
+      if (data.containsKey('sections')) {
+        print('Has sections: ${data['sections']}');
+      }
       print('==============================================');
 
       // 处理episodicButton
       if (data['episodic_button'] != null) {
         episodicButtonText = data['episodic_button']['text'] ?? "播放全部";
         episodicButtonUri = data['episodic_button']['uri'] ?? "";
+      }
+
+      // 处理sections（合集分组）
+      if (page == 0 &&
+          data['sections'] != null &&
+          (data['sections'] as List).isNotEmpty) {
+        sections.clear();
+        // 添加"全部"选项
+        sections.add(SectionInfo(
+          id: null,
+          title: '全部',
+          seasonId: seasonId,
+        ));
+
+        // 添加各个分组
+        for (var section in data['sections']) {
+          sections.add(SectionInfo(
+            id: section['id'],
+            title: section['title'] ?? '',
+            seasonId: section['season_id'],
+          ));
+        }
+
+        // 默认选中第一个（全部）
+        if (currentSection.value == null) {
+          currentSection.value = sections.first;
+        }
+
+        print('Sections loaded: ${sections.map((s) => s.title).toList()}');
       }
 
       // 更新next字段（用于某些类型的分页）
@@ -127,20 +181,23 @@ class MemberArchiveController extends GetxController {
             items.map((item) => SpaceArchiveItem.fromJson(item)).toList();
 
         // 如果page != 0且已有数据，需要合并
-        if (page != 0 && archivesList.isNotEmpty) {
+        if (page != 0 && allArchivesList.isNotEmpty) {
           // 向下加载，添加到末尾
-          archivesList.addAll(newList);
+          allArchivesList.addAll(newList);
         } else {
           // 初始加载或刷新
-          archivesList.value = newList;
+          allArchivesList.value = newList;
         }
 
         // 更新firstAid和lastAid
-        if (archivesList.isNotEmpty) {
-          firstAid = archivesList.first.param;
-          lastAid = archivesList.last.param;
+        if (allArchivesList.isNotEmpty) {
+          firstAid = allArchivesList.first.param;
+          lastAid = allArchivesList.last.param;
           print('Updated firstAid: $firstAid, lastAid: $lastAid');
         }
+
+        // 根据当前选中的section筛选视频
+        _filterArchivesBySection();
       }
 
       // 检查是否还有更多数据 - 完全按照PiliPlus的逻辑
@@ -177,6 +234,26 @@ class MemberArchiveController extends GetxController {
       SmartDialog.showToast(res['msg']);
       return {'status': false, 'msg': res['msg']};
     }
+  }
+
+  // 根据选中的section筛选视频
+  void _filterArchivesBySection() {
+    if (currentSection.value == null || currentSection.value!.id == null) {
+      // 显示全部
+      archivesList.value = allArchivesList;
+    } else {
+      // 根据sectionId筛选
+      archivesList.value = allArchivesList.where((item) {
+        return item.sectionId == currentSection.value!.id;
+      }).toList();
+    }
+    print('Filtered archives: ${archivesList.length} items');
+  }
+
+  // 切换section
+  void changeSection(SectionInfo section) {
+    currentSection.value = section;
+    _filterArchivesBySection();
   }
 
   toggleSort() async {
