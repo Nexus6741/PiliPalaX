@@ -278,7 +278,15 @@ class BangumiIntroController extends GetxController {
                   child: const Text('复制链接到剪贴板')),
               TextButton(
                   onPressed: () {
-                    launchUrl(Uri.parse(videoUrl));
+                    launchUrl(
+                      Uri.parse(videoUrl),
+                      mode: LaunchMode.externalApplication,
+                      webViewConfiguration: WebViewConfiguration(
+                        headers: {
+                          'harmony_browser_page': 'pages/LaunchInAppPage'
+                        },
+                      ),
+                    );
                   },
                   child: const Text('其它app打开')),
               TextButton(

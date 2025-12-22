@@ -409,6 +409,11 @@ class Utils {
                             Uri.parse(
                                 "https://github.com/orz12/pilipala/commits/main/"),
                             mode: LaunchMode.externalApplication,
+                            webViewConfiguration: WebViewConfiguration(
+                              headers: {
+                                'harmony_browser_page': 'pages/LaunchInAppPage'
+                              },
+                            ),
                           );
                         },
                         child: Text(
@@ -472,6 +477,9 @@ class Utils {
         launchUrl(
           Uri.parse(downloadUrl),
           mode: LaunchMode.externalApplication,
+          webViewConfiguration: WebViewConfiguration(
+            headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+          ),
         );
       }
     }

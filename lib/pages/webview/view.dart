@@ -39,7 +39,13 @@ class _WebviewPageState extends State<WebviewPage> {
             IconButton(
               tooltip: '用外部浏览器打开',
               onPressed: () {
-                launchUrl(Uri.parse(_webviewController.url));
+                launchUrl(
+                  Uri.parse(_webviewController.url),
+                  mode: LaunchMode.externalApplication,
+                  webViewConfiguration: WebViewConfiguration(
+                    headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+                  ),
+                );
               },
               icon: Icon(Icons.open_in_browser_outlined,
                   color: Theme.of(context).colorScheme.primary),

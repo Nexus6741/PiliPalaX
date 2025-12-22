@@ -364,6 +364,9 @@ class AboutController extends GetxController {
     launchUrl(
       Uri.parse('https://github.com/orz12/pilipala'),
       mode: LaunchMode.externalApplication,
+      webViewConfiguration: WebViewConfiguration(
+        headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+      ),
     );
   }
 
@@ -371,6 +374,9 @@ class AboutController extends GetxController {
     launchUrl(
       Uri.parse('https://github.com/guozhigq/pilipala/release'),
       mode: LaunchMode.externalApplication,
+      webViewConfiguration: WebViewConfiguration(
+        headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+      ),
     );
   }
 
@@ -386,6 +392,9 @@ class AboutController extends GetxController {
       (value) => launchUrl(
         Uri.parse('https://www.123pan.com/s/9sVqVv-flu0A.html'),
         mode: LaunchMode.externalApplication,
+        webViewConfiguration: WebViewConfiguration(
+          headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+        ),
       ),
     );
   }
@@ -404,6 +413,9 @@ class AboutController extends GetxController {
                 Uri.parse('https://github.com/orz12/pilipala/issues'),
                 // 系统自带浏览器打开
                 mode: LaunchMode.externalApplication,
+                webViewConfiguration: WebViewConfiguration(
+                  headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+                ),
               ),
             ),
             // ListTile(
@@ -431,6 +443,9 @@ class AboutController extends GetxController {
         Uri.parse(
             'mqqapi://card/show_pslcard?src_type=internal&version=1&uin=392176105&card_type=group&source=qrcode'),
         mode: LaunchMode.externalApplication,
+        webViewConfiguration: WebViewConfiguration(
+          headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+        ),
       );
     } catch (e) {
       print(e);
@@ -449,6 +464,9 @@ class AboutController extends GetxController {
       (value) => launchUrl(
         Uri.parse('https://t.me/+162zlPtZlT9hNWVl'),
         mode: LaunchMode.externalApplication,
+        webViewConfiguration: WebViewConfiguration(
+          headers: {'harmony_browser_page': 'pages/LaunchInAppPage'},
+        ),
       ),
     );
   }
