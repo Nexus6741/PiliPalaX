@@ -78,6 +78,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   bool _playerInitFinished = false;
   bool _introInitFinished = false;
   bool _replyInitFinished = false;
+  // 🔥 修复：播放器透明度，用于 Hero 动画期间避免 GetX 警告
+  double _playerOpacity = 0.0;
 
   Widget _buildIntroDelayed(Widget child) {
     if (!_introInitFinished) return const SizedBox();
@@ -97,6 +99,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         videoSourceInit();
         setState(() {
           _playerInitFinished = true;
+          // 🔥 修复：Hero 动画完成后显示播放器，避免 GetX 警告
+          _playerOpacity = 1.0;
         });
       }
     })
@@ -804,11 +808,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                 ),
                               ),
                             ),
-                            // if (isShowing) plPlayer,
-                            plPlayer,
+                            // 🔥 修复：只在透明度大于 0 时才渲染播放器，避免 GetX 警告
+                            if (_playerOpacity > 0)
+                              Opacity(
+                                opacity: _playerOpacity,
+                                child: plPlayer,
+                              ),
 
                             // 🔥 优化：自动播放模式下的封面淡出动画
-                            if (videoDetailController.autoPlay.value)
+                            if (videoDetailController.autoPlay.value &&
+                                _playerOpacity > 0)
                               Obx(
                                 () => Positioned.fill(
                                   child: IgnorePointer(
@@ -838,8 +847,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                               ),
 
                             /// 关闭自动播放时 手动播放
-                            if (!videoDetailController
-                                .autoPlay.value) ...<Widget>[
+                            if (!videoDetailController.autoPlay.value &&
+                                _playerOpacity > 0) ...<Widget>[
                               // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
                               Obx(
                                 () => Positioned(
@@ -1010,11 +1019,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       ),
                     ),
                   ),
-                  // if (isShowing) plPlayer,
-                  plPlayer,
+                  // 🔥 修复：只在透明度大于 0 时才渲染播放器，避免 GetX 警告
+                  if (_playerOpacity > 0)
+                    Opacity(
+                      opacity: _playerOpacity,
+                      child: plPlayer,
+                    ),
 
                   // 🔥 优化：自动播放模式下的封面淡出动画
-                  if (videoDetailController.autoPlay.value)
+                  if (videoDetailController.autoPlay.value &&
+                      _playerOpacity > 0)
                     Obx(
                       () => Positioned.fill(
                         child: IgnorePointer(
@@ -1040,7 +1054,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     ),
 
                   /// 关闭自动播放时 手动播放
-                  if (!videoDetailController.autoPlay.value) ...<Widget>[
+                  if (!videoDetailController.autoPlay.value &&
+                      _playerOpacity > 0) ...<Widget>[
                     // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
                     Obx(
                       () => Positioned(
@@ -1175,11 +1190,15 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 }
               },
               child: Stack(children: <Widget>[
-                // if (isShowing) plPlayer,
-                plPlayer,
+                // 🔥 修复：只在透明度大于 0 时才渲染播放器，避免 GetX 警告
+                if (_playerOpacity > 0)
+                  Opacity(
+                    opacity: _playerOpacity,
+                    child: plPlayer,
+                  ),
 
                 // 🔥 优化：自动播放模式下的封面淡出动画
-                if (videoDetailController.autoPlay.value)
+                if (videoDetailController.autoPlay.value && _playerOpacity > 0)
                   Obx(
                     () => Positioned.fill(
                       child: IgnorePointer(
@@ -1205,7 +1224,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   ),
 
                 /// 关闭自动播放时 手动播放
-                if (!videoDetailController.autoPlay.value) ...<Widget>[
+                if (!videoDetailController.autoPlay.value &&
+                    _playerOpacity > 0) ...<Widget>[
                   // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
                   Obx(
                     () => Positioned(
@@ -1376,11 +1396,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                         ),
                       ),
                     ),
-                    // if (isShowing) plPlayer,
-                    plPlayer,
+                    // 🔥 修复：只在透明度大于 0 时才渲染播放器，避免 GetX 警告
+                    if (_playerOpacity > 0)
+                      Opacity(
+                        opacity: _playerOpacity,
+                        child: plPlayer,
+                      ),
 
                     // 🔥 优化：自动播放模式下的封面淡出动画
-                    if (videoDetailController.autoPlay.value)
+                    if (videoDetailController.autoPlay.value &&
+                        _playerOpacity > 0)
                       Obx(
                         () => Positioned.fill(
                           child: IgnorePointer(
@@ -1407,7 +1432,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       ),
 
                     /// 关闭自动播放时 手动播放
-                    if (!videoDetailController.autoPlay.value) ...<Widget>[
+                    if (!videoDetailController.autoPlay.value &&
+                        _playerOpacity > 0) ...<Widget>[
                       // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
                       Obx(
                         () => Positioned(
@@ -1537,11 +1563,16 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                           ),
                         ),
                       ),
-                      // if (isShowing) plPlayer,
-                      plPlayer,
+                      // 🔥 修复：只在透明度大于 0 时才渲染播放器，避免 GetX 警告
+                      if (_playerOpacity > 0)
+                        Opacity(
+                          opacity: _playerOpacity,
+                          child: plPlayer,
+                        ),
 
                       // 🔥 优化：自动播放模式下的封面淡出动画
-                      if (videoDetailController.autoPlay.value)
+                      if (videoDetailController.autoPlay.value &&
+                          _playerOpacity > 0)
                         Obx(
                           () => Positioned.fill(
                             child: IgnorePointer(
@@ -1569,7 +1600,8 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                         ),
 
                       /// 关闭自动播放时 手动播放
-                      if (!videoDetailController.autoPlay.value) ...<Widget>[
+                      if (!videoDetailController.autoPlay.value &&
+                          _playerOpacity > 0) ...<Widget>[
                         // 🔥 优化：使用 AnimatedOpacity 实现封面平滑淡出
                         Obx(
                           () => Positioned(
