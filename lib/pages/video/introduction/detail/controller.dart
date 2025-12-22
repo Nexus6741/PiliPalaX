@@ -528,9 +528,9 @@ class VideoIntroController extends GetxController {
     int mid = videoDetail.value.owner!.mid!;
     MemberController _ = Get.put<MemberController>(MemberController(mid: mid),
         tag: mid.toString());
-    await _.getInfo();
+    await _.loadSpaceData();
     if (context.mounted) await _.actionRelationMod(context);
-    followStatus['attribute'] = _.attribute.value;
+    followStatus['attribute'] = _.relation.value;
     followStatus.refresh();
     Get.delete<MemberController>(tag: mid.toString());
   }

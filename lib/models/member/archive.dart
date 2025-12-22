@@ -82,6 +82,7 @@ class VListItemModel {
     this.isChargingSrc,
     this.rcmdReason,
     this.owner,
+    this.stat,
   });
 
   int? comment;

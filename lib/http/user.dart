@@ -336,6 +336,38 @@ class UserHttp {
     }
   }
 
+  // 用户空间收藏（包含创建的收藏夹和订阅）
+  static Future spaceFav({required int mid}) async {
+    var res = await Request().get(
+      Api.spaceFav,
+      data: {
+        'build': 8430300,
+        'version': '8.43.0',
+        'c_locale': 'zh_CN',
+        'channel': 'master',
+        'mobi_app': 'android',
+        'platform': 'android',
+        's_locale': 'zh_CN',
+        'statistics': Constants.statistics,
+        'up_mid': mid,
+      },
+      options: Options(
+        headers: {
+          'bili-http-engine': 'cronet',
+          'user-agent': Constants.userAgent,
+        },
+      ),
+    );
+    if (res.data['code'] == 0) {
+      return {
+        'status': true,
+        'data': res.data['data'],
+      };
+    } else {
+      return {'status': false, 'msg': res.data['message']};
+    }
+  }
+
   static Future favSeasonList({
     required int id,
     required int pn,

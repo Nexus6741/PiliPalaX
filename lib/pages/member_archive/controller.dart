@@ -2,13 +2,27 @@ import 'package:PiliPalaX/utils/app_scheme.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/http/member.dart';
-import 'package:PiliPalaX/models/member/archive.dart';
+import 'package:PiliPalaX/models/space_archive/space_archive_item.dart';
 
 class MemberArchiveController extends GetxController {
-  MemberArchiveController({required this.mid});
+  MemberArchiveController({
+    required this.mid,
+    this.type = 'video',
+    this.seasonId,
+    this.seriesId,
+  });
+
   final int mid;
-  int pn = 1;
+  final String type; // 'video', 'charging', 'season', 'series'
+  final int? seasonId;
+  final int? seriesId;
+
+  int page = 0; // 使用page而不是pn，从0开始
   int count = 0;
+  bool isEnd = false; // 是否已经到达末尾
+  int? next; // 用于某些类型的分页
+  String? firstAid; // 第一个视频的aid，用于向上加载
+  String? lastAid; // 最后一个视频的aid，用于向下加载
   String episodicButtonText = "播放全部";
   String episodicButtonUri = "";
   RxMap<String, String> currentOrder = <String, String>{}.obs;
@@ -17,7 +31,7 @@ class MemberArchiveController extends GetxController {
     {'type': 'click', 'label': '最多播放'},
     {'type': 'stow', 'label': '最多收藏'},
   ];
-  RxList<VListItemModel> archivesList = <VListItemModel>[].obs;
+  RxList<SpaceArchiveItem> archivesList = <SpaceArchiveItem>[].obs;
 
   @override
   void onInit() {
@@ -26,33 +40,143 @@ class MemberArchiveController extends GetxController {
   }
 
   // 获取用户投稿
-  Future getMemberArchive(type) async {
-    if (type == 'init' || type == 'refresh') {
-      pn = 1;
+  Future getMemberArchive(String loadType) async {
+    if (loadType == 'init' || loadType == 'refresh') {
+      page = 0;
+      firstAid = null;
+      lastAid = null;
+      next = null;
+      isEnd = false;
     }
-    if (type == 'refresh') {
+    if (loadType == 'refresh') {
       archivesList.clear();
     }
-    var res = await MemberHttp.memberArchive(
+
+    // 如果已经到达末尾，直接返回
+    if (loadType == 'onLoad' && isEnd) {
+      print('Already reached the end, no more data to load');
+      return {'status': true, 'msg': 'no more data'};
+    }
+
+    print('========== getMemberArchive Request ==========');
+    print('Type: $type');
+    print('Page: $page');
+    print('Season ID: $seasonId');
+    print('Series ID: $seriesId');
+    print('Last AID: $lastAid');
+    print('Next: $next');
+    print('Is End: $isEnd');
+    print('Load Type: $loadType');
+    print('==============================================');
+
+    // 使用新的spaceArchive API
+    var res = await MemberHttp.spaceArchive(
+      type: type,
       mid: mid,
-      pn: pn,
       order: currentOrder['type']!,
+      pn: type == 'charging' ? page : null,
+      aid: type == 'video' ? lastAid : null, // 使用lastAid进行游标分页
+      next: (type == 'season' || type == 'series')
+          ? next
+          : null, // 只有合集类型才使用next参数
+      seasonId: seasonId,
+      seriesId: seriesId,
     );
+
     if (res['status']) {
-      episodicButtonText = res['data'].episodicButton?.text ?? "";
-      episodicButtonUri = res['data'].episodicButton?.uri ?? "";
-      if (type == 'init' || type == 'refresh') {
-        archivesList.value = res['data'].list.vlist;
+      final data = res['data'];
+
+      print('========== getMemberArchive Response Data ==========');
+      print('Data keys: ${data.keys}');
+      print('Has has_next: ${data.containsKey('has_next')}');
+      if (data.containsKey('has_next')) {
+        print('has_next value: ${data['has_next']}');
       }
-      if (type == 'onLoad') {
-        archivesList.addAll(res['data'].list.vlist);
+      print('Has next: ${data.containsKey('next')}');
+      if (data.containsKey('next')) {
+        print('next value: ${data['next']}');
       }
-      count = res['data'].page['count'];
-      pn += 1;
+      print('Item count: ${data['item']?.length ?? 0}');
+      if (data['item'] != null && (data['item'] as List).isNotEmpty) {
+        print('First item title: ${(data['item'] as List).first['title']}');
+        print('Last item title: ${(data['item'] as List).last['title']}');
+      }
+      print('Current archivesList length: ${archivesList.length}');
+      print('==============================================');
+
+      // 处理episodicButton
+      if (data['episodic_button'] != null) {
+        episodicButtonText = data['episodic_button']['text'] ?? "播放全部";
+        episodicButtonUri = data['episodic_button']['uri'] ?? "";
+      }
+
+      // 更新next字段（用于某些类型的分页）
+      int? oldNext = next;
+      next = data['next'];
+      print('Next updated: $oldNext -> $next');
+
+      // 处理count
+      count = type == 'season'
+          ? (data['item']?.length ?? -1)
+          : (data['count'] ?? -1);
+
+      // 处理视频列表
+      List<dynamic>? items = data['item'];
+      if (items != null && items.isNotEmpty) {
+        List<SpaceArchiveItem> newList =
+            items.map((item) => SpaceArchiveItem.fromJson(item)).toList();
+
+        // 如果page != 0且已有数据，需要合并
+        if (page != 0 && archivesList.isNotEmpty) {
+          // 向下加载，添加到末尾
+          archivesList.addAll(newList);
+        } else {
+          // 初始加载或刷新
+          archivesList.value = newList;
+        }
+
+        // 更新firstAid和lastAid
+        if (archivesList.isNotEmpty) {
+          firstAid = archivesList.first.param;
+          lastAid = archivesList.last.param;
+          print('Updated firstAid: $firstAid, lastAid: $lastAid');
+        }
+      }
+
+      // 检查是否还有更多数据 - 完全按照PiliPlus的逻辑
+      // 在处理完数据后检查
+      if (page == 0 || loadType != 'init') {
+        // 对于video类型，检查has_next字段
+        // 对于其他类型（season/series），检查next字段
+        // 注意：next可能是null或0，都表示没有更多数据
+        bool shouldEnd = (type == 'video'
+                ? data['has_next'] == false
+                : (data['next'] == null || data['next'] == 0)) ||
+            data['item'] == null ||
+            (data['item'] as List).isEmpty;
+
+        print('========== isEnd Check ==========');
+        print('page: $page, loadType: $loadType');
+        print('type: $type');
+        print('has_next: ${data['has_next']}');
+        print('next: ${data['next']}');
+        print(
+            'item is null or empty: ${data['item'] == null || (data['item'] as List).isEmpty}');
+        print('shouldEnd: $shouldEnd');
+        print('=================================');
+
+        if (shouldEnd) {
+          isEnd = true;
+        }
+      }
+
+      page += 1;
+
+      return {'status': true};
     } else {
       SmartDialog.showToast(res['msg']);
+      return {'status': false, 'msg': res['msg']};
     }
-    return res;
   }
 
   toggleSort() async {
@@ -63,6 +187,11 @@ class MemberArchiveController extends GetxController {
     } else {
       currentOrder.value = orderList[index + 1];
     }
+    // 切换排序时重置状态
+    isEnd = false;
+    firstAid = null;
+    lastAid = null;
+    next = null;
     getMemberArchive('init');
   }
 

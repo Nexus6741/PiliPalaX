@@ -299,7 +299,52 @@ class Api {
   static const String roomEntryAction =
       '${HttpString.liveBaseUrl}/xlive/web-room/v1/index/roomEntryAction';
 
-  // 用户信息 需要Wbi签名
+  // 用户空间完整信息（App API，包含card、images等完整数据）
+  // https://app.bilibili.com/x/v2/space?vmid=xxx
+  static const String memberSpace = '${HttpString.appBaseUrl}/x/v2/space';
+
+  // 用户投稿视频（App API，支持游标分页）
+  static const String spaceArchive =
+      '${HttpString.appBaseUrl}/x/v2/space/archive/cursor';
+
+  // 用户充电专属视频
+  static const String spaceChargingArchive =
+      '${HttpString.appBaseUrl}/x/v2/space/archive/charging';
+
+  // 用户合集视频
+  static const String spaceSeason =
+      '${HttpString.appBaseUrl}/x/v2/space/season/videos';
+
+  // 用户列表视频
+  static const String spaceSeries =
+      '${HttpString.appBaseUrl}/x/v2/space/series';
+
+  // 用户追番
+  static const String spaceBangumi =
+      '${HttpString.appBaseUrl}/x/v2/space/bangumi';
+
+  // 用户专栏
+  static const String spaceArticle =
+      '${HttpString.appBaseUrl}/x/v2/space/article';
+
+  // 用户音频
+  static const String spaceAudio = '/audio/music-service/web/song/upper';
+
+  // 用户漫画
+  static const String spaceComic = '${HttpString.appBaseUrl}/x/v2/space/comic';
+
+  // 用户投币视频（App API）
+  static const String spaceCoinArc =
+      '${HttpString.appBaseUrl}/x/v2/space/coinarc';
+
+  // 用户点赞视频（App API）
+  static const String spaceLikeArc =
+      '${HttpString.appBaseUrl}/x/v2/space/likearc';
+
+  // 合集和列表
+  static const String seasonSeries = '/x/polymer/web-space/seasons_series_list';
+
+  // 用户信息 需要Wbi签名（Web API，返回扁平的用户信息）
   // https://api.bilibili.com/x/space/wbi/acc/info?mid=503427686&token=&platform=web&web_location=1550101&w_rid=d709892496ce93e3d94d6d37c95bde91&wts=1689301482
   static const String memberInfo = '/x/space/wbi/acc/info';
 
@@ -367,8 +412,7 @@ class Api {
       '/pgc/season/index/result?st=1&order=3&season_version=-1&spoken_language_type=-1&area=-1&is_finish=-1&copyright=-1&season_status=-1&season_month=-1&year=-1&style_id=-1&sort=0&season_type=1&pagesize=20&type=1';
 
   // 我的订阅
-  static const String bangumiFollow =
-      '/x/space/bangumi/follow/list?type=1&follow_status=0&pn=1&ps=15&ts=1691544359969';
+  static const String bangumiFollow = '/x/space/bangumi/follow/list';
 
   // 黑名单
   static const String blackLst = '/x/relation/blacks';
@@ -635,6 +679,9 @@ class Api {
 
   /// 我的订阅
   static const userSubFolder = '/x/v3/fav/folder/collected/list';
+
+  /// 用户空间收藏（包含创建的收藏夹和订阅）
+  static const spaceFav = '/x/v3/fav/folder/space';
 
   /// 我的订阅-合集详情
   static const favSeasonList = '/x/space/fav/season/list';

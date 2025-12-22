@@ -6,6 +6,9 @@ import 'storage.dart';
 class Grid {
   static double maxRowWidth = GStorage.setting
       .get(SettingBoxKey.maxRowWidth, defaultValue: 240.0) as double;
+
+  // 小卡片宽度，用于番剧等垂直卡片
+  static double smallCardWidth = maxRowWidth;
   //
   // static double calculateActualWidth(BuildContext context, double maxCrossAxisExtent, double crossAxisSpacing, {double? screenWidthOffset}) {
   //   double screenWidth = MediaQuery.of(context).size.width;

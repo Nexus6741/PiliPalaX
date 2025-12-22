@@ -1,17 +1,17 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/pages/member/index.dart';
 import 'package:PiliPalaX/utils/utils.dart';
 
-import '../member_archive/view.dart';
 import '../member_dynamics/view.dart';
 import '../member_seasons_and_series/view.dart';
-import 'widgets/profile.dart';
+import '../member_home/view.dart';
+import '../member_bangumi/view.dart';
+import '../member_favorite/view.dart';
+import '../member_contribute/view.dart';
+import 'widgets/user_info_card.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
 
 class MemberPage extends StatefulWidget {
@@ -25,12 +25,6 @@ class _MemberPageState extends State<MemberPage>
     with SingleTickerProviderStateMixin {
   late String heroTag;
   late MemberController _memberController;
-  late Future _futureBuilderFuture;
-  // late Future _memberSeasonsFuture;
-  // late Future _memberCoinsFuture;
-
-  // final ScrollController _extendNestCtr = ScrollController();
-  // final StreamController<bool> appbarStream = StreamController<bool>();
   late int mid;
 
   @override
@@ -38,98 +32,115 @@ class _MemberPageState extends State<MemberPage>
     super.initState();
     mid = int.parse(Get.parameters['mid']!);
     heroTag = Get.arguments?['heroTag'] ?? Utils.makeHeroTag(mid);
-    _memberController = Get.put(MemberController(), tag: heroTag);
-    _futureBuilderFuture = _memberController.getInfo();
-    // _memberSeasonsFuture = _memberController.getMemberSeasons();
-    // _memberCoinsFuture = _memberController.getRecentCoinVideo();
-    // _extendNestCtr.addListener(
-    //   () {
-    //     final double offset = _extendNestCtr.position.pixels;
-    //     if (offset > 100) {
-    //       appbarStream.add(true);
-    //     } else {
-    //       appbarStream.add(false);
-    //     }
-    //   },
-    // );
+    _memberController = Get.put(MemberController(mid: mid), tag: heroTag);
   }
 
   @override
   void dispose() {
-    // _extendNestCtr.removeListener(() {});
-    // _extendNestCtr.dispose();
-    // appbarStream.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isHorizontal = context.width > context.height;
     return Scaffold(
       primary: true,
       appBar: AppBar(
-        actions: [
-          IconButton(
-            tooltip: '搜索',
-            onPressed: () => Get.toNamed(
-                '/memberSearch?mid=$mid&uname=${_memberController.memberInfo.value.name!}'),
-            icon: const Icon(Icons.search_outlined),
-          ),
-          PopupMenuButton(
-            icon: const Icon(Icons.more_vert),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-              if (_memberController.ownerMid != _memberController.mid) ...[
-                PopupMenuItem(
-                  onTap: () => _memberController.blockUser(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.block, size: 19),
-                      const SizedBox(width: 10),
-                      Text(_memberController.attribute.value != 128
-                          ? '加入黑名单'
-                          : '移除黑名单'),
-                    ],
-                  ),
-                )
-              ],
-              PopupMenuItem(
-                onTap: () => _memberController.shareUser(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.share_outlined, size: 19),
-                    const SizedBox(width: 10),
-                    Text(_memberController.ownerMid != _memberController.mid
-                        ? '分享UP主'
-                        : '分享我的主页'),
-                  ],
+        actions: _buildActions(context),
+      ),
+      body: Obx(() {
+        // 加载中
+        if (_memberController.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // 加载失败
+        if (_memberController.errorMsg.value.isNotEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(_memberController.errorMsg.value),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => _memberController.refresh(),
+                  child: const Text('重试'),
                 ),
+              ],
+            ),
+          );
+        }
+
+        // 数据为空
+        if (_memberController.spaceData.value == null) {
+          return const Center(child: Text('暂无数据'));
+        }
+
+        return _buildContent(context);
+      }),
+    );
+  }
+
+  // 构建内容
+  Widget _buildContent(BuildContext context) {
+    final spaceData = _memberController.spaceData.value!;
+    final card = spaceData.card;
+    final images = spaceData.images;
+
+    // 调试信息 - 如果card或images为空，显示详细错误
+    if (card == null || images == null) {
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '数据解析异常',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              PopupMenuItem(
-                onTap: () {
-                  Clipboard.setData(
-                    ClipboardData(text: _memberController.mid.toString()),
-                  );
-                  SmartDialog.showToast('已复制${_memberController.mid}至剪贴板');
-                },
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.copy, size: 19),
-                  const SizedBox(width: 10),
-                  Text('复制UID：${_memberController.mid}')
-                ]),
+              const SizedBox(height: 16),
+              if (card == null) ...[
+                const Text('❌ card 数据为空'),
+                const SizedBox(height: 8),
+              ],
+              if (images == null) ...[
+                const Text('❌ images 数据为空'),
+                const SizedBox(height: 8),
+              ],
+              const Text('请查看控制台日志了解详细错误信息'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => _memberController.refresh(),
+                child: const Text('重试'),
               ),
             ],
           ),
-        ],
-      ),
-      body: NestedScrollView(
-        floatHeaderSlivers: false,
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
-            SliverToBoxAdapter(
-              child: profileWidget(isHorizontal),
-            ),
+        ),
+      );
+    }
+
+    // 获取支持的Tab列表
+    final tabs = _getSupportedTabs();
+
+    return NestedScrollView(
+      floatHeaderSlivers: false,
+      headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        return <Widget>[
+          // 用户信息卡片
+          SliverToBoxAdapter(
+            child: Obx(() => UserInfoCard(
+                  isOwner: _memberController.ownerMid == mid,
+                  card: card,
+                  images: images,
+                  relation: _memberController.relation.value,
+                  onFollow: () => _memberController.actionRelationMod(context),
+                  live: spaceData.live,
+                  silence: spaceData.silence,
+                )),
+          ),
+          // Tab栏
+          if (tabs.isNotEmpty)
             SliverPersistentHeader(
               delegate: _MySliverPersistentHeaderDelegate(
                 child: ColoredBox(
@@ -138,179 +149,289 @@ class _MemberPageState extends State<MemberPage>
                     labelPadding: const EdgeInsets.symmetric(horizontal: 15),
                     tabAlignment: TabAlignment.center,
                     isScrollable: true,
-                    tabs: const [
-                      Tab(text: '动态'),
-                      Tab(text: '投稿'),
-                      Tab(text: '合集/列表'),
-                      // Tab(text: '图文'),
-                      // Tab(text: '收藏'),
-                      // Tab(text: '投币'),
-                      // Tab(text: '赞过'),
-                    ],
+                    tabs: tabs.map((tab) => Tab(text: tab['title'])).toList(),
                     controller: _memberController.tabController,
                   ),
                 ),
               ),
               pinned: true,
             ),
-          ];
-        },
-        body: TabBarView(
-          physics: const CustomTabBarViewScrollPhysics(),
-          controller: _memberController.tabController,
-          children: [
-            MemberDynamicsPage(mid: mid),
-            MemberArchivePage(mid: mid),
-            MemberSeasonsAndSeriesPage(mid: mid),
-            // MemberDynamicsPage(mid: mid),
-            // MemberDynamicsPage(mid: mid),
-            // MemberDynamicsPage(mid: mid),
-            // MemberDynamicsPage(mid: mid),
-          ],
-        ),
-      ),
+        ];
+      },
+      body: tabs.isEmpty
+          ? const Center(child: Text('暂无内容'))
+          : TabBarView(
+              physics: const CustomTabBarViewScrollPhysics(),
+              controller: _memberController.tabController,
+              children: tabs.map((tab) => _buildTabContent(tab)).toList(),
+            ),
     );
   }
 
-  Widget profileWidget(bool isHorizontal) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 18, right: 18, bottom: 20),
-      child: FutureBuilder(
-        future: _futureBuilderFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            Map data = snapshot.data!;
-            if (data['status']) {
-              return Obx(
-                () => Stack(
-                    alignment: AlignmentDirectional.center,
-                    children: [profilePanelAndDetailInfo(isHorizontal, false)]),
-              );
-            } else {
-              return profilePanelAndDetailInfo(isHorizontal, true);
-            }
-          } else {
-            // 骨架屏
-            return profilePanelAndDetailInfo(isHorizontal, true);
-          }
-        },
-      ),
-    );
-  }
-
-  Widget profilePanelAndDetailInfo(bool isHorizontal, bool loadingStatus) {
-    if (isHorizontal) {
-      return Row(
-        children: [
-          Expanded(
-              child: ProfilePanel(
-                  ctr: _memberController, loadingStatus: loadingStatus)),
-          const SizedBox(width: 20),
-          Expanded(child: profileDetailInfo()),
-        ],
-      );
+  // 获取支持的Tab列表
+  List<Map<String, String>> _getSupportedTabs() {
+    final tab2 = _memberController.tab2;
+    if (tab2 == null || tab2.isEmpty) {
+      // 返回默认Tab（包含主页和追番）
+      return [
+        {'title': '主页', 'param': 'home'},
+        {'title': '动态', 'param': 'dynamic'},
+        {'title': '投稿', 'param': 'contribute'},
+        {'title': '合集/列表', 'param': 'seasons_series'},
+        {'title': '追番', 'param': 'bangumi'},
+      ];
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ProfilePanel(ctr: _memberController, loadingStatus: loadingStatus),
-        const SizedBox(height: 10),
-        profileDetailInfo(),
-      ],
-    );
+
+    // 过滤支持的Tab，转换为 Map 格式
+    return tab2
+        .where((tab) {
+          return ['home', 'dynamic', 'contribute', 'bangumi', 'favorite']
+              .contains(tab.param);
+        })
+        .map((tab) => {
+              'title': tab.title ?? '',
+              'param': tab.param ?? '',
+            })
+        .toList();
   }
 
-  Widget profileDetailInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Flexible(
-                child: Text(
-              _memberController.memberInfo.value.name ?? '',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium!
-                  .copyWith(fontWeight: FontWeight.bold, height: 2),
-            )),
-            const SizedBox(width: 2),
-            if (_memberController.memberInfo.value.sex == '女')
-              const Icon(
-                FontAwesomeIcons.venus,
-                size: 14,
-                color: Colors.pink,
-                semanticLabel: '女',
+  // 构建Tab内容
+  Widget _buildTabContent(Map<String, String> tab) {
+    final param = tab['param'] ?? '';
+
+    switch (param) {
+      case 'home':
+        return MemberHomePage(heroTag: heroTag);
+      case 'dynamic':
+        return MemberDynamicsPage(mid: mid);
+      case 'contribute':
+        return MemberContribute(
+          mid: mid,
+          heroTag: heroTag,
+        );
+      case 'bangumi':
+        return MemberBangumiPage(mid: mid);
+      case 'favorite':
+        return MemberFavoritePage(mid: mid);
+      case 'seasons_series':
+        return MemberSeasonsAndSeriesPage(mid: mid);
+      default:
+        return Center(child: Text('未知Tab: $param'));
+    }
+  }
+
+  // 构建菜单
+  List<Widget> _buildActions(BuildContext context) {
+    return [
+      IconButton(
+        tooltip: '搜索',
+        onPressed: () {
+          final name = _memberController.card?.name ?? '';
+          Get.toNamed('/memberSearch?mid=$mid&uname=$name');
+        },
+        icon: const Icon(Icons.search_outlined),
+      ),
+      PopupMenuButton(
+        icon: const Icon(Icons.more_vert),
+        itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+          // 他人空间的菜单
+          if (_memberController.ownerMid != mid &&
+              _memberController.userInfo != null) ...[
+            PopupMenuItem(
+              onTap: () => _memberController.blockUser(context),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.block, size: 19),
+                  const SizedBox(width: 10),
+                  Obx(() => Text(_memberController.relation.value != 128
+                      ? '加入黑名单'
+                      : '移除黑名单')),
+                ],
               ),
-            if (_memberController.memberInfo.value.sex == '男')
-              const Icon(
-                FontAwesomeIcons.mars,
-                size: 14,
-                color: Colors.blue,
-                semanticLabel: '男',
-              ),
-            const SizedBox(width: 4),
-            if (_memberController.memberInfo.value.level != null)
-              Image.asset(
-                'assets/images/lv/lv${_memberController.memberInfo.value.level}.png',
-                height: 11,
-                semanticLabel: '等级${_memberController.memberInfo.value.level}',
-              ),
-            const SizedBox(width: 6),
-            if (_memberController.memberInfo.value.vip?.status == 1) ...[
-              if (_memberController
-                      .memberInfo.value.vip?.label?['img_label_uri_hans'] !=
-                  '')
-                Image.network(
-                  _memberController
-                      .memberInfo.value.vip!.label!['img_label_uri_hans'],
-                  height: 20,
-                  semanticLabel:
-                      _memberController.memberInfo.value.vip!.label!['text'],
-                )
-              else if (_memberController.memberInfo.value.vip
-                      ?.label?['img_label_uri_hans_static'] !=
-                  '')
-                Image.network(
-                  _memberController.memberInfo.value.vip!
-                      .label!['img_label_uri_hans_static'],
-                  height: 20,
-                  semanticLabel:
-                      _memberController.memberInfo.value.vip!.label!['text'],
+            ),
+            // 移除粉丝（如果对方关注了我）
+            if (_memberController.card?.relation?.isFollowed == 1)
+              PopupMenuItem(
+                onTap: _memberController.removeFan,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.remove_circle_outline_outlined, size: 19),
+                    SizedBox(width: 10),
+                    Text('移除粉丝'),
+                  ],
                 ),
-            ],
+              ),
           ],
-        ),
-        if (_memberController.memberInfo.value.official != null &&
-            _memberController.memberInfo.value.official!['title'] != '') ...[
-          // const SizedBox(height: 2),
-          Text.rich(
-            maxLines: 2,
-            TextSpan(
-              text: _memberController.memberInfo.value.official!['role'] == 1
-                  ? '个人认证：'
-                  : '机构认证：',
-              style: TextStyle(
-                color: Theme.of(context).primaryColor,
-              ),
+          // 分享
+          PopupMenuItem(
+            onTap: () => _memberController.shareUser(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                TextSpan(
-                  text: _memberController.memberInfo.value.official!['title'],
-                ),
+                const Icon(Icons.share_outlined, size: 19),
+                const SizedBox(width: 10),
+                Text(_memberController.ownerMid != mid ? '分享UP主' : '分享我的主页'),
               ],
             ),
-            softWrap: true,
+          ),
+          // 充电排行榜
+          PopupMenuItem(
+            onTap: () {
+              // TODO: 实现充电排行榜
+              SmartDialog.showToast('充电排行榜功能开发中');
+            },
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.electric_bolt, size: 19),
+                SizedBox(width: 10),
+                Text('充电排行榜'),
+              ],
+            ),
+          ),
+          // 自己空间的额外菜单
+          if (_memberController.ownerMid == mid &&
+              _memberController.userInfo != null) ...[
+            // 大会员经验
+            if ((_memberController.card?.vip?.status ?? 0) > 0)
+              PopupMenuItem(
+                onTap: () async {
+                  // TODO: 实现大会员经验领取
+                  SmartDialog.showToast('大会员经验功能开发中');
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.upcoming_outlined, size: 19),
+                    SizedBox(width: 10),
+                    Text('大会员经验'),
+                  ],
+                ),
+              ),
+            const PopupMenuDivider(),
+            // 登录设备
+            PopupMenuItem(
+              onTap: () {
+                // TODO: 实现登录设备页面
+                SmartDialog.showToast('登录设备功能开发中');
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.devices, size: 18),
+                  SizedBox(width: 10),
+                  Text('登录设备'),
+                ],
+              ),
+            ),
+            // 登录记录
+            PopupMenuItem(
+              onTap: () {
+                // TODO: 实现登录记录页面
+                SmartDialog.showToast('登录记录功能开发中');
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.login, size: 18),
+                  SizedBox(width: 10),
+                  Text('登录记录'),
+                ],
+              ),
+            ),
+            // 硬币记录
+            PopupMenuItem(
+              onTap: () {
+                // TODO: 实现硬币记录页面
+                SmartDialog.showToast('硬币记录功能开发中');
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.monetization_on, size: 18),
+                  SizedBox(width: 10),
+                  Text('硬币记录'),
+                ],
+              ),
+            ),
+            // 经验记录
+            PopupMenuItem(
+              onTap: () {
+                // TODO: 实现经验记录页面
+                SmartDialog.showToast('经验记录功能开发中');
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.linear_scale, size: 18),
+                  SizedBox(width: 10),
+                  Text('经验记录'),
+                ],
+              ),
+            ),
+            // 空间设置
+            PopupMenuItem(
+              onTap: () {
+                // TODO: 实现空间设置页面
+                SmartDialog.showToast('空间设置功能开发中');
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.settings_outlined, size: 19),
+                  SizedBox(width: 10),
+                  Text('空间设置'),
+                ],
+              ),
+            ),
+          ] else if (_memberController.ownerMid != mid &&
+              _memberController.userInfo != null) ...[
+            // 举报
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              onTap: () {
+                // TODO: 实现举报功能
+                SmartDialog.showToast('举报功能开发中');
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 19,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '举报',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // 复制UID
+          PopupMenuItem(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: mid.toString()));
+              SmartDialog.showToast('已复制UID：$mid');
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.copy, size: 19),
+                const SizedBox(width: 10),
+                Text('复制UID：$mid')
+              ],
+            ),
           ),
         ],
-        const SizedBox(height: 6),
-        SelectableText(
-          _memberController.memberInfo.value.sign ?? '',
-        ),
-      ],
-    );
+      ),
+    ];
   }
 }
 
@@ -324,17 +445,12 @@ class _MySliverPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    //创建child子组件
-    //shrinkOffset：child偏移值minExtent~maxExtent
-    //overlapsContent：SliverPersistentHeader覆盖其他子组件返回true，否则返回false
     return child;
   }
 
-  //SliverPersistentHeader最大高度
   @override
   double get maxExtent => _maxExtent;
 
-  //SliverPersistentHeader最小高度
   @override
   double get minExtent => _minExtent;
 

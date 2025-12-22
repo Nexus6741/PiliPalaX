@@ -19,8 +19,13 @@ class BangumiHttp {
     }
   }
 
-  static Future bangumiFollow({int? mid}) async {
-    var res = await Request().get(Api.bangumiFollow, data: {'vmid': mid});
+  static Future bangumiFollow({int? mid, int pn = 1}) async {
+    var res = await Request().get(Api.bangumiFollow, data: {
+      'vmid': mid,
+      'type': 1, // 1=追番, 2=追剧
+      'pn': pn,
+      'ps': 15,
+    });
     if (res.data['code'] == 0) {
       return {
         'status': true,

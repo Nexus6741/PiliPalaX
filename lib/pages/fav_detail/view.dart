@@ -31,7 +31,7 @@ class _FavDetailPageState extends State<FavDetailPage> {
   @override
   void initState() {
     super.initState();
-    mediaId = Get.parameters['mediaId']!;
+    mediaId = Get.parameters['mediaId'] ?? '';
     _futureBuilderFuture = _favDetailController.queryUserFavFolderDetail();
     titleStreamC = StreamController<bool>();
     _controller.addListener(
@@ -83,11 +83,11 @@ class _FavDetailPageState extends State<FavDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _favDetailController.item!.title!,
+                            _favDetailController.item?.title ?? '',
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           Text(
-                            '共${_favDetailController.item!.mediaCount!}条视频',
+                            '共${_favDetailController.item?.mediaCount ?? 0}条视频',
                             style: Theme.of(context).textTheme.labelMedium,
                           )
                         ],
@@ -136,7 +136,7 @@ class _FavDetailPageState extends State<FavDetailPage> {
                         child: NetworkImgLayer(
                           width: 180,
                           height: 110,
-                          src: _favDetailController.item!.cover,
+                          src: _favDetailController.item?.cover,
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -147,7 +147,7 @@ class _FavDetailPageState extends State<FavDetailPage> {
                           children: [
                             const SizedBox(height: 4),
                             Text(
-                              _favDetailController.item!.title!,
+                              _favDetailController.item?.title ?? '',
                               style: TextStyle(
                                   fontSize: Theme.of(context)
                                       .textTheme
@@ -156,18 +156,20 @@ class _FavDetailPageState extends State<FavDetailPage> {
                                   fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              _favDetailController.item!.upper!.name!,
-                              style: TextStyle(
-                                  fontSize: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall!
-                                      .fontSize,
-                                  color: Theme.of(context).colorScheme.outline),
-                            ),
+                            if (_favDetailController.item?.upper?.name != null)
+                              Text(
+                                _favDetailController.item!.upper!.name!,
+                                style: TextStyle(
+                                    fontSize: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall!
+                                        .fontSize,
+                                    color:
+                                        Theme.of(context).colorScheme.outline),
+                              ),
                             const Spacer(),
                             Text(
-                              '共${_favDetailController.item!.mediaCount!}条视频',
+                              '共${_favDetailController.item?.mediaCount ?? 0}条视频',
                               style: TextStyle(
                                   fontSize: Theme.of(context)
                                       .textTheme
@@ -203,10 +205,34 @@ class _FavDetailPageState extends State<FavDetailPage> {
           FutureBuilder(
             future: _futureBuilderFuture,
             builder: (context, snapshot) {
+              print('=== FutureBuilder builder ===');
+              print('connectionState: ${snapshot.connectionState}');
+              print('hasData: ${snapshot.hasData}');
+              print('hasError: ${snapshot.hasError}');
+              print('data: ${snapshot.data}');
+
               if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.data == null) {
+                  print('snapshot.data is null!');
+                  return HttpError(
+                    errMsg: '数据加载失败',
+                    fn: () => setState(() {
+                      _futureBuilderFuture =
+                          _favDetailController.queryUserFavFolderDetail();
+                    }),
+                  );
+                }
                 Map data = snapshot.data;
+                print('data[status]: ${data['status']}');
+
                 if (data['status']) {
-                  if (_favDetailController.item!.mediaCount == 0) {
+                  print(
+                      'favList.length: ${_favDetailController.favList.length}');
+                  print(
+                      'item?.mediaCount: ${_favDetailController.item?.mediaCount}');
+
+                  if ((_favDetailController.item?.mediaCount ?? 0) == 0 &&
+                      _favDetailController.favList.isEmpty) {
                     return const NoData();
                   } else {
                     List favList = _favDetailController.favList;

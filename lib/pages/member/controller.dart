@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:PiliPalaX/http/constants.dart';
 import 'package:PiliPalaX/http/init.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +9,7 @@ import 'package:hive/hive.dart';
 import 'package:PiliPalaX/http/member.dart';
 import 'package:PiliPalaX/http/user.dart';
 import 'package:PiliPalaX/http/video.dart';
-import 'package:PiliPalaX/models/member/archive.dart';
-import 'package:PiliPalaX/models/member/coin.dart';
-import 'package:PiliPalaX/models/member/info.dart';
+import 'package:PiliPalaX/models/member/space_data.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:html/dom.dart' as dom;
@@ -21,21 +20,31 @@ import 'package:PiliPalaX/pages/video/introduction/widgets/group_panel.dart';
 class MemberController extends GetxController with GetTickerProviderStateMixin {
   int? mid;
   MemberController({this.mid});
-  Rx<MemberInfoModel> memberInfo = MemberInfoModel().obs;
-  late Map userStat;
+
+  // 使用新的SpaceData模型
+  Rx<SpaceData?> spaceData = Rx<SpaceData?>(null);
+
+  // 便捷访问器
+  SpaceCard? get card => spaceData.value?.card;
+  SpaceImages? get images => spaceData.value?.images;
+  SpaceLive? get live => spaceData.value?.live;
+  List<SpaceTab2>? get tab2 => spaceData.value?.tab2;
+  int? get silence => spaceData.value?.silence;
+
   RxString face = ''.obs;
   String? heroTag;
   Box userInfoCache = GStorage.userInfo;
   late int ownerMid;
   bool specialFollowed = false;
-  // 投稿列表
-  RxList<VListItemModel>? archiveList = <VListItemModel>[].obs;
   dynamic userInfo;
-  RxInt attribute = (-1).obs;
-  RxString attributeText = '关注'.obs;
-  RxList<MemberCoinsDataModel> recentCoinsList = <MemberCoinsDataModel>[].obs;
+  RxInt relation = 0.obs; // 关注状态：0-未关注, 1-悄悄关注, 2-已关注, 6-已互关, 128-已拉黑, -10-特别关注
+  RxString relationText = '关注'.obs;
   String? wwebid;
   late TabController tabController;
+
+  // 加载状态
+  RxBool isLoading = true.obs;
+  RxString errorMsg = ''.obs;
 
   @override
   void onInit() async {
@@ -45,23 +54,110 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
     ownerMid = userInfo?.mid ?? -1;
     face.value = Get.arguments?['face'] ?? '';
     heroTag = Get.arguments?['heroTag'] ?? '';
+
+    // 初始化TabController，默认3个Tab，后续根据API返回动态调整
     tabController = TabController(length: 3, vsync: this);
-    relationSearch();
+
+    // 加载数据
+    await loadSpaceData();
   }
 
-  // 获取用户信息
-  Future<Map<String, dynamic>> getInfo() async {
-    await getMemberStat();
-    await getMemberView();
-    await getWwebid();
-    var res = await MemberHttp.memberInfo(mid: mid, wwebid: wwebid);
-    if (res['status']) {
-      memberInfo.value = res['data'];
-      face.value = res['data'].face;
-    } else {
-      SmartDialog.showToast(res['msg']);
+  @override
+  void onClose() {
+    tabController.dispose();
+    super.onClose();
+  }
+
+  // 加载用户空间数据
+  Future<void> loadSpaceData() async {
+    try {
+      isLoading.value = true;
+      errorMsg.value = '';
+
+      // 获取wwebid
+      await getWwebid();
+
+      // 调用新的space接口
+      var res = await MemberHttp.space(
+        mid: mid!,
+        fromViewAid: Get.parameters['from_view_aid'],
+      );
+
+      if (res['status']) {
+        spaceData.value = res['data'] as SpaceData;
+        face.value = card?.face ?? '';
+
+        // 设置关系状态
+        if (spaceData.value?.relation != null) {
+          if (spaceData.value!.relation == -1) {
+            relation.value = 128; // 已拉黑
+          } else {
+            relation.value = card?.relation?.isFollow == 1
+                ? (spaceData.value?.relSpecial == 1
+                    ? -10
+                    : card?.relation?.status ?? 2)
+                : 0;
+          }
+        }
+
+        // 更新关系文本
+        updateRelationText();
+
+        // 配置动态Tab
+        configureTabs();
+
+        // 查询详细关系（如果需要）
+        if (userInfo != null && mid != ownerMid) {
+          await relationSearch();
+        }
+      } else {
+        errorMsg.value = res['msg'] ?? '加载失败';
+        SmartDialog.showToast(errorMsg.value);
+      }
+    } catch (e) {
+      errorMsg.value = '加载失败: $e';
+      log('loadSpaceData error: $e');
+      SmartDialog.showToast(errorMsg.value);
+    } finally {
+      isLoading.value = false;
     }
-    return res;
+  }
+
+  // 配置动态Tab
+  void configureTabs() {
+    if (tab2 == null || tab2!.isEmpty) {
+      // 使用默认Tab配置
+      return;
+    }
+
+    // 过滤掉不支持的Tab
+    final supportedTabs = tab2!.where((tab) {
+      return ['home', 'dynamic', 'contribute', 'bangumi', 'favorite']
+          .contains(tab.param);
+    }).toList();
+
+    if (supportedTabs.isEmpty) {
+      return;
+    }
+
+    // 重新创建TabController
+    tabController.dispose();
+
+    // 确定初始Tab索引
+    int initialIndex = 0;
+    final defaultTab = spaceData.value?.defaultTab;
+    if (defaultTab != null) {
+      final index = supportedTabs.indexWhere((tab) => tab.param == defaultTab);
+      if (index != -1) {
+        initialIndex = index;
+      }
+    }
+
+    tabController = TabController(
+      length: supportedTabs.length,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
   }
 
   Future getWwebid() async {
@@ -78,34 +174,35 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
             jsonDecode(Uri.decodeComponent(scriptElement.text))['access_id'];
       }
     } catch (e) {
-      print('failed to get wwebid: $e');
+      log('failed to get wwebid: $e');
     }
   }
 
-  // 获取用户状态
-  Future<Map<String, dynamic>> getMemberStat() async {
-    var res = await MemberHttp.memberStat(mid: mid);
-    if (res['status']) {
-      userStat = res['data'];
+  // 更新关系文本
+  void updateRelationText() {
+    switch (relation.value) {
+      case 1:
+        relationText.value = '悄悄关注';
+        break;
+      case 2:
+        relationText.value = '已关注';
+        break;
+      case 6:
+        relationText.value = '已互关';
+        break;
+      case 128:
+        relationText.value = '已拉黑';
+        break;
+      case -10:
+        relationText.value = '特别关注';
+        break;
+      default:
+        relationText.value = '关注';
     }
-    return res;
-  }
 
-  // 获取用户播放数 获赞数
-  Future<Map<String, dynamic>> getMemberView() async {
-    var res = await MemberHttp.memberView(mid: mid!);
-    if (res['status']) {
-      userStat.addAll(res['data']);
+    if (specialFollowed) {
+      relationText.value += ' 🔔';
     }
-    return res;
-  }
-
-  Future delayedUpdateRelation() async {
-    await Future.delayed(const Duration(milliseconds: 1000), () async {
-      SmartDialog.showToast('更新状态');
-      await relationSearch();
-      memberInfo.update((val) {});
-    });
   }
 
   // 关注/取关up
@@ -114,21 +211,29 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
       SmartDialog.showToast('账号未登录');
       return;
     }
-    // if (memberInfo.value == null) {
-    //   SmartDialog.showToast('尚未获取到用户信息');
-    //   return;
-    // }
-    if (attribute.value == 128) {
+
+    // 如果是自己，跳转到编辑资料
+    if (mid == ownerMid) {
+      Get.toNamed('/webview', parameters: {
+        'url': 'https://account.bilibili.com/account/home',
+        'pageTitle': '个人中心',
+        'type': 'url'
+      });
+      return;
+    }
+
+    if (relation.value == 128) {
       blockUser(context);
       return;
     }
+
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('操作'),
           actions: [
-            if (memberInfo.value.isFollowed!) ...[
+            if (relation.value != 0 && relation.value != 128) ...[
               TextButton(
                 onPressed: () async {
                   final res = await MemberHttp.addUsers(
@@ -136,6 +241,7 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
                   SmartDialog.showToast(res['msg']);
                   if (res['status']) {
                     specialFollowed = !specialFollowed;
+                    updateRelationText();
                   }
                   Get.back();
                 },
@@ -156,16 +262,17 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
               onPressed: () async {
                 var res = await VideoHttp.relationMod(
                   mid: mid!,
-                  act: memberInfo.value.isFollowed! ? 2 : 1,
+                  act: relation.value != 0 ? 2 : 1,
                   reSrc: 11,
                 );
                 SmartDialog.showToast(res['status'] ? "操作成功" : res['msg']);
                 if (res['status']) {
-                  memberInfo.value.isFollowed = !memberInfo.value.isFollowed!;
+                  relation.value = relation.value != 0 ? 0 : 2;
+                  updateRelationText();
                 }
                 Get.back();
               },
-              child: Text(memberInfo.value.isFollowed! ? '取消关注' : '关注'),
+              child: Text(relation.value != 0 ? '取消关注' : '关注'),
             ),
             TextButton(
               onPressed: () => Get.back(),
@@ -178,45 +285,34 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
         );
       },
     );
-    await delayedUpdateRelation();
+
+    // 延迟更新关系状态
+    await Future.delayed(const Duration(milliseconds: 1000), () async {
+      await relationSearch();
+    });
   }
 
   // 关系查询
   Future relationSearch() async {
     if (userInfo == null) return;
     if (mid == ownerMid) return;
+
     var res = await UserHttp.hasFollow(mid!);
     if (res['status']) {
-      attribute.value = res['data']['attribute'];
-      switch (attribute.value) {
-        case 1:
-          attributeText.value = '悄悄关注';
-          memberInfo.value.isFollowed = true;
-          break;
-        case 2:
-          attributeText.value = '已关注';
-          memberInfo.value.isFollowed = true;
-          break;
-        case 6:
-          attributeText.value = '已互关';
-          memberInfo.value.isFollowed = true;
-          break;
-        case 128:
-          attributeText.value = '已拉黑';
-          memberInfo.value.isFollowed = false;
-          break;
-        default:
-          attributeText.value = '关注';
-          memberInfo.value.isFollowed = false;
-      }
+      relation.value = res['data']['attribute'];
+
       if (res['data']['special'] == 1) {
         specialFollowed = true;
-        attributeText.value += ' 🔔';
+        if (relation.value != 0 && relation.value != 128) {
+          relation.value = -10; // 特别关注
+        }
       } else {
         specialFollowed = false;
       }
+
+      updateRelationText();
     } else {
-      SmartDialog.showToast(res['msg']);
+      log('relationSearch error: ${res['msg']}');
     }
   }
 
@@ -226,12 +322,13 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
       SmartDialog.showToast('账号未登录');
       return;
     }
+
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('提示'),
-          content: Text(attribute.value != 128 ? '确定拉黑UP主?' : '从黑名单移除UP主'),
+          content: Text(relation.value != 128 ? '确定拉黑UP主?' : '从黑名单移除UP主'),
           actions: [
             TextButton(
               onPressed: () => Get.back(),
@@ -245,15 +342,13 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
                 Get.back();
                 var res = await VideoHttp.relationMod(
                   mid: mid!,
-                  act: attribute.value != 128 ? 5 : 6,
+                  act: relation.value != 128 ? 5 : 6,
                   reSrc: 11,
                 );
                 if (res['status']) {
-                  attribute.value = attribute.value != 128 ? 128 : 0;
-                  attributeText.value = attribute.value == 128 ? '已拉黑' : '关注';
-                  memberInfo.value.isFollowed = false;
-                  relationSearch();
-                  memberInfo.update((val) {});
+                  relation.value = relation.value != 128 ? 128 : 0;
+                  updateRelationText();
+                  await relationSearch();
                 }
               },
               child: const Text('确认'),
@@ -264,28 +359,33 @@ class MemberController extends GetxController with GetTickerProviderStateMixin {
     );
   }
 
+  // 移除粉丝
+  Future removeFan() async {
+    if (userInfo == null) {
+      SmartDialog.showToast('账号未登录');
+      return;
+    }
+
+    final res = await VideoHttp.relationMod(mid: mid!, act: 7, reSrc: 11);
+    if (res['status']) {
+      // 更新关系状态
+      if (relation.value == 6) {
+        relation.value = 2; // 从互关变为已关注
+      }
+      updateRelationText();
+      SmartDialog.showToast('移除成功');
+    } else {
+      SmartDialog.showToast(res['msg']);
+    }
+  }
+
   void shareUser() {
-    Share.share('${memberInfo.value.name} - https://space.bilibili.com/$mid');
+    final name = card?.name ?? '';
+    Share.share('$name - https://space.bilibili.com/$mid');
   }
 
-  // 请求投币视频
-  Future getRecentCoinVideo() async {
-    if (userInfo == null) return;
-    var res = await MemberHttp.getRecentCoinVideo(mid: mid!);
-    recentCoinsList.value = res['data'];
-    return res;
+  // 刷新数据
+  Future<void> refresh() async {
+    await loadSpaceData();
   }
-
-  // // 跳转查看动态
-  // void pushDynamicsPage() => Get.toNamed('/memberDynamics?mid=$mid');
-  //
-  // // 跳转查看投稿
-  // void pushArchivesPage() => Get.toNamed('/memberArchive?mid=$mid');
-  //
-  // // 跳转查看专栏
-  // void pushSeasonsPage() {}
-  // // 跳转查看最近投币
-  // void pushRecentCoinsPage() async {
-  //   if (recentCoinsList.isNotEmpty) {}
-  // }
 }

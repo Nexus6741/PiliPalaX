@@ -31,7 +31,7 @@ class _SubDetailPageState extends State<SubDetailPage> {
   @override
   void initState() {
     super.initState();
-    id = Get.parameters['id']!;
+    id = Get.parameters['id'] ?? '';
     _futureBuilderFuture = _subDetailController.queryUserSubFolderDetail();
     titleStreamC = StreamController<bool>();
     _controller.addListener(

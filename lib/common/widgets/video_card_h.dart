@@ -291,7 +291,7 @@ class VideoContent extends StatelessWidget {
               Expanded(
                 flex: 0,
                 child: Text(
-                  "$pubdate ${showOwner ? videoItem.owner.name : ''}",
+                  "$pubdate ${showOwner && videoItem.owner != null ? videoItem.owner.name ?? '' : ''}",
                   maxLines: 1,
                   style: TextStyle(
                     fontSize: Theme.of(context).textTheme.labelSmall!.fontSize,
@@ -304,17 +304,17 @@ class VideoContent extends StatelessWidget {
             const SizedBox(height: 3),
             Row(
               children: [
-                if (showView) ...[
+                if (showView && videoItem.stat != null) ...[
                   StatView(
                     theme: 'gray',
-                    view: videoItem.stat.view as int,
+                    view: videoItem.stat.view as int? ?? 0,
                   ),
                   const SizedBox(width: 8),
                 ],
-                if (showDanmaku)
+                if (showDanmaku && videoItem.stat != null)
                   StatDanMu(
                     theme: 'gray',
-                    danmu: videoItem.stat.danmu as int,
+                    danmu: videoItem.stat.danmu as int? ?? 0,
                   ),
                 const Spacer(),
                 if (source == 'normal') const SizedBox(width: 24),
