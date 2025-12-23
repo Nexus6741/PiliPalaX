@@ -7,6 +7,7 @@ import 'package:PiliPalaX/pages/danmaku/index.dart';
 import 'package:PiliPalaX/plugin/pl_player/index.dart';
 import 'package:PiliPalaX/utils/danmaku.dart';
 import 'package:PiliPalaX/utils/storage.dart';
+import 'dart:convert';
 
 /// 传入播放器控制器，监听播放进度，加载对应弹幕
 class PlDanmaku extends StatefulWidget {
@@ -39,6 +40,7 @@ class _PlDanmakuState extends State<PlDanmaku> {
   late int fontWeight;
   late bool massiveMode;
   int latestAddedPosition = -1;
+  String? _userMidHash; // 当前用户的midHash
 
   @override
   void initState() {
@@ -49,6 +51,10 @@ class _PlDanmakuState extends State<PlDanmaku> {
         widget.cid,
         widget.playerController.danmakuWeight,
         widget.playerController.danmakuFilterRule);
+
+    // 计算当前用户的midHash
+    _userMidHash = _calculateUserMidHash();
+
     if (mounted) {
       playerController = widget.playerController;
       if (enableShowDanmaku || playerController.isOpenDanmu.value) {
@@ -77,6 +83,42 @@ class _PlDanmakuState extends State<PlDanmaku> {
     massiveMode = playerController.massiveMode;
   }
 
+  // 计算当前用户的midHash（使用CRC32算法）
+  String? _calculateUserMidHash() {
+    try {
+      final Box userInfoCache = GStorage.userInfo;
+      final userInfo = userInfoCache.get('userInfoCache');
+      if (userInfo == null || userInfo.mid == null) {
+        return null;
+      }
+
+      // 使用CRC32算法计算midHash
+      final midString = userInfo.mid.toString();
+      final bytes = utf8.encode(midString);
+
+      // Dart的crypto包没有CRC32，我们使用简单的实现
+      // 注意：这里使用的是标准CRC32算法
+      int crc = 0xFFFFFFFF;
+      for (var byte in bytes) {
+        crc ^= byte;
+        for (int j = 0; j < 8; j++) {
+          if ((crc & 1) != 0) {
+            crc = (crc >> 1) ^ 0xEDB88320;
+          } else {
+            crc = crc >> 1;
+          }
+        }
+      }
+      crc ^= 0xFFFFFFFF;
+
+      // 转换为16进制小写字符串
+      return (crc & 0xFFFFFFFF).toRadixString(16).padLeft(8, '0');
+    } catch (e) {
+      debugPrint('计算midHash失败: $e');
+      return null;
+    }
+  }
+
   // 播放器状态监听
   void playerListener(PlayerStatus? status) {
     if (status == PlayerStatus.playing) {
@@ -103,15 +145,22 @@ class _PlDanmakuState extends State<PlDanmaku> {
 
     if (currentDanmakuList != null && _controller != null) {
       Color? defaultColor = playerController.blockTypes.contains(6)
-          ? Colors.white//DmUtils.decimalToColor(16777215)
+          ? Colors.white //DmUtils.decimalToColor(16777215)
           : null;
-      currentDanmakuList
-          .map((e) => _controller!.addDanmaku(DanmakuContentItem(
-                e.content,
-                color: defaultColor ?? DmUtils.decimalToColor(e.color),
-                type: DmUtils.getPosition(e.mode),
-              )))
-          .toList();
+
+      currentDanmakuList.map((e) {
+        // 通过midHash判断是否为自己发送的弹幕
+        final bool isSelfSend = _userMidHash != null &&
+            e.midHash.isNotEmpty &&
+            e.midHash == _userMidHash;
+
+        return _controller!.addDanmaku(DanmakuContentItem(
+          e.content,
+          color: defaultColor ?? DmUtils.decimalToColor(e.color),
+          type: DmUtils.getPosition(e.mode),
+          selfSend: isSelfSend, // 标记是否为自己发送
+        ));
+      }).toList();
     }
   }
 

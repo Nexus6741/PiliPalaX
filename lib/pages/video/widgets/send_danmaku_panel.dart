@@ -127,16 +127,19 @@ class _SendDanmakuPanelState extends State<SendDanmakuPanel> {
       );
 
       if (res['status']) {
-        SmartDialog.showToast('发送成功');
-
-        // 发送成功，自动预览该弹幕
+        // 发送成功，立即添加弹幕到播放器
         final danmakuItem = DanmakuContentItem(
           msg,
           color: _color.value,
           type: _getDanmakuType(_mode.value),
           selfSend: true,
         );
+
+        // 先添加弹幕
         widget.onSendSuccess(danmakuItem);
+
+        // 显示成功提示
+        SmartDialog.showToast('发送成功');
       } else {
         SmartDialog.showToast('发送失败：${res['msg']}');
       }

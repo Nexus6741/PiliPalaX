@@ -241,7 +241,10 @@ class LocalCacheKey {
 
       //
       wbiKeys = 'wbiKeys',
-      timeStamp = 'timeStamp';
+      timeStamp = 'timeStamp',
+
+      // 自己发送的弹幕ID列表 Map<int, List<String>> cid -> [dmid]
+      selfDanmakuIds = 'selfDanmakuIds';
 }
 
 class VideoBoxKey {

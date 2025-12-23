@@ -85,6 +85,7 @@ class DanmakaHttp {
       return {
         'status': true,
         'data': response.data['data'],
+        'dmid': response.data['data']?['dmid']?.toString(), // 返回弹幕ID
       };
     } else {
       return {
