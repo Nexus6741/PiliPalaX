@@ -132,6 +132,7 @@ class PlPlayerController {
   int _cid = 0;
   int? _epid;
   int? _seasonId;
+  int? _seasonType; // PGC内容类型：1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺
   int _heartDuration = 0;
   bool _enableHeart = true;
 
@@ -525,6 +526,7 @@ class PlPlayerController {
     int cid = 0,
     int? epid,
     int? seasonId,
+    int? seasonType, // PGC内容类型：1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺
     // 历史记录开关
     bool enableHeart = true,
     String? serviceId,
@@ -550,8 +552,19 @@ class PlPlayerController {
       _cid = cid;
       _epid = epid;
       _seasonId = seasonId;
+      _seasonType = seasonType; // 保存PGC内容类型
       _enableHeart = enableHeart;
       isVideoLoaded.value = false;
+
+      // 🔍 调试日志：查看保存的PGC参数
+      if (epid != null && seasonId != null) {
+        print('🔍 [setDataSource] 保存PGC参数:');
+        print('   - _epid: $_epid');
+        print('   - _seasonId: $_seasonId');
+        print(
+            '   - _seasonType: $_seasonType ${_seasonType == null ? "(null)" : ""}');
+      }
+
       print('🔥 [Controller] isVideoLoaded 设置为 false');
 
       // 切换视频时清除预览缓存
@@ -1723,6 +1736,7 @@ class PlPlayerController {
         progress: isComplete ? -1 : progress,
         epid: _epid,
         seasonId: _seasonId,
+        seasonType: _seasonType, // 传递PGC内容类型
       );
       return;
     }
@@ -1735,6 +1749,7 @@ class PlPlayerController {
         progress: progress,
         epid: _epid,
         seasonId: _seasonId,
+        seasonType: _seasonType, // 传递PGC内容类型
       );
     }
   }

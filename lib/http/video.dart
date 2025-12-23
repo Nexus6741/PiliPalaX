@@ -731,9 +731,23 @@ class VideoHttp {
     realtime,
     int? epid,
     int? seasonId,
+    int? seasonType, // PGC内容类型：1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺
   }) async {
     // 判断是否为番剧（有 epid 和 seasonId）
     bool isBangumi = epid != null && seasonId != null;
+
+    // 🔍 调试日志：查看传入的参数
+    if (isBangumi) {
+      print('🔍 [heartBeat] PGC内容历史记录上报:');
+      print('   - bvid: $bvid');
+      print('   - cid: $cid');
+      print('   - epid: $epid');
+      print('   - seasonId: $seasonId');
+      print(
+          '   - seasonType: $seasonType ${seasonType == null ? "(null，将使用默认值1)" : ""}');
+      print('   - sub_type将设置为: ${seasonType ?? 1}');
+      print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
+    }
 
     await Request().post(Api.heartBeat, queryParameters: {
       // 'aid': aid,
@@ -741,8 +755,8 @@ class VideoHttp {
       'cid': cid,
       if (isBangumi) 'epid': epid,
       if (isBangumi) 'sid': seasonId,
-      if (isBangumi) 'type': 4, // 番剧类型
-      if (isBangumi) 'sub_type': 4, // 番剧子类型
+      if (isBangumi) 'type': 4, // 番剧类型（PGC大类）
+      if (isBangumi) 'sub_type': seasonType ?? 1, // 使用实际的PGC子类型，默认为番剧(1)
       // 'mid': '',
       'played_time': progress,
       // 'realtime': realtime,

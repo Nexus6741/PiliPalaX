@@ -431,12 +431,33 @@ class VideoDetailController extends GetxController
       // 获取番剧参数（如果是番剧的话）
       int? epid;
       int? seasonId;
+      int? seasonType; // PGC内容类型
       if (videoType == SearchType.media_bangumi ||
           videoType == SearchType.media_ft) {
         try {
           final bangumiCtr = Get.find<BangumiIntroController>(tag: heroTag);
           epid = bangumiCtr.epId;
           seasonId = bangumiCtr.seasonId;
+
+          // 🔥 修复：优先从 bangumiDetail 获取，如果为 null 则从 bangumiItem 获取
+          seasonType = bangumiCtr.bangumiDetail.value.type;
+          if (seasonType == null && bangumiCtr.bangumiItem != null) {
+            seasonType = bangumiCtr.bangumiItem!.type;
+            print(
+                '⚠️ bangumiDetail.value.type 为 null，从 bangumiItem 获取: $seasonType');
+          }
+
+          // 🔍 详细调试日志
+          print('🔍 [playerInit] 获取PGC参数:');
+          print('   - videoType: $videoType');
+          print('   - epid: $epid');
+          print('   - seasonId: $seasonId');
+          print(
+              '   - seasonType: $seasonType ${seasonType == null ? "(null)" : ""}');
+          print(
+              '   - bangumiDetail.value.type: ${bangumiCtr.bangumiDetail.value.type}');
+          print('   - bangumiItem?.type: ${bangumiCtr.bangumiItem?.type}');
+          print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
         } catch (e) {
           print('⚠️ 获取番剧参数失败: $e');
         }
@@ -473,6 +494,7 @@ class VideoDetailController extends GetxController
         cid: cid.value,
         epid: epid,
         seasonId: seasonId,
+        seasonType: seasonType, // 传递PGC内容类型
         enableHeart: enableHeart,
         autoplay: autoplay,
       );
