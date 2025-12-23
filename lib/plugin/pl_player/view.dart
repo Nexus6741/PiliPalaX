@@ -804,7 +804,47 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           bvid: _.bvid,
           controller: _,
           onSendSuccess: (danmakuItem) {
-            _.danmakuController?.addDanmaku(danmakuItem);
+            debugPrint('🎯 PLVideoPlayer 收到弹幕: ${danmakuItem.text}');
+            debugPrint('🎯 弹幕控制器是否为null: ${_.danmakuController == null}');
+            debugPrint('🎯 弹幕是否开启: ${_.isOpenDanmu.value}');
+            debugPrint('🎯 播放器状态: ${_.playerStatus.status.value}');
+
+            if (_.danmakuController != null) {
+              try {
+                // 🔥 关键修复：如果播放器暂停，等待播放恢复后再添加弹幕
+                if (_.playerStatus.status.value == PlayerStatus.paused) {
+                  debugPrint('🎯 播放器已暂停，等待播放恢复后添加弹幕');
+
+                  // 监听播放器状态变化
+                  void statusListener(PlayerStatus? status) {
+                    if (status == PlayerStatus.playing) {
+                      debugPrint('🎯 播放器已恢复，现在添加弹幕');
+                      _.danmakuController!.addDanmaku(danmakuItem);
+                      debugPrint('🎯 已调用 danmakuController.addDanmaku');
+                      debugPrint('🎯 弹幕内容: ${danmakuItem.text}');
+                      debugPrint('🎯 弹幕类型: ${danmakuItem.type}');
+                      debugPrint('🎯 selfSend: ${danmakuItem.selfSend}');
+
+                      // 移除监听器
+                      _.removeStatusLister(statusListener);
+                    }
+                  }
+
+                  _.addStatusLister(statusListener);
+                } else {
+                  // 播放器正在播放，直接添加
+                  _.danmakuController!.addDanmaku(danmakuItem);
+                  debugPrint('🎯 已调用 danmakuController.addDanmaku');
+                  debugPrint('🎯 弹幕内容: ${danmakuItem.text}');
+                  debugPrint('🎯 弹幕类型: ${danmakuItem.type}');
+                  debugPrint('🎯 selfSend: ${danmakuItem.selfSend}');
+                }
+              } catch (e) {
+                debugPrint('❌ 添加弹幕时出错: $e');
+              }
+            } else {
+              debugPrint('❌ 弹幕控制器为null，无法添加弹幕');
+            }
           },
         ),
       ),

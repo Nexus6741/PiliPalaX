@@ -344,8 +344,15 @@ class _DanmakuPanelPageState extends State<_DanmakuPanelPage> {
           selfSend: true,
         );
 
+        // 调试日志
+        debugPrint('🎯 弹幕发送成功，准备添加到播放器');
+        debugPrint('🎯 弹幕内容: $msg');
+        debugPrint('🎯 弹幕类型: ${_getDanmakuType(_mode.value)}');
+        debugPrint('🎯 selfSend: true');
+
         // 先添加弹幕
         widget.onSendSuccess(danmakuItem);
+        debugPrint('🎯 已调用 onSendSuccess');
 
         // 显示成功提示
         SmartDialog.showToast('发送成功');

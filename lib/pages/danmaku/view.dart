@@ -183,6 +183,9 @@ class _PlDanmakuState extends State<PlDanmaku> {
           child: DanmakuScreen(
             createdController: (DanmakuController e) async {
               playerController.danmakuController = _controller = e;
+              debugPrint('🎯 弹幕控制器已初始化');
+              debugPrint('🎯 弹幕是否开启: ${playerController.isOpenDanmu.value}');
+              debugPrint('🎯 控制器地址: ${e.hashCode}');
             },
             option: DanmakuOption(
               fontSize: 15 * fontSizeVal,
