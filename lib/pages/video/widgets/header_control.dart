@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -22,7 +21,6 @@ import 'package:PiliPalaX/pages/video/introduction/widgets/menu_row.dart';
 import 'package:PiliPalaX/plugin/pl_player/index.dart';
 import 'package:PiliPalaX/plugin/pl_player/models/play_repeat.dart';
 import 'package:PiliPalaX/utils/storage.dart';
-import 'package:PiliPalaX/http/danmaku.dart';
 import 'package:PiliPalaX/services/shutdown_timer_service.dart';
 import 'package:device_info_ohos/device_info_ohos.dart';
 import '../../../../models/video/play/CDN.dart';
@@ -31,8 +29,6 @@ import '../../setting/widgets/select_dialog.dart';
 import 'package:PiliPalaX/pages/video/introduction/detail/index.dart';
 import 'package:PiliPalaX/pages/video/introduction/bangumi/index.dart';
 import 'package:PiliPalaX/models/common/search_type.dart';
-import 'package:marquee/marquee.dart';
-import 'danmaku_input_bar.dart';
 
 class HeaderControl extends StatefulWidget implements PreferredSizeWidget {
   const HeaderControl({
@@ -517,33 +513,6 @@ class _HeaderControlState extends State<HeaderControl> {
       },
       clipBehavior: Clip.hardEdge,
       isScrollControlled: true,
-    );
-  }
-
-  /// 发送弹幕
-  void showShootDanmakuSheet() {
-    // 记录打开面板前的播放状态
-    final bool wasPlaying =
-        widget.controller!.playerStatus.status.value == PlayerStatus.playing;
-
-    // 如果正在播放，则暂停
-    if (wasPlaying) {
-      widget.controller!.pause();
-    }
-
-    // 使用自定义的动画展示弹幕面板
-    Navigator.of(context).push(
-      DanmakuPanelRoute(
-        cid: widget.videoDetailCtr!.cid.value,
-        bvid: widget.videoDetailCtr!.bvid,
-        progress: widget.controller!.position.value.inMilliseconds,
-        onSendSuccess: (danmakuItem) {
-          // 发送成功，自动预览该弹幕
-          widget.controller!.danmakuController!.addDanmaku(danmakuItem);
-        },
-        wasPlaying: wasPlaying,
-        playerController: widget.controller!,
-      ),
     );
   }
 
@@ -1461,25 +1430,6 @@ class _HeaderControlState extends State<HeaderControl> {
     return Colors.white;
   }
 
-  Widget shootDanmakuButton() {
-    return SizedBox(
-      width: 42,
-      height: 34,
-      child: IconButton(
-        tooltip: '发弹幕',
-        style: ButtonStyle(
-          padding: WidgetStateProperty.all(EdgeInsets.zero),
-        ),
-        onPressed: () => showShootDanmakuSheet(),
-        icon: Icon(
-          MdiIcons.pencilPlusOutline,
-          size: 21,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
   Widget danmakuSwitcher() {
     return SizedBox(
       width: 42,
@@ -1737,7 +1687,6 @@ class _HeaderControlState extends State<HeaderControl> {
               // ),
               if (!widget.controller!.isFullScreen.value &&
                   !equivalentFullScreen()) ...[
-                shootDanmakuButton(),
                 danmakuSwitcher(),
                 pipButton(),
               ],
@@ -1811,7 +1760,6 @@ class _HeaderControlState extends State<HeaderControl> {
               for (var i = 0; i < 11; i++) const SizedBox(width: 0),
               likeVideoButton(),
               coinVideoButton(),
-              shootDanmakuButton(),
               danmakuSwitcher(),
               pipButton(),
               shareButton(),
