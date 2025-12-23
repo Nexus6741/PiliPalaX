@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/http/loading_state.dart';
 import 'package:PiliPalaX/models/live/live_area_list/area_item.dart';
@@ -29,6 +28,13 @@ class _LiveAreaDetailPageState extends State<LiveAreaDetailPage> {
     areaId = args['areaId'];
     parentAreaId = args['parentAreaId'];
     areaName = args['areaName'] ?? '分区详情';
+
+    // print('=== LiveAreaDetailPage initState ===');
+    // print('Received areaId: $areaId (type: ${areaId.runtimeType})');
+    // print(
+    //     'Received parentAreaId: $parentAreaId (type: ${parentAreaId.runtimeType})');
+    // print('Received areaName: $areaName');
+
     _controller = Get.put(
       LiveAreaDetailController(areaId, parentAreaId),
     );
@@ -63,8 +69,15 @@ class _LiveAreaDetailPageState extends State<LiveAreaDetailPage> {
     } else if (loadingState is Success) {
       final response = (loadingState as Success<List<AreaItem>?>).response;
       if (response != null && response.isNotEmpty) {
+        // 确保 initialIndex 在有效范围内
+        final safeInitialIndex =
+            _controller.initialIndex.clamp(0, response.length - 1);
+        // print('=== Building DefaultTabController ===');
+        // print('initialIndex: $safeInitialIndex');
+        // print('tabs count: ${response.length}');
+
         return DefaultTabController(
-          initialIndex: _controller.initialIndex,
+          initialIndex: safeInitialIndex,
           length: response.length,
           child: Builder(
             builder: (context) {

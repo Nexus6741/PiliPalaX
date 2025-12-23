@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/image_preview_dialog.dart';
 import 'package:PiliPalaX/models/live/live_follow/item.dart';
 
 /// 关注直播卡片组件
@@ -22,6 +23,15 @@ class LiveCardVFollow extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: InkWell(
         onTap: () => Get.toNamed('/liveRoom?roomid=${liveItem.roomid}'),
+        onLongPress: () {
+          if (liveItem.roomCover?.isNotEmpty == true) {
+            showImagePreviewDialog(
+              imageUrl: liveItem.roomCover!,
+              title: liveItem.title,
+              imgType: 'live',
+            );
+          }
+        },
         child: Column(
           children: [
             AspectRatio(

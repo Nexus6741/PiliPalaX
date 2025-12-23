@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/image_preview_dialog.dart';
 import 'package:PiliPalaX/models/live/live_feed_index/card_live_item.dart';
 
 /// 直播推荐卡片组件
@@ -22,6 +23,15 @@ class LiveCardVApp extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: InkWell(
         onTap: () => Get.toNamed('/liveRoom?roomid=${item.roomid}'),
+        onLongPress: () {
+          if (item.cover?.isNotEmpty == true) {
+            showImagePreviewDialog(
+              imageUrl: item.cover!,
+              title: item.title,
+              imgType: 'live',
+            );
+          }
+        },
         child: Column(
           children: [
             AspectRatio(
