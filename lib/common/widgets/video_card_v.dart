@@ -192,6 +192,40 @@ class VideoCardV extends StatelessWidget {
                                 height: maxHeight,
                               ),
                             ),
+                            // 充电视频或合作视频标识（右上角）
+                            Builder(builder: (context) {
+                              String? badge;
+                              String badgeType = 'primary';
+
+                              // 判断是否为充电视频
+                              try {
+                                if (videoItem.isCharging == true) {
+                                  badge = '充电专属';
+                                  badgeType = 'error';
+                                }
+                              } catch (_) {}
+
+                              // 判断是否为合作视频（优先级低于充电视频）
+                              if (badge == null) {
+                                try {
+                                  if (videoItem.isCooperation == 1) {
+                                    badge = '合作';
+                                    badgeType = 'primary';
+                                  }
+                                } catch (_) {}
+                              }
+
+                              if (badge != null) {
+                                return PBadge(
+                                  top: 6,
+                                  right: 6,
+                                  size: 'small',
+                                  type: badgeType,
+                                  text: badge,
+                                );
+                              }
+                              return const SizedBox();
+                            }),
                             if (videoItem.isKeep)
                               const PBadge(
                                 top: 6,

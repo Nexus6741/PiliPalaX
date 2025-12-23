@@ -74,6 +74,7 @@ class SearchVideoItemModel {
   Owner? owner;
   Stat? stat;
   String? rcmdReason;
+  int? isUnionVideo; // 合作视频标识（搜索接口使用）
 
   SearchVideoItemModel.fromJson(Map<String, dynamic> json) {
     type = json['type'];
@@ -94,6 +95,7 @@ class SearchVideoItemModel {
     duration = Utils.duration(json['duration']);
     owner = Owner.fromJson(json);
     stat = Stat.fromJson(json);
+    isUnionVideo = json['is_union_video'];
   }
 }
 

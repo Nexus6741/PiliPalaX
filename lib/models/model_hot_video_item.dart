@@ -54,6 +54,8 @@ class HotVideoItemModel {
   int? seasontype;
   bool? isOgv;
   RcmdReason? rcmdReason;
+  int? isCooperation; // 合作视频标识
+  bool? isCharging; // 充电视频标识
 
   HotVideoItemModel.fromJson(Map<String, dynamic> json) {
     aid = json["aid"];
@@ -83,6 +85,8 @@ class HotVideoItemModel {
     rcmdReason = json['rcmd_reason'] != '' && json['rcmd_reason'] != null
         ? RcmdReason.fromJson(json['rcmd_reason'])
         : null;
+    isCooperation = json['rights']?['is_cooperation'];
+    isCharging = json['charging_pay']?['level'] != null;
   }
 
   bool get isVertical {

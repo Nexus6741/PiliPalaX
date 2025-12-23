@@ -51,6 +51,8 @@ class RecVideoItemModel {
   // 辅助字段，不参与Hive序列化
   bool isKeep = false;
   Dimension? dimension;
+  int? isCooperation; // 合作视频标识
+  bool? isCharging; // 充电视频标识
 
   RecVideoItemModel.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -72,6 +74,8 @@ class RecVideoItemModel {
     if (json['dimension'] != null) {
       dimension = Dimension.fromJson(json['dimension']);
     }
+    isCooperation = json['rights']?['is_cooperation'];
+    isCharging = json['charging_pay']?['level'] != null;
   }
 
   bool get isVertical {

@@ -395,6 +395,8 @@ class SpaceArchiveItem {
   String? param; // aid 的字符串形式
   String? goto;
   String? publishTimeText;
+  int? ugcPay; // 充电视频标识
+  bool? isCooperation; // 合作视频标识
 
   SpaceArchiveItem({
     this.bvid,
@@ -408,6 +410,8 @@ class SpaceArchiveItem {
     this.param,
     this.goto,
     this.publishTimeText,
+    this.ugcPay,
+    this.isCooperation,
   });
 
   SpaceArchiveItem.fromJson(Map<String, dynamic> json) {
@@ -429,6 +433,8 @@ class SpaceArchiveItem {
     param = json['param'] as String?;
     goto = json['goto'] as String?;
     publishTimeText = json['publish_time_text'] as String?;
+    ugcPay = (json['ugc_pay'] as num?)?.toInt();
+    isCooperation = json['is_cooperation'] as bool?;
   }
 }
 
