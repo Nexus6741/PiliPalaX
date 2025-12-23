@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/badge.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/custom_icon.dart';
 import 'package:PiliPalaX/models/dynamics/result.dart';
 import 'package:PiliPalaX/pages/preview/index.dart';
 
@@ -180,9 +181,38 @@ class _ContentState extends State<Content> {
         children: [
           if (widget.item.modules.moduleDynamic.topic != null) ...[
             GestureDetector(
-              child: Text(
-                '#${widget.item.modules.moduleDynamic.topic.name}',
-                style: authorStyle,
+              onTap: () {
+                final topic = widget.item.modules.moduleDynamic.topic;
+                if (topic?.id != null && topic?.name != null) {
+                  Get.toNamed(
+                    '/dynamicsTopic',
+                    parameters: {
+                      'id': topic!.id.toString(),
+                      'name': topic.name!,
+                    },
+                  );
+                }
+              },
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Icon(
+                          size: 18,
+                          CustomIcons.topic_tag,
+                          color: authorStyle.color,
+                        ),
+                      ),
+                    ),
+                    TextSpan(
+                      text: widget.item.modules.moduleDynamic.topic!.name,
+                      style: authorStyle,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

@@ -367,6 +367,9 @@ flutter:
     - family: Jura-Bold
       fonts:
         - asset: assets/fonts/Jura-Bold.ttf
+    - family: custom_icon
+      fonts:
+        - asset: assets/fonts/custom_icon.ttf
     # - family: HarmonyOS
     #   fonts:
     #     - asset: assets/fonts/HarmonyOS_Sans_SC_Regular.ttf
