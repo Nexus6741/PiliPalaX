@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:PiliPalaX/plugin/pl_player/controller.dart';
 import 'package:flutter/material.dart';
@@ -209,7 +209,7 @@ class VideoIntroController extends GetxController {
     // 单个UP主的粉丝数查询
     var result = await UserHttp.userStat(mid: videoDetail.value.owner!.mid!);
     if (result['status']) {
-      print(result['data']);
+      // print(result['data']);
       userStat.value = result['data'];
       userStat.refresh();
     }
@@ -232,7 +232,7 @@ class VideoIntroController extends GetxController {
         staffRelations.refresh();
       }
     } catch (e) {
-      print('查询合作UP主关注状态失败: $e');
+      // print('查询合作UP主关注状态失败: $e');
     }
   }
 
@@ -344,7 +344,7 @@ class VideoIntroController extends GetxController {
     void coinVideo(int coin) async {
       var res = await VideoHttp.coinVideo(bvid: bvid, multiply: coin);
       if (res['status']) {
-        print(res);
+        // print(res);
         SmartDialog.showToast('投币成功');
         hasCoin.value = true;
         videoDetail.value.stat!.coin = videoDetail.value.stat!.coin! + coin;
@@ -415,7 +415,7 @@ class VideoIntroController extends GetxController {
       }
     } catch (e) {
       // ignore: avoid_print
-      print(e);
+      // print(e);
     }
     SmartDialog.showLoading(msg: '请求中');
     var result = await VideoHttp.favVideo(

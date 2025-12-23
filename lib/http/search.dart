@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hive/hive.dart';
 import '../models/bangumi/info.dart';
@@ -120,7 +120,7 @@ class SearchHttp {
           'data': data,
         };
       } catch (err) {
-        print(err);
+        // print(err);
       }
     } else {
       return {

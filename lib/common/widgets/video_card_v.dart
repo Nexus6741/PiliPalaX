@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -11,11 +11,11 @@ import '../../http/search.dart';
 import '../../models/common/search_type.dart';
 import '../../utils/id_utils.dart';
 import '../../utils/utils.dart';
-import '../../utils/download.dart';
 import '../constants.dart';
 import 'badge.dart';
 import 'network_img_layer.dart';
 import 'video_popup_menu.dart';
+import 'image_preview_dialog.dart';
 
 // 视频卡片 - 垂直布局
 class VideoCardV extends StatelessWidget {
@@ -37,7 +37,7 @@ class VideoCardV extends StatelessWidget {
 
   void onPushDetail(heroTag) async {
     String goto = videoItem.goto;
-    print("goto $goto");
+    // print("goto $goto");
     switch (goto) {
       case 'bangumi':
         if (videoItem.bangumiBadge == '电影') {
@@ -169,8 +169,11 @@ class VideoCardV extends StatelessWidget {
                 if (longPress != null) {
                   longPress!();
                 } else {
-                  DownloadUtils.downloadImg(context, videoItem.pic,
-                      imgType: 'cover');
+                  showImagePreviewDialog(
+                    imageUrl: videoItem.pic,
+                    title: videoItem.title,
+                    imgType: 'cover',
+                  );
                 }
               },
               child: InkWell(

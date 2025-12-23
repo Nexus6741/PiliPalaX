@@ -1,4 +1,4 @@
-// 用户空间数据模型（简化版，逐步完善）
+﻿// 用户空间数据模型（简化版，逐步完善）
 class SpaceData {
   int? relation;
   String? defaultTab;
@@ -40,7 +40,7 @@ class SpaceData {
         try {
           card = SpaceCard.fromJson(json['card'] as Map<String, dynamic>);
         } catch (e) {
-          print('Error parsing card: $e');
+          // print('Error parsing card: $e');
         }
       }
 
@@ -49,7 +49,7 @@ class SpaceData {
         try {
           images = SpaceImages.fromJson(json['images'] as Map<String, dynamic>);
         } catch (e) {
-          print('Error parsing images: $e');
+          // print('Error parsing images: $e');
         }
       }
 
@@ -81,7 +81,7 @@ class SpaceData {
           coinArchive?.item?.isNotEmpty == true ||
           likeArchive?.item?.isNotEmpty == true;
     } catch (e) {
-      print('Error in SpaceData.fromJson: $e');
+      // print('Error in SpaceData.fromJson: $e');
       rethrow;
     }
   }
@@ -162,7 +162,7 @@ class SpaceCard {
           ? null
           : SpacePrInfo.fromJson(json['pr_info'] as Map<String, dynamic>);
     } catch (e) {
-      print('Error in SpaceCard.fromJson: $e');
+      // print('Error in SpaceCard.fromJson: $e');
       rethrow;
     }
   }

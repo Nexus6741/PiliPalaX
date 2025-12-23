@@ -3,7 +3,9 @@ import 'package:PiliPalaX/models/common/member/user_info_type.dart';
 import 'package:PiliPalaX/models/member/space_data.dart';
 import 'package:PiliPalaX/utils/color_utils.dart';
 import 'package:PiliPalaX/utils/num_utils.dart';
+import 'package:PiliPalaX/utils/download.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -430,7 +432,16 @@ class UserInfoCard extends StatelessWidget {
         tag: card.face ?? '',
         child: GestureDetector(
           onTap: () {
-            // TODO: 图片预览
+            // 点击头像预览
+            if (card.face?.isNotEmpty == true) {
+              Get.to(
+                () => _AvatarPreview(
+                  avatarUrl: card.face!,
+                  userName: card.name ?? '',
+                ),
+                preventDuplicates: false,
+              );
+            }
           },
           child: Stack(
             alignment: Alignment.bottomCenter,
@@ -699,5 +710,228 @@ class UserInfoCard extends StatelessWidget {
       );
     }
     return child;
+  }
+}
+
+// 头像预览组件
+class _AvatarPreview extends StatefulWidget {
+  final String avatarUrl;
+  final String userName;
+
+  const _AvatarPreview({
+    required this.avatarUrl,
+    required this.userName,
+  });
+
+  @override
+  State<_AvatarPreview> createState() => _AvatarPreviewState();
+}
+
+class _AvatarPreviewState extends State<_AvatarPreview>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _doubleClickAnimationController;
+  Animation<double>? _doubleClickAnimation;
+  late Function() _doubleClickAnimationListener;
+  final List<double> doubleTapScales = <double>[1.0, 2.0];
+
+  @override
+  void initState() {
+    super.initState();
+    _doubleClickAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _doubleClickAnimationController.dispose();
+    super.dispose();
+  }
+
+  void _onOpenMenu() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          clipBehavior: Clip.hardEdge,
+          contentPadding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: widget.avatarUrl))
+                      .then((value) {
+                    Get.back();
+                    SmartDialog.showToast('已复制到粘贴板');
+                  }).catchError((err) {
+                    SmartDialog.showNotify(
+                      msg: err.toString(),
+                      notifyType: NotifyType.error,
+                    );
+                  });
+                },
+                dense: true,
+                title: const Text('复制链接', style: TextStyle(fontSize: 14)),
+              ),
+              ListTile(
+                onTap: () {
+                  Get.back();
+                  DownloadUtils.downloadImg(
+                    context,
+                    widget.avatarUrl,
+                    imgType: 'avatar_${widget.userName}',
+                  );
+                },
+                dense: true,
+                title: const Text('保存到手机', style: TextStyle(fontSize: 14)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      primary: false,
+      extendBody: true,
+      appBar: AppBar(
+        primary: false,
+        toolbarHeight: 0,
+        backgroundColor: Colors.black,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+      ),
+      body: Stack(
+        children: [
+          Semantics(
+            label: '长按保存',
+            child: GestureDetector(
+              onLongPress: _onOpenMenu,
+              child: Center(
+                child: ExtendedImage.network(
+                  widget.avatarUrl,
+                  fit: BoxFit.contain,
+                  mode: ExtendedImageMode.gesture,
+                  onDoubleTap: (ExtendedImageGestureState state) {
+                    final Offset? pointerDownPosition =
+                        state.pointerDownPosition;
+                    final double? begin = state.gestureDetails!.totalScale;
+                    double end;
+
+                    _doubleClickAnimation
+                        ?.removeListener(_doubleClickAnimationListener);
+                    _doubleClickAnimationController.stop();
+                    _doubleClickAnimationController.reset();
+
+                    if (begin == doubleTapScales[0]) {
+                      end = doubleTapScales[1];
+                    } else {
+                      end = doubleTapScales[0];
+                    }
+
+                    _doubleClickAnimationListener = () {
+                      state.handleDoubleTap(
+                        scale: _doubleClickAnimation!.value,
+                        doubleTapPosition: pointerDownPosition,
+                      );
+                    };
+
+                    _doubleClickAnimation = _doubleClickAnimationController
+                        .drive(Tween<double>(begin: begin, end: end));
+
+                    _doubleClickAnimation!
+                        .addListener(_doubleClickAnimationListener);
+
+                    _doubleClickAnimationController.forward();
+                  },
+                  loadStateChanged: (ExtendedImageState state) {
+                    if (state.extendedImageLoadState == LoadState.loading) {
+                      final ImageChunkEvent? loadingProgress =
+                          state.loadingProgress;
+                      final double? progress =
+                          loadingProgress?.expectedTotalBytes != null
+                              ? loadingProgress!.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null;
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            SizedBox(
+                              width: 150.0,
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return null;
+                  },
+                  initGestureConfigHandler: (ExtendedImageState state) {
+                    return GestureConfig(
+                      inPageView: false,
+                      initialScale: 1.0,
+                      maxScale: 5.0,
+                      animationMaxScale: 6.0,
+                      initialAlignment: InitialAlignment.center,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).padding.bottom + 30,
+              ),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: <Color>[
+                    Colors.transparent,
+                    Colors.black87,
+                  ],
+                  tileMode: TileMode.mirror,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.userName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    tooltip: '关闭',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

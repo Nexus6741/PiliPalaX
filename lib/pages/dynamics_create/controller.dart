@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -116,17 +116,17 @@ class CreateDynamicController extends GetxController {
 
   // 话题相关
   void setTopic(TopicItem topic) {
-    print('=== setTopic 被调用 ===');
-    print('topic: $topic');
-    print('topic.id: ${topic.id}');
-    print('topic.name: ${topic.name}');
-    print('topic类型: ${topic.runtimeType}');
+    // print('=== setTopic 被调用 ===');
+    // print('topic: $topic');
+    // print('topic.id: ${topic.id}');
+    // print('topic.name: ${topic.name}');
+    // print('topic类型: ${topic.runtimeType}');
     selectedTopic.value = topic;
-    print('selectedTopic.value 已设置: ${selectedTopic.value}');
+    // print('selectedTopic.value 已设置: ${selectedTopic.value}');
   }
 
   void clearTopic() {
-    print('=== clearTopic 被调用 ===');
+    // print('=== clearTopic 被调用 ===');
     selectedTopic.value = null;
   }
 
@@ -175,14 +175,14 @@ class CreateDynamicController extends GetxController {
       }
 
       // 日志：检查话题数据
-      print('=== 发布动态 - 话题检查 ===');
-      print('selectedTopic.value: ${selectedTopic.value}');
+      // print('=== 发布动态 - 话题检查 ===');
+      // print('selectedTopic.value: ${selectedTopic.value}');
       if (selectedTopic.value != null) {
-        print('话题ID: ${selectedTopic.value!.id}');
-        print('话题名称: ${selectedTopic.value!.name}');
-        print('话题类型: ${selectedTopic.value.runtimeType}');
+        // print('话题ID: ${selectedTopic.value!.id}');
+        // print('话题名称: ${selectedTopic.value!.name}');
+        // print('话题类型: ${selectedTopic.value.runtimeType}');
       } else {
-        print('未选择话题');
+        // print('未选择话题');
       }
 
       // 发布动态

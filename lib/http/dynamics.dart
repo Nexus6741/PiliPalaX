@@ -1,4 +1,4 @@
-import '../models/dynamics/result.dart';
+﻿import '../models/dynamics/result.dart';
 import '../models/dynamics/up.dart';
 import '../models/dynamics/topic_item.dart';
 import '../models/dynamics/topic_card_list.dart';
@@ -135,20 +135,20 @@ class DynamicsHttp {
   }) async {
     try {
       // 日志：接收到的参数
-      print('=== createDynamic 参数 ===');
-      print('content: $content');
-      print('title: $title');
-      print('images: $images');
-      print('topic: $topic');
+      // print('=== createDynamic 参数 ===');
+      // print('content: $content');
+      // print('title: $title');
+      // print('images: $images');
+      // print('topic: $topic');
       if (topic != null) {
-        print('topic.id: ${topic.id}');
-        print('topic.name: ${topic.name}');
-        print('topic类型: ${topic.runtimeType}');
+        // print('topic.id: ${topic.id}');
+        // print('topic.name: ${topic.name}');
+        // print('topic类型: ${topic.runtimeType}');
       }
-      print('voteId: $voteId');
-      print('isPrivate: $isPrivate');
-      print('allowReply: $allowReply');
-      print('scheduledTime: $scheduledTime');
+      // print('voteId: $voteId');
+      // print('isPrivate: $isPrivate');
+      // print('allowReply: $allowReply');
+      // print('scheduledTime: $scheduledTime');
 
       // 构建动态内容
       List<Map<String, dynamic>> contents = [];
@@ -167,8 +167,8 @@ class DynamicsHttp {
 
       // 添加投票（如果有）
       if (voteId != null) {
-        print('=== 添加投票到内容 ===');
-        print('投票ID: $voteId');
+        // print('=== 添加投票到内容 ===');
+        // print('投票ID: $voteId');
         contents.add({
           'raw_text': ' 投票 ',
           'type': 4, // 4: 投票类型
@@ -212,17 +212,17 @@ class DynamicsHttp {
 
       // 添加话题
       if (topic != null) {
-        print('=== 添加话题到请求 ===');
+        // print('=== 添加话题到请求 ===');
         final topicData = {
           'id': topic.id,
           'name': topic.name,
           'from_source': 'dyn.web.list',
           'from_topic_id': 0,
         };
-        print('话题数据: $topicData');
+        // print('话题数据: $topicData');
         dynReq['topic'] = topicData;
       } else {
-        print('=== 未添加话题（topic为null）===');
+        // print('=== 未添加话题（topic为null）===');
       }
 
       // 添加选项
@@ -256,9 +256,9 @@ class DynamicsHttp {
       };
 
       // 日志：完整的请求数据
-      print('=== 完整请求数据 ===');
-      print('requestData: $requestData');
-      print('dyn_req.topic: ${dynReq['topic']}');
+      // print('=== 完整请求数据 ===');
+      // print('requestData: $requestData');
+      // print('dyn_req.topic: ${dynReq['topic']}');
 
       var res = await Request().post(
         Api.createDynamic,
@@ -269,10 +269,10 @@ class DynamicsHttp {
       );
 
       // 日志：服务器响应
-      print('=== 服务器响应 ===');
-      print('code: ${res.data['code']}');
-      print('message: ${res.data['message']}');
-      print('data: ${res.data['data']}');
+      // print('=== 服务器响应 ===');
+      // print('code: ${res.data['code']}');
+      // print('message: ${res.data['message']}');
+      // print('data: ${res.data['data']}');
 
       if (res.data['code'] == 0) {
         return {
@@ -286,8 +286,8 @@ class DynamicsHttp {
         };
       }
     } catch (err) {
-      print('=== 发布动态异常 ===');
-      print('错误: $err');
+      // print('=== 发布动态异常 ===');
+      // print('错误: $err');
       return {
         'status': false,
         'msg': err.toString(),
@@ -361,15 +361,15 @@ class DynamicsHttp {
   // 创建投票
   static Future createVote(VoteInfo voteInfo) async {
     try {
-      print('=== createVote 开始 ===');
-      print('投票标题: ${voteInfo.title}');
-      print('投票选项数: ${voteInfo.options.length}');
-      print('是否多选: ${voteInfo.multiChoice}');
-      print('持续时间(秒): ${voteInfo.getDurationInSeconds()}');
+      // print('=== createVote 开始 ===');
+      // print('投票标题: ${voteInfo.title}');
+      // print('投票选项数: ${voteInfo.options.length}');
+      // print('是否多选: ${voteInfo.multiChoice}');
+      // print('持续时间(秒): ${voteInfo.getDurationInSeconds()}');
 
       // 使用新的 API 格式（JSON）
       final voteData = voteInfo.toJson();
-      print('投票数据: $voteData');
+      // print('投票数据: $voteData');
 
       var res = await Request().post(
         Api.createVote,
@@ -381,10 +381,10 @@ class DynamicsHttp {
         },
       );
 
-      print('=== createVote 响应 ===');
-      print('code: ${res.data['code']}');
-      print('message: ${res.data['message']}');
-      print('data: ${res.data['data']}');
+      // print('=== createVote 响应 ===');
+      // print('code: ${res.data['code']}');
+      // print('message: ${res.data['message']}');
+      // print('data: ${res.data['data']}');
 
       if (res.data['code'] == 0) {
         return {
@@ -398,8 +398,8 @@ class DynamicsHttp {
         };
       }
     } catch (err) {
-      print('=== createVote 异常 ===');
-      print('错误: $err');
+      // print('=== createVote 异常 ===');
+      // print('错误: $err');
       return {
         'status': false,
         'msg': err.toString(),

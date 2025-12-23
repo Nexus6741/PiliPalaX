@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/image_preview_dialog.dart';
 import 'package:PiliPalaX/models/member/space_data.dart';
 import 'package:PiliPalaX/models/user/fav_folder.dart';
 import 'package:PiliPalaX/utils/utils.dart';
@@ -24,24 +25,24 @@ class MemberHomeFavItem extends StatelessWidget {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: () {
-          print('=== MemberHomeFavItem onTap ===');
-          print('item.id: ${item.id}');
-          print('item.fid: ${item.fid}');
-          print('item.mediaId: ${item.mediaId}');
-          print('item.title: ${item.title}');
-          print('item.mediaCount: ${item.mediaCount}');
-          print('item.count: ${item.count}');
+          // print('=== MemberHomeFavItem onTap ===');
+          // print('item.id: ${item.id}');
+          // print('item.fid: ${item.fid}');
+          // print('item.mediaId: ${item.mediaId}');
+          // print('item.title: ${item.title}');
+          // print('item.mediaCount: ${item.mediaCount}');
+          // print('item.count: ${item.count}');
 
           // 使用 mediaId 字段，如果没有则使用 id
           final int? actualMediaId = item.mediaId ?? item.id;
 
           if (actualMediaId == null) {
-            print('actualMediaId is null, returning');
+            // print('actualMediaId is null, returning');
             return;
           }
 
-          print('actualMediaId: $actualMediaId');
-          print('heroTag: $heroTag');
+          // print('actualMediaId: $actualMediaId');
+          // print('heroTag: $heroTag');
 
           // 构造 FavFolderItemData 对象，与媒体库跳转方式一致
           final favItem = FavFolderItemData(
@@ -51,8 +52,8 @@ class MemberHomeFavItem extends StatelessWidget {
             cover: item.cover,
             mediaCount: item.mediaCount ?? item.count,
           );
-          print(
-              'FavFolderItemData: id=${favItem.id}, fid=${favItem.fid}, title=${favItem.title}');
+          // print(
+          // 'FavFolderItemData: id=${favItem.id}, fid=${favItem.fid}, title=${favItem.title}');
 
           Get.toNamed(
             '/favDetail',
@@ -62,6 +63,15 @@ class MemberHomeFavItem extends StatelessWidget {
               'heroTag': heroTag,
             },
           );
+        },
+        onLongPress: () {
+          if (item.cover?.isNotEmpty == true) {
+            showImagePreviewDialog(
+              imageUrl: item.cover!,
+              title: item.title,
+              imgType: 'fav',
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(

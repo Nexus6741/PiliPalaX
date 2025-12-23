@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -181,14 +181,14 @@ class SimpleDynamicCreateController extends GetxController {
       // 创建投票（如果有）
       int? voteId;
       if (selectedVote.value != null) {
-        print('=== 开始创建投票 ===');
+        // print('=== 开始创建投票 ===');
         final voteResult = await DynamicsHttp.createVote(selectedVote.value!);
         if (voteResult['status'] != true) {
           SmartDialog.showToast('投票创建失败: ${voteResult['msg']}');
           return;
         }
         voteId = voteResult['data']?['vote_id'];
-        print('投票创建成功，vote_id: $voteId');
+        // print('投票创建成功，vote_id: $voteId');
 
         if (voteId == null) {
           SmartDialog.showToast('投票创建失败：未返回投票ID');
@@ -197,8 +197,8 @@ class SimpleDynamicCreateController extends GetxController {
       }
 
       // 发布动态
-      print('=== 准备发布动态 ===');
-      print('voteId: $voteId');
+      // print('=== 准备发布动态 ===');
+      // print('voteId: $voteId');
       final result = await DynamicsHttp.createDynamic(
         content: content,
         title: title,

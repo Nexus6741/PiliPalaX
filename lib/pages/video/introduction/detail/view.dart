@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+﻿import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -257,7 +257,7 @@ class _VideoInfoState extends State<VideoInfo> with TickerProviderStateMixin {
                     // showTrailingIcon: false,
                     onExpansionChanged: (bool expanded) {
                       feedBack();
-                      print(expanded);
+                      // print(expanded);
                       setState(() {
                         isExpanded = expanded;
                       });

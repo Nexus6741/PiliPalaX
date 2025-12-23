@@ -1,4 +1,4 @@
-// 转发
+﻿// 转发
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -159,7 +159,7 @@ Widget forWard(item, context, ctr, source, {floor = 1}) {
     pics = item.modules.moduleDynamic.major.opus.pics;
   }
   InlineSpan? richNodes = richNode(item, context);
-  print(item.type);
+  // print(item.type);
   switch (item.type) {
     // 图文
     case 'DYNAMIC_TYPE_DRAW':

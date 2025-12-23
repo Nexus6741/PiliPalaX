@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
@@ -112,7 +112,7 @@ class PgcCardV extends StatelessWidget {
             } catch (e) {
               SmartDialog.dismiss();
               SmartDialog.showToast('加载失败: $e');
-              print('⚠️ PGC卡片导航失败: $e');
+              // print('⚠️ PGC卡片导航失败: $e');
             }
           },
           child: Column(

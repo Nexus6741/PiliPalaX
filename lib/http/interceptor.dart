@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -45,7 +45,7 @@ class ApiInterceptor extends Interceptor {
     // 处理网络请求错误
     // handler.next(err);
     String url = err.requestOptions.uri.toString();
-    print('🌹🌹ApiInterceptor: $url');
+    // print('🌹🌹ApiInterceptor: $url');
     // 屏蔽弹幕、心跳、人数请求的错误提示
     if (!url.contains('heartbeat') &&
         !url.contains('seg.so') &&

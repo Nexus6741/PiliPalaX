@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 
@@ -163,7 +163,7 @@ class _DynamicRepostPageState extends State<DynamicRepostPage> {
 
       return content;
     } catch (e) {
-      print('获取转发内容失败: $e');
+      // print('获取转发内容失败: $e');
       return null;
     }
   }

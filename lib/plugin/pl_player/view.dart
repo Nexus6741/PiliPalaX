@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -271,14 +271,14 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         PlPlayerController.getPlayerStatusIfExists() == PlayerStatus.playing &&
         !onlyPlayAudioUponEnteringBackgroundMode &&
         !widget.controller.onlyPlayAudio.value) {
-      print('onlyPlayAudioUponEnteringBackgroundMode On');
+      // print('onlyPlayAudioUponEnteringBackgroundMode On');
       onlyPlayAudioUponEnteringBackgroundMode = true;
       widget.controller.setOnlyPlayAudio(true);
     } else if (PlPlayerController.getPlayerStatusIfExists() ==
             PlayerStatus.playing &&
         onlyPlayAudioUponEnteringBackgroundMode &&
         widget.controller.onlyPlayAudio.value) {
-      print('onlyPlayAudioUponEnteringBackgroundMode Off');
+      // print('onlyPlayAudioUponEnteringBackgroundMode Off');
       onlyPlayAudioUponEnteringBackgroundMode = false;
       widget.controller.setOnlyPlayAudio(false);
     }
@@ -323,7 +323,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         widget.controller.volume.value = value ?? 0.0;
       });
     } catch (e) {
-      print(e);
+      // print(e);
     }
 
     Map<int, int> gestureCodeMap = Map<int, int>.from(
@@ -828,12 +828,12 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                 // 左边区域 👈
                 final double level =
                     min(renderBox.size.height, renderBox.size.width) * 2.0;
-                print("level:$level");
+                // print("level:$level");
                 final double brightness =
                     _brightnessValue.value - delta.dy / level;
-                print("brightness:$brightness");
+                // print("brightness:$brightness");
                 final double result = brightness.clamp(0.0, 1.0);
-                print("result:$result");
+                // print("result:$result");
                 setBrightness(result);
               } else if (_gestureType == 'center') {
                 // 全屏/应用内小窗
@@ -887,8 +887,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                       case PlayerGestureAction.pipOutside:
                         // lib/pages/video/widgets/header_control.dart
 
-                        print(_.dataSource.videoSource);
-                        print(_.dataSource.audioSource);
+                        // print(_.dataSource.videoSource);
+                        // print(_.dataSource.audioSource);
                         _.controls = false;
                         // FlPiP().enable(
                         //   ios: FlPiPiOSConfig(
@@ -1484,13 +1484,13 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         //
         Obx(() {
           // 🔥 调试日志
-          print('=== 缓冲状态调试 ===');
-          print('dataStatus.loading: ${_.dataStatus.loading}');
-          print('isBuffering.value: ${_.isBuffering.value}');
-          print('isVideoLoaded.value: ${_.isVideoLoaded.value}');
-          print(
-              '应该显示缓冲logo: ${_.dataStatus.loading || _.isBuffering.value || !_.isVideoLoaded.value}');
-          print('=====================');
+          // print('=== 缓冲状态调试 ===');
+          // print('dataStatus.loading: ${_.dataStatus.loading}');
+          // print('isBuffering.value: ${_.isBuffering.value}');
+          // print('isVideoLoaded.value: ${_.isVideoLoaded.value}');
+          // print(
+          // '应该显示缓冲logo: ${_.dataStatus.loading || _.isBuffering.value || !_.isVideoLoaded.value}');
+          // print('=====================');
 
           // 🔥 修复：添加 !_.isVideoLoaded.value 条件
           // 当视频首次加载（包括按历史进度加载）时，即使 isBuffering 为 false，

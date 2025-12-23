@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
@@ -205,15 +205,15 @@ class _FavDetailPageState extends State<FavDetailPage> {
           FutureBuilder(
             future: _futureBuilderFuture,
             builder: (context, snapshot) {
-              print('=== FutureBuilder builder ===');
-              print('connectionState: ${snapshot.connectionState}');
-              print('hasData: ${snapshot.hasData}');
-              print('hasError: ${snapshot.hasError}');
-              print('data: ${snapshot.data}');
+              // print('=== FutureBuilder builder ===');
+              // print('connectionState: ${snapshot.connectionState}');
+              // print('hasData: ${snapshot.hasData}');
+              // print('hasError: ${snapshot.hasError}');
+              // print('data: ${snapshot.data}');
 
               if (snapshot.connectionState == ConnectionState.done) {
                 if (snapshot.data == null) {
-                  print('snapshot.data is null!');
+                  // print('snapshot.data is null!');
                   return HttpError(
                     errMsg: '数据加载失败',
                     fn: () => setState(() {
@@ -223,13 +223,13 @@ class _FavDetailPageState extends State<FavDetailPage> {
                   );
                 }
                 Map data = snapshot.data;
-                print('data[status]: ${data['status']}');
+                // print('data[status]: ${data['status']}');
 
                 if (data['status']) {
-                  print(
-                      'favList.length: ${_favDetailController.favList.length}');
-                  print(
-                      'item?.mediaCount: ${_favDetailController.item?.mediaCount}');
+                  // print(
+                  // 'favList.length: ${_favDetailController.favList.length}');
+                  // print(
+                  // 'item?.mediaCount: ${_favDetailController.item?.mediaCount}');
 
                   if ((_favDetailController.item?.mediaCount ?? 0) == 0 &&
                       _favDetailController.favList.isEmpty) {

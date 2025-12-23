@@ -1,4 +1,4 @@
-class MemberSeasonsAndSeriesDataModel {
+﻿class MemberSeasonsAndSeriesDataModel {
   MemberSeasonsAndSeriesDataModel({
     this.page,
     this.seasonsList,
@@ -34,8 +34,8 @@ class MemberSeasonsAndSeriesPage {
   int? pageSize;
   int? total;
   MemberSeasonsAndSeriesPage.fromJson(Map<String, dynamic> json) {
-    print("bbbb");
-    print(json);
+    // print("bbbb");
+    // print(json);
     pageNum = json['page_num'];
     pageSize = json['page_size'];
     total = json['total'];

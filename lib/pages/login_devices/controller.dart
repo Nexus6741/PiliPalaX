@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:PiliPalaX/http/loading_state.dart';
 import 'package:PiliPalaX/http/login.dart';
 import 'package:PiliPalaX/models/login_devices/login_device.dart';
@@ -14,33 +14,33 @@ class LoginDevicesController extends GetxController {
   }
 
   Future<void> queryData() async {
-    print('========== LoginDevices queryData START ==========');
+    // print('========== LoginDevices queryData START ==========');
     loadingState.value = LoadingState.loading();
     try {
-      print('Calling LoginHttp.loginDevices()...');
+      // print('Calling LoginHttp.loginDevices()...');
       var result = await LoginHttp.loginDevices();
-      print('LoginHttp.loginDevices() result: $result');
+      // print('LoginHttp.loginDevices() result: $result');
 
       if (result['status']) {
         final List<LoginDevice>? devices = result['data'];
-        print('Devices count: ${devices?.length ?? 0}');
+        // print('Devices count: ${devices?.length ?? 0}');
         if (devices != null && devices.isNotEmpty) {
           for (var i = 0; i < devices.length; i++) {
-            print('Device $i: ${devices[i].deviceName}');
+            // print('Device $i: ${devices[i].deviceName}');
           }
         }
         loadingState.value = Success<List<LoginDevice>?>(devices);
-        print('LoadingState set to Success');
+        // print('LoadingState set to Success');
       } else {
-        print('API returned error: ${result['msg']}');
+        // print('API returned error: ${result['msg']}');
         loadingState.value = Error<List<LoginDevice>?>(result['msg'] ?? '加载失败');
       }
     } catch (e, stackTrace) {
-      print('Exception in queryData: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in queryData: $e');
+      // print('StackTrace: $stackTrace');
       loadingState.value = Error<List<LoginDevice>?>(e.toString());
     }
-    print('========== LoginDevices queryData END ==========');
+    // print('========== LoginDevices queryData END ==========');
   }
 
   Future<void> onRefresh() async {

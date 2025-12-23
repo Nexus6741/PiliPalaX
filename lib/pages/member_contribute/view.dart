@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/models/member/space_data.dart';
@@ -97,8 +97,8 @@ class _MemberContributeState extends State<MemberContribute>
   }
 
   Widget _getPageFromType(SpaceTab2Item item) {
-    print(
-        '_getPageFromType called with: title=${item.title}, param=${item.param}, seasonId=${item.seasonId}, seriesId=${item.seriesId}');
+    // print(
+    // '_getPageFromType called with: title=${item.title}, param=${item.param}, seasonId=${item.seasonId}, seriesId=${item.seriesId}');
 
     switch (item.param) {
       case 'video':
@@ -136,7 +136,7 @@ class _MemberContributeState extends State<MemberContribute>
       case 'ugcSeason':
         return _buildPlaceholder('全部合集/列表', item.title);
       default:
-        print('Unknown param type: ${item.param}');
+        // print('Unknown param type: ${item.param}');
         return Center(child: Text(item.title ?? '未知类型'));
     }
   }

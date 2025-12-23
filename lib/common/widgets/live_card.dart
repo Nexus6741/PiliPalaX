@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/utils.dart';
-import '../../utils/download.dart';
 import '../constants.dart';
 import 'network_img_layer.dart';
+import 'image_preview_dialog.dart';
 
 class LiveCard extends StatelessWidget {
   // ignore: prefer_typing_uninitialized_variables
@@ -30,8 +30,11 @@ class LiveCard extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: GestureDetector(
         onLongPress: () {
-          DownloadUtils.downloadImg(context, liveItem.cover as String,
-              imgType: 'live');
+          showImagePreviewDialog(
+            imageUrl: liveItem.cover as String,
+            title: liveItem.title as String,
+            imgType: 'live',
+          );
         },
         child: InkWell(
           onTap: () {},

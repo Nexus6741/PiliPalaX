@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -50,7 +50,7 @@ class _DanmakuBlockPageState extends State<DanmakuBlockPage> {
       }
       return e.toMap();
     }).toList();
-    print("simpleRuleList:$simpleRuleList");
+    // print("simpleRuleList:$simpleRuleList");
     localCache.put(LocalCacheKey.danmakuFilterRule, simpleRuleList);
     plPlayerController.danmakuFilterRule.value = simpleRuleList;
     scrollController.removeListener(() {});

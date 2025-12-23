@@ -1,4 +1,4 @@
-// ignore_for_file: must_be_immutable
+﻿// ignore_for_file: must_be_immutable
 
 import 'dart:convert';
 
@@ -82,7 +82,7 @@ class ChatItem extends StatelessWidget {
           RegExp(r"\[[^\[\]]+\]"),
           onMatch: (Match match) {
             final String emojiKey = match[0]!;
-            print(emojiKey);
+            // print(emojiKey);
             if (emojiMap.containsKey(emojiKey)) {
               children.add(WidgetSpan(
                 child: NetworkImgLayer(

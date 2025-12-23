@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:PiliPalaX/http/loading_state.dart';
 
 abstract class LogController<R, T> extends GetxController {
@@ -16,32 +16,32 @@ abstract class LogController<R, T> extends GetxController {
   List<LogColumnData> getFlexAndText(T item);
 
   Future<void> queryData() async {
-    print('========== LogController queryData START ==========');
-    print('Controller type: $runtimeType');
+    // print('========== LogController queryData START ==========');
+    // print('Controller type: $runtimeType');
     loadingState.value = LoadingState.loading();
     try {
-      print('Calling customGetData()...');
+      // print('Calling customGetData()...');
       var result = await customGetData();
-      print('customGetData() result: $result');
+      // print('customGetData() result: $result');
 
       if (result['status']) {
         final data = result['data'];
-        print('Data type: ${data.runtimeType}');
-        print('Calling getDataList()...');
+        // print('Data type: ${data.runtimeType}');
+        // print('Calling getDataList()...');
         final list = getDataList(data);
-        print('List count: ${list?.length ?? 0}');
+        // print('List count: ${list?.length ?? 0}');
         loadingState.value = Success<List<T>?>(list);
-        print('LoadingState set to Success');
+        // print('LoadingState set to Success');
       } else {
-        print('API returned error: ${result['msg']}');
+        // print('API returned error: ${result['msg']}');
         loadingState.value = Error<List<T>?>(result['msg'] ?? '加载失败');
       }
     } catch (e, stackTrace) {
-      print('Exception in queryData: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in queryData: $e');
+      // print('StackTrace: $stackTrace');
       loadingState.value = Error<List<T>?>(e.toString());
     }
-    print('========== LogController queryData END ==========');
+    // print('========== LogController queryData END ==========');
   }
 
   Future<Map<String, dynamic>> customGetData();

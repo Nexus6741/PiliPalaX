@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 
 import 'package:PiliPalaX/common/constants.dart';
@@ -68,8 +68,8 @@ class LoginPageController extends GetxController
         qrCodeTimer?.cancel();
         codeInfo.value = res;
         codeInfo.refresh();
-        print("codeInfo");
-        print(codeInfo);
+        // print("codeInfo");
+        // print(codeInfo);
         qrCodeTimer = Timer.periodic(const Duration(milliseconds: 1000), (t) {
           qrCodeLeftTime.value = 180 - t.tick;
           if (qrCodeLeftTime <= 0) {
@@ -84,7 +84,7 @@ class LoginPageController extends GetxController
             if (value['status']) {
               t.cancel();
               statusQRCode.value = '扫码成功';
-              print(value['data']);
+              // print(value['data']);
               await afterLoginByApp(
                   value['data'], value['data']['cookie_info']);
               Get.back();
@@ -103,7 +103,7 @@ class LoginPageController extends GetxController
   }
 
   void _handleTabChange() {
-    print('tabController.index ${tabController.index}');
+    // print('tabController.index ${tabController.index}');
     if (tabController.index == 2) {
       if (qrCodeTimer == null || qrCodeTimer!.isActive == false) {
         refreshQRCode();
@@ -120,8 +120,8 @@ class LoginPageController extends GetxController
         'refresh': token_info['refresh_token']
       });
       List<dynamic> cookieInfo = cookie_info['cookies'];
-      print("cookieInfo");
-      print(cookieInfo);
+      // print("cookieInfo");
+      // print(cookieInfo);
       List<Cookie> cookies = [];
       String cookieStrings = cookieInfo.map((cookie) {
         String cstr =
@@ -138,11 +138,11 @@ class LoginPageController extends GetxController
         await Request.cookieManager.cookieJar
             .saveFromResponse(Uri.parse(url), cookies);
       }
-      print(cookieStrings);
-      print(Request.cookieManager.cookieJar
-          .loadForRequest(Uri.parse(HttpString.apiBaseUrl)));
+      // print(cookieStrings);
+      // print(Request.cookieManager.cookieJar
+      // .loadForRequest(Uri.parse(HttpString.apiBaseUrl)));
       Request.dio.options.headers['cookie'] = cookieStrings;
-      print(Request.dio.options);
+      // print(Request.dio.options);
       await WebviewCookieManager().setCookies(cookies);
     } catch (e) {
       SmartDialog.showToast('设置登录态失败，$e');
@@ -273,14 +273,14 @@ class LoginPageController extends GetxController
     }
     // if ((passwordFormKey.currentState as FormState).validate()) {
     var webKeyRes = await LoginHttp.getWebKey();
-    print(webKeyRes);
+    // print(webKeyRes);
     if (!webKeyRes['status']) {
       SmartDialog.showToast(webKeyRes['msg']);
       return;
     }
     String salt = webKeyRes['data']['hash'];
     String key = webKeyRes['data']['key'];
-    print(key);
+    // print(key);
     var res = await LoginHttp.loginByPwd(
       username: username,
       password: password,
@@ -291,11 +291,11 @@ class LoginPageController extends GetxController
       gee_challenge: captchaData.geetest?.challenge,
       recaptcha_token: captchaData.token,
     );
-    print(res);
+    // print(res);
     if (res['status']) {
       var data = res['data'];
       for (var key in data.keys) {
-        print('$key: ${data[key]}');
+        // print('$key: ${data[key]}');
       }
       if (data == null) {
         SmartDialog.showToast('登录异常，接口未返回数据：${res["msg"]}');
@@ -366,10 +366,10 @@ class LoginPageController extends GetxController
                 }
 
                 getCaptcha(geeGt, geeChallenge, () async {
-                  print("captchaData");
-                  print(captchaData);
-                  print(currentUri.queryParameters['tmp_token']!);
-                  print(geeChallenge);
+                  // print("captchaData");
+                  // print(captchaData);
+                  // print(currentUri.queryParameters['tmp_token']!);
+                  // print(geeChallenge);
 
                   var safeCenterSendSmsCodeRes =
                       await LoginHttp.safeCenterSmsCode(
@@ -508,12 +508,12 @@ class LoginPageController extends GetxController
       cid: selectedCountryCodeId['country_id'],
       key: key,
     );
-    print(res);
+    // print(res);
     if (res['status']) {
       SmartDialog.showToast('登录成功');
       var data = res['data'];
       for (var key in data.keys) {
-        print('$key: ${data[key]}');
+        // print('$key: ${data[key]}');
       }
       await afterLoginByApp(data['token_info'], data['cookie_info']);
       Get.back();
@@ -583,7 +583,7 @@ class LoginPageController extends GetxController
       gee_challenge: captchaData.geetest?.challenge,
       recaptcha_token: captchaData.token,
     );
-    print(res);
+    // print(res);
     if (res['status']) {
       SmartDialog.showToast('发送成功');
       smsSendTimestamp = DateTime.now().millisecondsSinceEpoch;
@@ -613,7 +613,7 @@ class LoginPageController extends GetxController
           }
 
           if (!isGeeArgumentValid(geeGt, geeChallenge)) {
-            print('验证信息错误：${res["msg"]}\n返回内容：${res["data"]}，尝试另一个验证码接口');
+            // print('验证信息错误：${res["msg"]}\n返回内容：${res["data"]}，尝试另一个验证码接口');
             var preCaptureRes = await LoginHttp.preCapture();
             if (!preCaptureRes['status'] || preCaptureRes['data'] == null) {
               SmartDialog.showToast("获取验证码失败，请尝试其它登录方式\n"

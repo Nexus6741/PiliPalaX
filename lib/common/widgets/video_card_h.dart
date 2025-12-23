@@ -4,13 +4,13 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import '../../http/search.dart';
 import '../../utils/utils.dart';
-import '../../utils/download.dart';
 import '../constants.dart';
 import 'badge.dart';
 import 'network_img_layer.dart';
 import 'stat/danmu.dart';
 import 'stat/view.dart';
 import 'video_popup_menu.dart';
+import 'image_preview_dialog.dart';
 
 // 视频卡片 - 水平布局
 class VideoCardH extends StatelessWidget {
@@ -63,8 +63,13 @@ class VideoCardH extends StatelessWidget {
               if (longPress != null) {
                 longPress!();
               } else {
-                DownloadUtils.downloadImg(context, videoItem.pic as String,
-                    imgType: 'cover');
+                showImagePreviewDialog(
+                  imageUrl: videoItem.pic as String,
+                  title: videoItem.title is String
+                      ? videoItem.title as String
+                      : null,
+                  imgType: 'cover',
+                );
               }
             },
             child: InkWell(

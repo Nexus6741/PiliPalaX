@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/http/dynamics.dart';
@@ -88,8 +88,8 @@ class DynamicsTopicController extends GetxController {
     }
     errorMsg.value = '';
 
-    print(
-        '📡 [queryData] 请求参数: topicId=$topicId, offset=$offset, sortBy=${sortBy.value}');
+    // print(
+    // '📡 [queryData] 请求参数: topicId=$topicId, offset=$offset, sortBy=${sortBy.value}');
 
     var res = await DynamicsHttp.topicFeed(
       topicId: topicId,
@@ -101,8 +101,8 @@ class DynamicsTopicController extends GetxController {
       TopicCardList? data = res['data'];
       if (data != null) {
         offset = data.offset ?? '';
-        print(
-            '📊 [queryData] 响应数据: items=${data.items?.length ?? 0}, hasMore=${data.hasMore}, offset=$offset');
+        // print(
+        // '📊 [queryData] 响应数据: items=${data.items?.length ?? 0}, hasMore=${data.hasMore}, offset=$offset');
 
         // 更新排序配置
         topicSortByConf.value = data.topicSortByConf;
@@ -111,7 +111,7 @@ class DynamicsTopicController extends GetxController {
         if (!_isInitialized && data.topicSortByConf != null) {
           sortBy.value = data.topicSortByConf?.showSortBy ?? 0;
           _isInitialized = true;
-          print('🎯 [queryData] 初始化默认排序: ${sortBy.value}');
+          // print('🎯 [queryData] 初始化默认排序: ${sortBy.value}');
         }
 
         if (data.hasMore == false) {
@@ -121,22 +121,22 @@ class DynamicsTopicController extends GetxController {
         if (data.items != null && data.items!.isNotEmpty) {
           if (offset.isEmpty) {
             dynamicsList.value = data.items!;
-            print('✅ [queryData] 设置新数据: ${data.items!.length} 条');
+            // print('✅ [queryData] 设置新数据: ${data.items!.length} 条');
           } else {
             dynamicsList.addAll(data.items!);
-            print('➕ [queryData] 追加数据: ${data.items!.length} 条');
+            // print('➕ [queryData] 追加数据: ${data.items!.length} 条');
           }
         } else {
           // 如果没有数据且是第一页，清空列表
           if (offset.isEmpty) {
             dynamicsList.clear();
-            print('🗑️ [queryData] 清空列表，无数据');
+            // print('🗑️ [queryData] 清空列表，无数据');
           }
         }
       }
     } else {
       errorMsg.value = res['msg'] ?? '加载失败';
-      print('❌ [queryData] 请求失败: ${res['msg']}');
+      // print('❌ [queryData] 请求失败: ${res['msg']}');
     }
 
     isLoading.value = false;
@@ -176,14 +176,14 @@ class DynamicsTopicController extends GetxController {
   }
 
   void onSort(int newSortBy) {
-    print('🔄 [onSort] 切换排序: $newSortBy');
+    // print('🔄 [onSort] 切换排序: $newSortBy');
     sortBy.value = newSortBy;
     onReload();
   }
 
   Future<void> onFav() async {
-    print('🔵 [onFav] 开始收藏/取消收藏');
-    print('🔵 [onFav] isLogin: $isLogin');
+    // print('🔵 [onFav] 开始收藏/取消收藏');
+    // print('🔵 [onFav] isLogin: $isLogin');
 
     if (!isLogin) {
       SmartDialog.showToast('账号未登录');
@@ -191,14 +191,14 @@ class DynamicsTopicController extends GetxController {
     }
 
     bool currentIsFav = isFav.value ?? false;
-    print('🔵 [onFav] currentIsFav: $currentIsFav');
-    print('🔵 [onFav] topicId: $topicId');
+    // print('🔵 [onFav] currentIsFav: $currentIsFav');
+    // print('🔵 [onFav] topicId: $topicId');
 
     var res = currentIsFav
         ? await UserHttp.delFavTopic(topicId)
         : await UserHttp.addFavTopic(topicId);
 
-    print('🔵 [onFav] 返回结果: $res');
+    // print('🔵 [onFav] 返回结果: $res');
 
     if (res['status']) {
       if (topDetails.value?.topicItem != null) {
@@ -216,8 +216,8 @@ class DynamicsTopicController extends GetxController {
   }
 
   Future<void> onLike() async {
-    print('🔵 [onLike] 开始点赞/取消点赞');
-    print('🔵 [onLike] isLogin: $isLogin');
+    // print('🔵 [onLike] 开始点赞/取消点赞');
+    // print('🔵 [onLike] isLogin: $isLogin');
 
     if (!isLogin) {
       SmartDialog.showToast('账号未登录');
@@ -225,12 +225,12 @@ class DynamicsTopicController extends GetxController {
     }
 
     bool currentIsLike = isLike.value ?? false;
-    print('🔵 [onLike] currentIsLike: $currentIsLike');
-    print('🔵 [onLike] topicId: $topicId');
+    // print('🔵 [onLike] currentIsLike: $currentIsLike');
+    // print('🔵 [onLike] topicId: $topicId');
 
     var res = await UserHttp.likeTopic(topicId, currentIsLike);
 
-    print('🔵 [onLike] 返回结果: $res');
+    // print('🔵 [onLike] 返回结果: $res');
 
     if (res['status']) {
       if (topDetails.value?.topicItem != null) {

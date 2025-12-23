@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -507,20 +507,20 @@ class _CreateDynamicPageState extends State<CreateDynamicPage>
   }
 
   void _onSelectTopic() async {
-    print('=== _onSelectTopic 被调用 ===');
+    // print('=== _onSelectTopic 被调用 ===');
     final result = await Get.to<TopicItem>(
       () => const TopicSelectorPage(),
     );
 
-    print('=== 话题选择结果 ===');
-    print('result: $result');
+    // print('=== 话题选择结果 ===');
+    // print('result: $result');
 
     if (result != null) {
-      print('选择的话题ID: ${result.id}');
-      print('选择的话题名称: ${result.name}');
+      // print('选择的话题ID: ${result.id}');
+      // print('选择的话题名称: ${result.name}');
       _controller.setTopic(result);
     } else {
-      print('未选择话题或取消选择');
+      // print('未选择话题或取消选择');
     }
   }
 

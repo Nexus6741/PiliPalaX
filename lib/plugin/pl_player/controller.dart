@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 
 import 'dart:async';
 import 'dart:convert';
@@ -558,14 +558,14 @@ class PlPlayerController {
 
       // 🔍 调试日志：查看保存的PGC参数
       if (epid != null && seasonId != null) {
-        print('🔍 [setDataSource] 保存PGC参数:');
-        print('   - _epid: $_epid');
-        print('   - _seasonId: $_seasonId');
-        print(
-            '   - _seasonType: $_seasonType ${_seasonType == null ? "(null)" : ""}');
+        // print('🔍 [setDataSource] 保存PGC参数:');
+        // print('   - _epid: $_epid');
+        // print('   - _seasonId: $_seasonId');
+        // print(
+        // '   - _seasonType: $_seasonType ${_seasonType == null ? "(null)" : ""}');
       }
 
-      print('🔥 [Controller] isVideoLoaded 设置为 false');
+      // print('🔥 [Controller] isVideoLoaded 设置为 false');
 
       // 切换视频时清除预览缓存
       if (showSeekPreview) {
@@ -636,7 +636,7 @@ class PlPlayerController {
     } catch (err, stackTrace) {
       dataStatus.status.value = DataStatus.error;
       debugPrint(stackTrace.toString());
-      print('plPlayer err:  $err');
+      // print('plPlayer err:  $err');
       return false;
     }
     return true;
@@ -654,7 +654,7 @@ class PlPlayerController {
     // 每次配置时先移除监听
     removeListeners();
     isBuffering.value = true;
-    print('🔥 [Controller] setDataSource: isBuffering 设置为 true');
+    // print('🔥 [Controller] setDataSource: isBuffering 设置为 true');
     buffered.value = Duration.zero;
     _heartDuration = 0;
     _position.value = Duration.zero;
@@ -670,7 +670,7 @@ class PlPlayerController {
     if (is4K) {
       // 4K 视频使用更大的缓冲区 (128MB)
       bufferSize = 128 * 1024 * 1024;
-      print('🎬 检测到 4K 视频，使用 128MB 缓冲区');
+      // print('🎬 检测到 4K 视频，使用 128MB 缓冲区');
     } else {
       // 原有逻辑
       bufferSize = setting.get(SettingBoxKey.expandBuffer, defaultValue: false)
@@ -689,7 +689,7 @@ class PlPlayerController {
 
     // 🔥 优化：4K 视频额外配置
     if (is4K) {
-      print('🎬 应用 4K 视频优化配置');
+      // print('🎬 应用 4K 视频优化配置');
       // 增加预读取缓冲
       await pp.setProperty("demuxer-max-bytes", "200M");
       await pp.setProperty("demuxer-readahead-secs", "10");
@@ -847,13 +847,13 @@ class PlPlayerController {
     if (seekTo != Duration.zero) {
       // 🔥 修复：标记正在进行初始 seek，防止 isVideoLoaded 过早变为 true
       _isInitialSeeking = true;
-      print('🔥 [Controller] 开始初始 seek，_isInitialSeeking = true');
+      // print('🔥 [Controller] 开始初始 seek，_isInitialSeeking = true');
       await this.seekTo(seekTo);
       // 🔥 修复：seek 完成后，延迟一小段时间再允许 isVideoLoaded 变为 true
       // 这样可以确保视频帧已经渲染
       await Future.delayed(const Duration(milliseconds: 100));
       _isInitialSeeking = false;
-      print('🔥 [Controller] 初始 seek 完成，_isInitialSeeking = false');
+      // print('🔥 [Controller] 初始 seek 完成，_isInitialSeeking = false');
     }
 
     // 自动播放
@@ -890,15 +890,15 @@ class PlPlayerController {
     subscriptions.addAll(
       [
         videoPlayerController!.stream.playing.listen((event) {
-          print(
-              '🔥 [Controller] stream.playing: $event, isBuffering: ${isBuffering.value}, _isInitialSeeking: $_isInitialSeeking');
+          // print(
+          // '🔥 [Controller] stream.playing: $event, isBuffering: ${isBuffering.value}, _isInitialSeeking: $_isInitialSeeking');
           if (event) {
             playerStatus.status.value = PlayerStatus.playing;
             // 🔥 修复：只有在非初始 seek 期间才设置 isVideoLoaded
             if (!isBuffering.value && !_isInitialSeeking) {
               isVideoLoaded.value = true;
-              print(
-                  '🔥 [Controller] isVideoLoaded 设置为 true (playing && !isBuffering && !_isInitialSeeking)');
+              // print(
+              // '🔥 [Controller] isVideoLoaded 设置为 true (playing && !isBuffering && !_isInitialSeeking)');
             }
             // 播放时启用防休眠
             // ignore: avoid_print
@@ -963,8 +963,8 @@ class PlPlayerController {
           updateBufferedSecond();
         }),
         videoPlayerController!.stream.buffering.listen((bool event) {
-          print(
-              '🔥 [Controller] stream.buffering: $event, playerStatus: ${playerStatus.status.value}, _isInitialSeeking: $_isInitialSeeking');
+          // print(
+          // '🔥 [Controller] stream.buffering: $event, playerStatus: ${playerStatus.status.value}, _isInitialSeeking: $_isInitialSeeking');
           isBuffering.value = event;
           videoPlayerServiceHandler.onStatusChange(
               playerStatus.status.value, event);
@@ -973,8 +973,8 @@ class PlPlayerController {
               playerStatus.status.value == PlayerStatus.playing &&
               !_isInitialSeeking) {
             isVideoLoaded.value = true;
-            print(
-                '🔥 [Controller] isVideoLoaded 设置为 true (buffering=false && playing && !_isInitialSeeking)');
+            // print(
+            // '🔥 [Controller] isVideoLoaded 设置为 true (buffering=false && playing && !_isInitialSeeking)');
           }
         }),
         // videoPlayerController!.stream.log.listen((event) {
@@ -993,8 +993,8 @@ class PlPlayerController {
             EasyThrottle.throttle('videoPlayerController!.stream.error.listen',
                 const Duration(milliseconds: 10000), () {
               Future.delayed(const Duration(milliseconds: 3000), () {
-                print("isBuffering.value: ${isBuffering.value}");
-                print("_buffered.value: ${_buffered.value}");
+                // print("isBuffering.value: ${isBuffering.value}");
+                // print("_buffered.value: ${_buffered.value}");
                 if (isBuffering.value && _buffered.value == Duration.zero) {
                   refreshPlayer();
                   SmartDialog.showToast('视频链接打开失败，重试中',
@@ -1004,8 +1004,8 @@ class PlPlayerController {
             });
             return;
           }
-          print('videoPlayerController!.stream.error.listen');
-          print(event);
+          // print('videoPlayerController!.stream.error.listen');
+          // print(event);
           if (event.startsWith('Could not open codec')) {
             SmartDialog.showToast('无法加载解码器, $event，可能会切换至软解');
             return;
@@ -1060,7 +1060,7 @@ class PlPlayerController {
       //   play();
       // }
     } else {
-      print('seek duration else');
+      // print('seek duration else');
       _timerForSeek?.cancel();
       _timerForSeek =
           Timer.periodic(const Duration(milliseconds: 200), (Timer t) async {
@@ -1264,7 +1264,7 @@ class PlPlayerController {
       FlutterVolumeController.updateShowSystemUI(false);
       await FlutterVolumeController.setVolume(volumeNew);
     } catch (err) {
-      print(err);
+      // print(err);
     }
 
     // 确保播放器音量始终为 100%
@@ -1427,7 +1427,7 @@ class PlPlayerController {
       await setPlaybackSpeed(
           enableAutoLongPressSpeed ? playbackSpeed * 2 : longPressSpeed);
     } else {
-      print(playbackSpeed);
+      // print(playbackSpeed);
       await setPlaybackSpeed(playbackSpeed);
     }
   }
@@ -1902,7 +1902,7 @@ class PlPlayerController {
       _instance = null;
       videoPlayerServiceHandler.clear();
     } catch (err) {
-      print(err);
+      // print(err);
     }
   }
 

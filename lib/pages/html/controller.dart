@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -80,10 +80,10 @@ class HtmlRenderController extends GetxController {
         await VideoHttp.historyReport(aid: oid.value, type: 5);
         // print('专栏历史记录已上报: aid=${oid.value}');
       } else {
-        print('跳过历史记录上报: 登录=${userInfo != null}, 暂停=$historyPause');
+        // print('跳过历史记录上报: 登录=${userInfo != null}, 暂停=$historyPause');
       }
     } catch (e) {
-      print('_reportHistory error: $e');
+      // print('_reportHistory error: $e');
     }
   }
 

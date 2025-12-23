@@ -1,4 +1,4 @@
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+﻿import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/http/loading_state.dart';
 import 'package:PiliPalaX/http/user.dart';
@@ -22,33 +22,33 @@ class SpaceSettingController extends GetxController {
   }
 
   Future<void> queryData() async {
-    print('========== SpaceSetting queryData START ==========');
+    // print('========== SpaceSetting queryData START ==========');
     loadingState.value = LoadingState.loading();
     try {
-      print('Calling UserHttp.spaceSetting()...');
+      // print('Calling UserHttp.spaceSetting()...');
       var result = await UserHttp.spaceSetting();
-      print('UserHttp.spaceSetting() result: $result');
+      // print('UserHttp.spaceSetting() result: $result');
 
       if (result['status']) {
         final Privacy? privacy = result['data'];
-        print('Privacy data: ${privacy != null ? "exists" : "null"}');
+        // print('Privacy data: ${privacy != null ? "exists" : "null"}');
         if (privacy != null) {
-          print('List1 count: ${privacy.list1.length}');
-          print('List2 count: ${privacy.list2.length}');
-          print('List3 count: ${privacy.list3.length}');
+          // print('List1 count: ${privacy.list1.length}');
+          // print('List2 count: ${privacy.list2.length}');
+          // print('List3 count: ${privacy.list3.length}');
         }
         loadingState.value = Success<Privacy?>(privacy);
-        print('LoadingState set to Success');
+        // print('LoadingState set to Success');
       } else {
-        print('API returned error: ${result['msg']}');
+        // print('API returned error: ${result['msg']}');
         loadingState.value = Error<Privacy?>(result['msg'] ?? '加载失败');
       }
     } catch (e, stackTrace) {
-      print('Exception in queryData: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in queryData: $e');
+      // print('StackTrace: $stackTrace');
       loadingState.value = Error<Privacy?>(e.toString());
     }
-    print('========== SpaceSetting queryData END ==========');
+    // print('========== SpaceSetting queryData END ==========');
   }
 
   Future<void> onReload() async {

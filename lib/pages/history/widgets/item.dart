@@ -1,4 +1,4 @@
-import 'package:PiliPalaX/utils/app_scheme.dart';
+﻿import 'package:PiliPalaX/utils/app_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -37,11 +37,11 @@ class HistoryItem extends StatelessWidget {
     String heroTag = Utils.makeHeroTag(aid);
     return InkWell(
       onTap: () async {
-        print('🔍 历史记录点击: aid=$aid, bvid=$bvid');
-        print(
-            '🔍 历史记录-badge: ${videoItem.badge}, tagName: ${videoItem.tagName}');
-        print('🔍 历史记录-business: ${videoItem.history.business}');
-        print('🔍 历史记录-epid: ${videoItem.history.epid}');
+        // print('🔍 历史记录点击: aid=$aid, bvid=$bvid');
+        // print(
+        // '🔍 历史记录-badge: ${videoItem.badge}, tagName: ${videoItem.tagName}');
+        // print('🔍 历史记录-business: ${videoItem.history.business}');
+        // print('🔍 历史记录-epid: ${videoItem.history.epid}');
 
         if (ctr!.enableMultiple.value) {
           feedBack();
@@ -82,10 +82,10 @@ class HistoryItem extends StatelessWidget {
           }
         } else if (videoItem.history.business == 'pgc') {
           // PGC内容（番剧、国创、电影、纪录片等）
-          print('🔍 历史记录-PGC内容: epid=${videoItem.history.epid}');
+          // print('🔍 历史记录-PGC内容: epid=${videoItem.history.epid}');
 
           if (videoItem.history.epid != null && videoItem.history.epid != '') {
-            print('🔍 历史记录-通过epid获取番剧信息');
+            // print('🔍 历史记录-通过epid获取番剧信息');
             SmartDialog.showLoading(msg: '获取中...');
             var res =
                 await SearchHttp.bangumiInfo(epId: videoItem.history.epid);
@@ -101,10 +101,10 @@ class HistoryItem extends StatelessWidget {
               String bvid = episode.bvid!;
               int cid = episode.cid!;
               String pic = episode.cover!;
-              print(
-                  '🔍 历史记录-番剧信息获取成功: seasonId=${res['data'].seasonId}, bvid=$bvid, cid=$cid');
-              print(
-                  '🔍 历史记录-传递参数: videoType=SearchType.media_bangumi, heroTag=$heroTag');
+              // print(
+              // '🔍 历史记录-番剧信息获取成功: seasonId=${res['data'].seasonId}, bvid=$bvid, cid=$cid');
+              // print(
+              // '🔍 历史记录-传递参数: videoType=SearchType.media_bangumi, heroTag=$heroTag');
               Get.toNamed(
                 '/video?bvid=$bvid&cid=$cid&seasonId=${res['data'].seasonId}&epId=${episode.epId}',
                 arguments: {

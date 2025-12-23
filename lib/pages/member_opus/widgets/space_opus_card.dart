@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/image_preview_dialog.dart';
 import 'package:PiliPalaX/http/dynamics.dart';
 import 'package:PiliPalaX/models/space_opus/space_opus_item.dart';
 
@@ -29,6 +30,15 @@ class SpaceOpusCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () => _onTap(context),
+        onLongPress: hasPic
+            ? () {
+                showImagePreviewDialog(
+                  imageUrl: item.cover!.url ?? '',
+                  title: item.content,
+                  imgType: 'opus',
+                );
+              }
+            : null,
         borderRadius: const BorderRadius.all(Radius.circular(6)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

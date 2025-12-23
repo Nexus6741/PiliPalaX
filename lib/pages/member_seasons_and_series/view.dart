@@ -1,4 +1,4 @@
-import 'dart:developer';
+﻿import 'dart:developer';
 
 import 'package:easy_debounce/easy_throttle.dart';
 import 'package:flutter/material.dart';
@@ -82,12 +82,12 @@ class _MemberSeasonsAndSeriesPageState
                 if (snapshot.connectionState == ConnectionState.done) {
                   log(snapshot.toString());
                   if (snapshot.data == null) {
-                    print("none");
+                    // print("none");
                     return commonWidget('请求到的数据为空');
                   }
                   if (snapshot.data['status']) {
                     if (_ctr.seasonsList.isEmpty && _ctr.seriesList.isEmpty) {
-                      print("none");
+                      // print("none");
                       return commonWidget('用户没有设置合集或视频列表');
                     } else {
                       return Obx(() => SliverPadding(

@@ -1,4 +1,4 @@
-// 定时关闭服务
+﻿// 定时关闭服务
 import 'dart:async';
 import 'dart:io';
 import 'package:PiliPalaX/plugin/pl_player/index.dart';
@@ -68,7 +68,7 @@ class ShutdownTimerService with WidgetsBindingObserver {
 
   void _showShutdownDialog() {
     if (isInBackground) {
-      print("app在后台运行，不弹窗");
+      // print("app在后台运行，不弹窗");
       _executeShutdown();
       return;
     }

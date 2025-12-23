@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:PiliPalaX/models/common/dynamics_type.dart';
 import 'package:PiliPalaX/models/common/up_panel_position.dart';
@@ -56,7 +56,7 @@ class _DynamicsPageState extends State<DynamicsPage>
     upPanelPosition = UpPanelPosition.values[GStorage.setting.get(
         SettingBoxKey.upPanelPosition,
         defaultValue: UpPanelPosition.leftFixed.code)];
-    print('upPanelPosition: $upPanelPosition');
+    // print('upPanelPosition: $upPanelPosition');
     scrollController = _dynamicsController.scrollController;
     if (GStorage.setting
         .get(SettingBoxKey.dynamicsShowAllFollowedUp, defaultValue: false)) {
@@ -153,7 +153,7 @@ class _DynamicsPageState extends State<DynamicsPage>
                       .map((e) => Tab(text: e.labels))
                       .toList(),
                   onTap: (index) {
-                    print('index: $index');
+                    // print('index: $index');
                     feedBack();
                     tabsConfig[_dynamicsController.tabController.index]['ctr']
                         .animateToTop();

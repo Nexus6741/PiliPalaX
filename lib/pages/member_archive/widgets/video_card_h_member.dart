@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/badge.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/image_preview_dialog.dart';
 import 'package:PiliPalaX/http/search.dart';
 import 'package:PiliPalaX/models/space_archive/space_archive_item.dart';
 import 'package:PiliPalaX/utils/utils.dart';
@@ -29,6 +30,13 @@ class VideoCardHMember extends StatelessWidget {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: onTap ?? () => _onTap(context, heroTag),
+        onLongPress: () {
+          showImagePreviewDialog(
+            imageUrl: videoItem.cover ?? '',
+            title: videoItem.title,
+            imgType: 'cover',
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: StyleString.safeSpace,

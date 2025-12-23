@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/image_preview_dialog.dart';
 import 'package:PiliPalaX/models/bangumi/list.dart';
 import 'package:PiliPalaX/utils/app_scheme.dart';
 import 'package:PiliPalaX/utils/utils.dart';
@@ -28,6 +29,13 @@ class PgcCardVMemberBangumi extends StatelessWidget {
           if (item.seasonId != null) {
             PiliScheme.bangumiPush(item.seasonId, null);
           }
+        },
+        onLongPress: () {
+          showImagePreviewDialog(
+            imageUrl: item.cover ?? '',
+            title: item.title,
+            imgType: 'cover',
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

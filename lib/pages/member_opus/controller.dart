@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:PiliPalaX/http/member.dart';
 import 'package:PiliPalaX/models/space_opus/space_opus_item.dart';
 
@@ -21,11 +21,11 @@ class MemberOpusController extends GetxController {
   }
 
   Future<void> loadData() async {
-    print('========== MemberOpus loadData ==========');
-    print('Page: $page');
-    print('Offset: $offset');
-    print('Current list length: ${opusList.length}');
-    print('=========================================');
+    // print('========== MemberOpus loadData ==========');
+    // print('Page: $page');
+    // print('Offset: $offset');
+    // print('Current list length: ${opusList.length}');
+    // print('=========================================');
 
     if (page == 1) {
       isLoading.value = true;
@@ -52,12 +52,12 @@ class MemberOpusController extends GetxController {
             .map((e) => SpaceOpusItem.fromJson(e as Map<String, dynamic>))
             .toList();
 
-        print('========== MemberOpus loadData Response ==========');
-        print('Items count: ${items.length}');
-        print('Has more: ${hasMore.value}');
-        print('New offset: $offset');
-        print('Will replace list: ${page == 1}');
-        print('==================================================');
+        // print('========== MemberOpus loadData Response ==========');
+        // print('Items count: ${items.length}');
+        // print('Has more: ${hasMore.value}');
+        // print('New offset: $offset');
+        // print('Will replace list: ${page == 1}');
+        // print('==================================================');
 
         if (page == 1) {
           opusList.value = items;
@@ -65,13 +65,13 @@ class MemberOpusController extends GetxController {
           opusList.addAll(items);
         }
 
-        print('Final list length: ${opusList.length}');
+        // print('Final list length: ${opusList.length}');
       } else {
         errorMsg.value = res['msg'] ?? '加载失败';
       }
     } catch (e) {
       errorMsg.value = '加载失败: $e';
-      print('MemberOpus loadData error: $e');
+      // print('MemberOpus loadData error: $e');
     } finally {
       isLoading.value = false;
       isLoadingMore.value = false;
@@ -79,7 +79,7 @@ class MemberOpusController extends GetxController {
   }
 
   Future<void> onRefresh() async {
-    print('========== MemberOpus onRefresh called ==========');
+    // print('========== MemberOpus onRefresh called ==========');
     page = 1;
     offset = '';
     hasMore.value = true;
@@ -87,14 +87,14 @@ class MemberOpusController extends GetxController {
   }
 
   Future<void> onLoadMore() async {
-    print('========== MemberOpus onLoadMore called ==========');
-    print('isLoadingMore: ${isLoadingMore.value}');
-    print('isLoading: ${isLoading.value}');
-    print('hasMore: ${hasMore.value}');
-    print('==================================================');
+    // print('========== MemberOpus onLoadMore called ==========');
+    // print('isLoadingMore: ${isLoadingMore.value}');
+    // print('isLoading: ${isLoading.value}');
+    // print('hasMore: ${hasMore.value}');
+    // print('==================================================');
 
     if (isLoadingMore.value || isLoading.value || !hasMore.value) {
-      print('Skipping onLoadMore: already loading or no more data');
+      // print('Skipping onLoadMore: already loading or no more data');
       return;
     }
     page++;

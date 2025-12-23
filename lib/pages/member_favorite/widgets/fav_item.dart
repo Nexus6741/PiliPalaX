@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/badge.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
+import 'package:PiliPalaX/common/widgets/image_preview_dialog.dart';
 import 'package:PiliPalaX/models/space_fav/space_fav_data.dart';
 import 'package:PiliPalaX/models/user/fav_folder.dart';
 import 'package:PiliPalaX/models/user/sub_folder.dart' as sub;
@@ -103,6 +104,15 @@ class MemberFavItem extends StatelessWidget {
               },
             );
             callback?.call(res);
+          }
+        },
+        onLongPress: () {
+          if (item.cover?.isNotEmpty == true) {
+            showImagePreviewDialog(
+              imageUrl: item.cover!,
+              title: item.title,
+              imgType: 'fav',
+            );
           }
         },
         child: Padding(

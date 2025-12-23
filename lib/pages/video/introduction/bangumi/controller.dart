@@ -1,4 +1,4 @@
-import 'package:PiliPalaX/plugin/pl_player/controller.dart';
+﻿import 'package:PiliPalaX/plugin/pl_player/controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -136,11 +136,11 @@ class BangumiIntroController extends GetxController {
       epId = bangumiDetail.value.episodes!.first.id;
 
       // 🔍 调试日志：查看番剧详情中的type字段
-      print('🔍 [queryBangumiIntro] 番剧详情获取成功:');
-      print('   - seasonId: ${bangumiDetail.value.seasonId}');
-      print('   - title: ${bangumiDetail.value.title}');
-      print('   - type: ${bangumiDetail.value.type}');
-      print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
+      // print('🔍 [queryBangumiIntro] 番剧详情获取成功:');
+      // print('   - seasonId: ${bangumiDetail.value.seasonId}');
+      // print('   - title: ${bangumiDetail.value.title}');
+      // print('   - type: ${bangumiDetail.value.type}');
+      // print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
     } else {
       SmartDialog.showToast(result['msg']);
     }

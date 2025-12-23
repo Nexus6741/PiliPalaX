@@ -1,4 +1,4 @@
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+﻿import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/http/member.dart';
 import 'package:PiliPalaX/models/member/seasons.dart';
@@ -33,7 +33,7 @@ class MemberSeasonsAndSeriesController extends GetxController {
       }
       if (res['data'].page?.total != null && res['data'].page!.total! > 0) {
         total = res['data'].page!.total!;
-        print("getMemberSeasonsAndSeries total: $total");
+        // print("getMemberSeasonsAndSeries total: $total");
       }
       currentTotal = seasonsList.length + seriesList.length;
     }

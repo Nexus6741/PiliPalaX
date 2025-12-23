@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -87,7 +87,7 @@ class WhisperDetailController extends GetxController {
       msgType: 1,
     );
     if (result['status']) {
-      print(result['data']);
+      // print(result['data']);
       querySessionMsg();
       replyContentController.text = "";
       SmartDialog.showToast('发送成功');

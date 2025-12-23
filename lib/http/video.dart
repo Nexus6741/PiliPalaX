@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -303,7 +303,7 @@ class VideoHttp {
             // 可以在这里处理上次观看的集数索引
           }
         } catch (e) {
-          print('⚠️ 解析历史记录失败: $e');
+          // print('⚠️ 解析历史记录失败: $e');
         }
 
         return {
@@ -319,7 +319,7 @@ class VideoHttp {
         };
       }
     } catch (err) {
-      print('❌ 番剧视频URL获取异常: $err');
+      // print('❌ 番剧视频URL获取异常: $err');
       return {'status': false, 'data': [], 'msg': err};
     }
   }
@@ -402,7 +402,7 @@ class VideoHttp {
   // 获取投币状态
   static Future hasCoinVideo({required String bvid}) async {
     var res = await Request().get(Api.hasCoinVideo, data: {'bvid': bvid});
-    print('res: $res');
+    // print('res: $res');
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -424,7 +424,7 @@ class VideoHttp {
         // 'csrf': await Request.getCsrf(),
       },
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -494,7 +494,7 @@ class VideoHttp {
         'access_key': accessKey,
       },
     );
-    print(res);
+    // print(res);
     if (res.data is! String && res.data['code'] == 0) {
       return {'status': true};
     } else {
@@ -528,7 +528,7 @@ class VideoHttp {
       'access_key': accessKey,
       'appkey': Constants.appKey,
     });
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true};
     } else {
@@ -559,7 +559,7 @@ class VideoHttp {
       'access_key': accessKey,
       'appkey': Constants.appKey,
     });
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true};
     } else {
@@ -691,7 +691,7 @@ class VideoHttp {
       're_src': reSrc,
       'csrf': await Request.getCsrf(),
     });
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true};
     } else {
@@ -715,10 +715,10 @@ class VideoHttp {
         },
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
-      print('historyReport response: ${res.data}');
+      // print('historyReport response: ${res.data}');
       return res;
     } catch (e) {
-      print('historyReport error: $e');
+      // print('historyReport error: $e');
       return null;
     }
   }
@@ -738,15 +738,15 @@ class VideoHttp {
 
     // 🔍 调试日志：查看传入的参数
     if (isBangumi) {
-      print('🔍 [heartBeat] PGC内容历史记录上报:');
-      print('   - bvid: $bvid');
-      print('   - cid: $cid');
-      print('   - epid: $epid');
-      print('   - seasonId: $seasonId');
-      print(
-          '   - seasonType: $seasonType ${seasonType == null ? "(null，将使用默认值1)" : ""}');
-      print('   - sub_type将设置为: ${seasonType ?? 1}');
-      print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
+      // print('🔍 [heartBeat] PGC内容历史记录上报:');
+      // print('   - bvid: $bvid');
+      // print('   - cid: $cid');
+      // print('   - epid: $epid');
+      // print('   - seasonId: $seasonId');
+      // print(
+      // '   - seasonType: $seasonType ${seasonType == null ? "(null，将使用默认值1)" : ""}');
+      // print('   - sub_type将设置为: ${seasonType ?? 1}');
+      // print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
     }
 
     await Request().post(Api.heartBeat, queryParameters: {
@@ -986,14 +986,14 @@ class VideoHttp {
       'pn': pn,
       'ps': ps,
     });
-    print("getRegionVideoList: $res");
+    // print("getRegionVideoList: $res");
     if (res.data['code'] == 0) {
       List<HotVideoItemModel> list = [];
       List<int> blackMidsList = localCache
           .get(LocalCacheKey.blackMidsList, defaultValue: [-1])
           .map<int>((e) => e as int)
           .toList();
-      print(res.data['data']['archives']);
+      // print(res.data['data']['archives']);
       for (var i in res.data['data']['archives']) {
         if (!blackMidsList.contains(i['owner']['mid'])) {
           list.add(HotVideoItemModel.fromJson(i));

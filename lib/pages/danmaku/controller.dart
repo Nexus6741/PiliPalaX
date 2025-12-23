@@ -1,9 +1,10 @@
-import 'package:PiliPalaX/http/danmaku.dart';
+﻿import 'package:PiliPalaX/http/danmaku.dart';
 import 'package:PiliPalaX/models/danmaku/dm.pb.dart';
 import 'package:flutter/cupertino.dart';
 
 class PlDanmakuController {
-  PlDanmakuController(this.cid, this.danmakuWeightNotifier, this.danmakuFilterNotifier);
+  PlDanmakuController(
+      this.cid, this.danmakuWeightNotifier, this.danmakuFilterNotifier);
   final int cid;
   final ValueNotifier<int> danmakuWeightNotifier;
   final ValueNotifier<List<Map<String, dynamic>>> danmakuFilterNotifier;
@@ -22,12 +23,12 @@ class PlDanmakuController {
       return;
     }
     danmakuWeightNotifier.addListener(() {
-      print(
-          "danmakuWeight changed from $danmakuWeight to ${danmakuWeightNotifier.value}");
+      // print(
+      // "danmakuWeight changed from $danmakuWeight to ${danmakuWeightNotifier.value}");
       danmakuWeight = danmakuWeightNotifier.value;
     });
     danmakuFilterNotifier.addListener(() {
-      print("danmakuFilter changed from $danmakuFilter to ${danmakuFilterNotifier.value}");
+      // print("danmakuFilter changed from $danmakuFilter to ${danmakuFilterNotifier.value}");
       danmakuFilter = danmakuFilterNotifier.value;
     });
     if (requestedSeg.isEmpty) {

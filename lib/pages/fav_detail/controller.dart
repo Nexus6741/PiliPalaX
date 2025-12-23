@@ -1,4 +1,4 @@
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+﻿import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/http/user.dart';
 import 'package:PiliPalaX/http/video.dart';
@@ -31,20 +31,20 @@ class FavDetailController extends GetxController {
   }
 
   Future<dynamic> queryUserFavFolderDetail({type = 'init'}) async {
-    print('=== queryUserFavFolderDetail ===');
-    print('type: $type');
-    print('mediaId: $mediaId');
-    print('currentPage: $currentPage');
-    print('mediaCount: $mediaCount');
-    print('favList.length: ${favList.length}');
+    // print('=== queryUserFavFolderDetail ===');
+    // print('type: $type');
+    // print('mediaId: $mediaId');
+    // print('currentPage: $currentPage');
+    // print('mediaCount: $mediaCount');
+    // print('favList.length: ${favList.length}');
 
     if (type == 'onLoad' && favList.length >= mediaCount) {
       loadingText.value = '没有更多了';
-      print('Already loaded all, returning early');
+      // print('Already loaded all, returning early');
       return {'status': true, 'msg': 'no more data'};
     }
     if (mediaId == null) {
-      print('mediaId is null, returning error');
+      // print('mediaId is null, returning error');
       return {'status': false, 'msg': 'mediaId is null'};
     }
     isLoadingMore = true;
@@ -53,34 +53,34 @@ class FavDetailController extends GetxController {
       ps: 20,
       mediaId: mediaId!,
     );
-    print('API response: ${res['status']}');
-    print('API data type: ${res['data']?.runtimeType}');
+    // print('API response: ${res['status']}');
+    // print('API data type: ${res['data']?.runtimeType}');
 
     if (res['status']) {
-      print('res[data].info: ${res['data'].info}');
-      print('res[data].medias: ${res['data'].medias}');
-      print('res[data].medias length: ${res['data'].medias?.length}');
+      // print('res[data].info: ${res['data'].info}');
+      // print('res[data].medias: ${res['data'].medias}');
+      // print('res[data].medias length: ${res['data'].medias?.length}');
 
       favInfo.value = res['data'].info;
       if (currentPage == 1 && type == 'init') {
         favList.value = res['data'].medias ?? [];
         mediaCount = res['data'].info['media_count'] ?? 0;
-        print(
-            'Init: favList.length = ${favList.length}, mediaCount = $mediaCount');
+        // print(
+        // 'Init: favList.length = ${favList.length}, mediaCount = $mediaCount');
       } else if (type == 'onLoad') {
         favList.addAll(res['data'].medias ?? []);
-        print('OnLoad: favList.length = ${favList.length}');
+        // print('OnLoad: favList.length = ${favList.length}');
       }
       if (favList.length >= mediaCount) {
         loadingText.value = '没有更多了';
-        print('All loaded, setting loadingText to 没有更多了');
+        // print('All loaded, setting loadingText to 没有更多了');
       }
     } else {
-      print('API failed: ${res['msg']}');
+      // print('API failed: ${res['msg']}');
     }
     currentPage += 1;
     isLoadingMore = false;
-    print('Returning res: $res');
+    // print('Returning res: $res');
     return res;
   }
 

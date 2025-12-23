@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 
 import 'package:PiliPalaX/http/follow.dart';
 import 'package:PiliPalaX/utils/extension.dart';
@@ -131,13 +131,13 @@ class DynamicsController extends GetxController
 
         break;
       case 'DYNAMIC_TYPE_PGC':
-        print('番剧');
+        // print('番剧');
         SmartDialog.showToast('暂未支持的类型，请联系开发者');
         break;
 
       /// 纯文字动态查看
       case 'DYNAMIC_TYPE_WORD':
-        print('纯文本');
+        // print('纯文本');
         Get.toNamed('/dynamicDetail',
             arguments: {'item': item, 'floor': floor});
         break;
@@ -173,7 +173,7 @@ class DynamicsController extends GetxController
 
       /// 番剧查看
       case 'DYNAMIC_TYPE_PGC_UNION':
-        print('DYNAMIC_TYPE_PGC_UNION 番剧');
+        // print('DYNAMIC_TYPE_PGC_UNION 番剧');
         DynamicArchiveModel pgc = item.modules.moduleDynamic.major.pgc;
         if (pgc.epid != null) {
           SmartDialog.showLoading(msg: '获取中...');
@@ -304,8 +304,8 @@ class DynamicsController extends GetxController
   }
 
   onRefresh() async {
-    print('onRefresh');
-    print(tabsConfig[tabController.index]['ctr']);
+    // print('onRefresh');
+    // print(tabsConfig[tabController.index]['ctr']);
     await Future.wait(<Future>[
       queryFollowUp(),
       tabsConfig[tabController.index]['ctr'].onRefresh()

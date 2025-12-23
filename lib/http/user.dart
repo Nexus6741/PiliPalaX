@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import '../common/constants.dart';
 import '../models/model_hot_video_item.dart';
@@ -503,9 +503,9 @@ class UserHttp {
   static Future<dynamic> addFavTopic(String topicId) async {
     try {
       String csrf = await Request.getCsrf();
-      print('🔍 [addFavTopic] topic_id: $topicId');
-      print('🔍 [addFavTopic] csrf: $csrf');
-      print('🔍 [addFavTopic] API endpoint: ${Api.addFavTopic}');
+      // print('🔍 [addFavTopic] topic_id: $topicId');
+      // print('🔍 [addFavTopic] csrf: $csrf');
+      // print('🔍 [addFavTopic] API endpoint: ${Api.addFavTopic}');
 
       var res = await Request().post(
         Api.addFavTopic,
@@ -516,8 +516,8 @@ class UserHttp {
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
-      print('🔍 [addFavTopic] Response code: ${res.data['code']}');
-      print('🔍 [addFavTopic] Response: ${res.data}');
+      // print('🔍 [addFavTopic] Response code: ${res.data['code']}');
+      // print('🔍 [addFavTopic] Response: ${res.data}');
 
       if (res.data['code'] == 0) {
         return {'status': true};
@@ -525,7 +525,7 @@ class UserHttp {
         return {'status': false, 'msg': res.data['message']};
       }
     } catch (err) {
-      print('❌ [addFavTopic] Error: $err');
+      // print('❌ [addFavTopic] Error: $err');
       return {'status': false, 'msg': err.toString()};
     }
   }
@@ -534,9 +534,9 @@ class UserHttp {
   static Future<dynamic> delFavTopic(String topicId) async {
     try {
       String csrf = await Request.getCsrf();
-      print('🔍 [delFavTopic] topic_id: $topicId');
-      print('🔍 [delFavTopic] csrf: $csrf');
-      print('🔍 [delFavTopic] API endpoint: ${Api.delFavTopic}');
+      // print('🔍 [delFavTopic] topic_id: $topicId');
+      // print('🔍 [delFavTopic] csrf: $csrf');
+      // print('🔍 [delFavTopic] API endpoint: ${Api.delFavTopic}');
 
       var res = await Request().post(
         Api.delFavTopic,
@@ -547,8 +547,8 @@ class UserHttp {
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
-      print('🔍 [delFavTopic] Response code: ${res.data['code']}');
-      print('🔍 [delFavTopic] Response: ${res.data}');
+      // print('🔍 [delFavTopic] Response code: ${res.data['code']}');
+      // print('🔍 [delFavTopic] Response: ${res.data}');
 
       if (res.data['code'] == 0) {
         return {'status': true};
@@ -556,7 +556,7 @@ class UserHttp {
         return {'status': false, 'msg': res.data['message']};
       }
     } catch (err) {
-      print('❌ [delFavTopic] Error: $err');
+      // print('❌ [delFavTopic] Error: $err');
       return {'status': false, 'msg': err.toString()};
     }
   }
@@ -570,12 +570,12 @@ class UserHttp {
       String csrf = await Request.getCsrf();
       String action = isLike ? 'cancel_like' : 'like';
 
-      print('🔍 [likeTopic] topic_id: $topicId');
-      print('🔍 [likeTopic] isLike: $isLike');
-      print('🔍 [likeTopic] action: $action');
-      print('🔍 [likeTopic] up_mid: $upMid');
-      print('🔍 [likeTopic] csrf: $csrf');
-      print('🔍 [likeTopic] API endpoint: ${Api.likeTopic}');
+      // print('🔍 [likeTopic] topic_id: $topicId');
+      // print('🔍 [likeTopic] isLike: $isLike');
+      // print('🔍 [likeTopic] action: $action');
+      // print('🔍 [likeTopic] up_mid: $upMid');
+      // print('🔍 [likeTopic] csrf: $csrf');
+      // print('🔍 [likeTopic] API endpoint: ${Api.likeTopic}');
 
       var res = await Request().post(
         Api.likeTopic,
@@ -589,8 +589,8 @@ class UserHttp {
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
-      print('🔍 [likeTopic] Response code: ${res.data['code']}');
-      print('🔍 [likeTopic] Response: ${res.data}');
+      // print('🔍 [likeTopic] Response code: ${res.data['code']}');
+      // print('🔍 [likeTopic] Response: ${res.data}');
 
       if (res.data['code'] == 0) {
         return {'status': true};
@@ -598,137 +598,137 @@ class UserHttp {
         return {'status': false, 'msg': res.data['message']};
       }
     } catch (err) {
-      print('❌ [likeTopic] Error: $err');
+      // print('❌ [likeTopic] Error: $err');
       return {'status': false, 'msg': err.toString()};
     }
   }
 
   // 获取登录记录
   static Future<Map<String, dynamic>> loginLog() async {
-    print('========== loginLog API START ==========');
+    // print('========== loginLog API START ==========');
     try {
-      print('Calling Request().get with Api.loginLog: ${Api.loginLog}');
+      // print('Calling Request().get with Api.loginLog: ${Api.loginLog}');
       var res = await Request().get(
         Api.loginLog,
         data: {
           'jsonp': 'jsonp',
         },
       );
-      print('Response code: ${res.data['code']}');
-      print('Response data keys: ${res.data['data']?.keys}');
+      // print('Response code: ${res.data['code']}');
+      // print('Response data keys: ${res.data['data']?.keys}');
 
       if (res.data['code'] == 0) {
-        print('Login log data: ${res.data['data']}');
+        // print('Login log data: ${res.data['data']}');
         return {'status': true, 'data': res.data['data']};
       } else {
-        print('API error: ${res.data['message']}');
+        // print('API error: ${res.data['message']}');
         return {'status': false, 'msg': res.data['message']};
       }
     } catch (e, stackTrace) {
-      print('Exception in loginLog: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in loginLog: $e');
+      // print('StackTrace: $stackTrace');
       return {'status': false, 'msg': e.toString()};
     } finally {
-      print('========== loginLog API END ==========');
+      // print('========== loginLog API END ==========');
     }
   }
 
   // 获取硬币记录
   static Future<Map<String, dynamic>> coinLog() async {
-    print('========== coinLog API START ==========');
+    // print('========== coinLog API START ==========');
     try {
-      print('Calling Request().get with Api.coinLog: ${Api.coinLog}');
+      // print('Calling Request().get with Api.coinLog: ${Api.coinLog}');
       var res = await Request().get(
         Api.coinLog,
         data: {
           'jsonp': 'jsonp',
         },
       );
-      print('Response code: ${res.data['code']}');
-      print('Response data keys: ${res.data['data']?.keys}');
+      // print('Response code: ${res.data['code']}');
+      // print('Response data keys: ${res.data['data']?.keys}');
 
       if (res.data['code'] == 0) {
-        print('Coin log data: ${res.data['data']}');
+        // print('Coin log data: ${res.data['data']}');
         return {'status': true, 'data': res.data['data']};
       } else {
-        print('API error: ${res.data['message']}');
+        // print('API error: ${res.data['message']}');
         return {'status': false, 'msg': res.data['message']};
       }
     } catch (e, stackTrace) {
-      print('Exception in coinLog: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in coinLog: $e');
+      // print('StackTrace: $stackTrace');
       return {'status': false, 'msg': e.toString()};
     } finally {
-      print('========== coinLog API END ==========');
+      // print('========== coinLog API END ==========');
     }
   }
 
   // 获取经验记录
   static Future<Map<String, dynamic>> expLog() async {
-    print('========== expLog API START ==========');
+    // print('========== expLog API START ==========');
     try {
-      print('Calling Request().get with Api.expLog: ${Api.expLog}');
+      // print('Calling Request().get with Api.expLog: ${Api.expLog}');
       var res = await Request().get(
         Api.expLog,
         data: {
           'jsonp': 'jsonp',
         },
       );
-      print('Response code: ${res.data['code']}');
-      print('Response data keys: ${res.data['data']?.keys}');
+      // print('Response code: ${res.data['code']}');
+      // print('Response data keys: ${res.data['data']?.keys}');
 
       if (res.data['code'] == 0) {
-        print('Exp log data: ${res.data['data']}');
+        // print('Exp log data: ${res.data['data']}');
         return {'status': true, 'data': res.data['data']};
       } else {
-        print('API error: ${res.data['message']}');
+        // print('API error: ${res.data['message']}');
         return {'status': false, 'msg': res.data['message']};
       }
     } catch (e, stackTrace) {
-      print('Exception in expLog: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in expLog: $e');
+      // print('StackTrace: $stackTrace');
       return {'status': false, 'msg': e.toString()};
     } finally {
-      print('========== expLog API END ==========');
+      // print('========== expLog API END ==========');
     }
   }
 
   // 获取空间设置
   static Future<Map<String, dynamic>> spaceSetting() async {
-    print('========== spaceSetting API START ==========');
+    // print('========== spaceSetting API START ==========');
     try {
       var userInfo = GStorage.userInfo.get('userInfoCache');
       int mid = userInfo != null ? userInfo.mid : 0;
-      print('User mid: $mid');
+      // print('User mid: $mid');
 
-      print('Calling Request().get with Api.spaceSetting: ${Api.spaceSetting}');
+      // print('Calling Request().get with Api.spaceSetting: ${Api.spaceSetting}');
       var res = await Request().get(
         Api.spaceSetting,
         data: {
           'mid': mid,
         },
       );
-      print('Response code: ${res.data['code']}');
-      print('Response data keys: ${res.data['data']?.keys}');
+      // print('Response code: ${res.data['code']}');
+      // print('Response data keys: ${res.data['data']?.keys}');
 
       if (res.data['code'] == 0) {
         final privacy = res.data['data']?['privacy'];
-        print('Privacy data: ${privacy != null ? "exists" : "null"}');
+        // print('Privacy data: ${privacy != null ? "exists" : "null"}');
         if (privacy != null) {
-          print('Privacy keys: ${privacy.keys}');
+          // print('Privacy keys: ${privacy.keys}');
           return {'status': true, 'data': Privacy.fromJson(privacy)};
         }
         return {'status': false, 'msg': '数据格式错误'};
       } else {
-        print('API error: ${res.data['message']}');
+        // print('API error: ${res.data['message']}');
         return {'status': false, 'msg': res.data['message']};
       }
     } catch (e, stackTrace) {
-      print('Exception in spaceSetting: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in spaceSetting: $e');
+      // print('StackTrace: $stackTrace');
       return {'status': false, 'msg': e.toString()};
     } finally {
-      print('========== spaceSetting API END ==========');
+      // print('========== spaceSetting API END ==========');
     }
   }
 

@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+﻿// ignore_for_file: avoid_print
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
@@ -86,7 +86,7 @@ class Request {
     List<Cookie> cookies = await cookieManager.cookieJar
         .loadForRequest(Uri.parse(HttpString.apiBaseUrl));
     // String token = '';
-    print("cookies $cookies");
+    // print("cookies $cookies");
     if (cookies.where((e) => e.name == 'Buvid').isNotEmpty) {
       return cookies.firstWhere((e) => e.name == 'Buvid').value;
     }
@@ -277,11 +277,11 @@ class Request {
         //进度
         // print("$count $total");
       });
-      print('downloadFile success: ${response.data}');
+      // print('downloadFile success: ${response.data}');
 
       return response.data;
     } on DioException catch (e) {
-      print('downloadFile error: $e');
+      // print('downloadFile error: $e');
       return Future.error(ApiInterceptor.dioError(e));
     }
   }

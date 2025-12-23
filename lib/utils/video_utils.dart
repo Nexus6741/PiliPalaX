@@ -1,4 +1,4 @@
-import 'package:PiliPalaX/models/video/play/CDN.dart';
+﻿import 'package:PiliPalaX/models/video/play/CDN.dart';
 import 'package:PiliPalaX/models/video/play/url.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 
@@ -42,10 +42,10 @@ class VideoUtils {
     if (videoUrl == null) {
       return "";
     }
-    print("videoUrl:$videoUrl");
+    // print("videoUrl:$videoUrl");
 
     String defaultCDNHost = CDNServiceCode.fromCode(defaultCDNService)!.host;
-    print("defaultCDNHost:$defaultCDNHost");
+    // print("defaultCDNHost:$defaultCDNHost");
     if (videoUrl.contains("szbdyd.com")) {
       String hostname =
           Uri.parse(videoUrl).queryParameters['xy_usource'] ?? defaultCDNHost;
@@ -62,7 +62,7 @@ class VideoUtils {
           .replace(host: defaultCDNHost, port: 443)
           .toString();
     }
-    print("videoUrl:$videoUrl");
+    // print("videoUrl:$videoUrl");
 
     // /// 先获取backupUrl 一般是upgcxcode地址 播放更稳定
     // if (item is VideoItem) {

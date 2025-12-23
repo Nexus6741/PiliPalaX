@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -77,7 +77,7 @@ class SettingController extends GetxController {
                   controller.clearLocalStorage();
                   WebViewCookieManager().clearCookies();
                 } catch (e) {
-                  print(e);
+                  // print(e);
                 }
                 userLogin.value = false;
                 if (Get.isRegistered<MainController>()) {

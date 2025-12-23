@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
@@ -46,7 +46,7 @@ class SearchVideoPanel extends StatelessWidget {
                             type: i['type'],
                             selectedType: controller.selectedType.value,
                             callFn: (bool selected) async {
-                              print('selected: $selected');
+                              // print('selected: $selected');
                               controller.selectedType.value = i['type'];
                               ctr.order.value =
                                   i['type'].toString().split('.').last;

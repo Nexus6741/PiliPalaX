@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -340,35 +340,35 @@ class _ListSheetContentState extends State<ListSheetContent>
 
   // 定位到当前播放的视频
   void _locateCurrentPlaying() {
-    print('🎯 [定位] 开始定位当前播放');
-    print(
-        '🎯 [定位] currentCid: ${widget.currentCid}, bvid: ${widget.bvid}, aid: ${widget.aid}');
-    print(
-        '🎯 [定位] allSections: ${allSections != null ? allSections!.length : 'null'}');
-    print('🎯 [定位] currentSectionIndex: $currentSectionIndex');
-    print(
-        '🎯 [定位] sectionScrollControllers keys: ${sectionScrollControllers.keys.toList()}');
+    // print('🎯 [定位] 开始定位当前播放');
+    // print(
+    // '🎯 [定位] currentCid: ${widget.currentCid}, bvid: ${widget.bvid}, aid: ${widget.aid}');
+    // print(
+    // '🎯 [定位] allSections: ${allSections != null ? allSections!.length : 'null'}');
+    // print('🎯 [定位] currentSectionIndex: $currentSectionIndex');
+    // print(
+    // '🎯 [定位] sectionScrollControllers keys: ${sectionScrollControllers.keys.toList()}');
 
     // 在所有sections中查找当前播放的视频
     if (allSections != null) {
       for (int i = 0; i < allSections!.length; i++) {
         final section = allSections![i];
-        print(
-            '🎯 [定位] 检查 section $i: ${section.title}, episodes: ${section.episodes?.length}');
+        // print(
+        // '🎯 [定位] 检查 section $i: ${section.title}, episodes: ${section.episodes?.length}');
 
         final index = section.episodes!.indexWhere((e) =>
             e.cid == widget.currentCid ||
             e.bvid == widget.bvid ||
             e.aid == widget.aid);
 
-        print('🎯 [定位] section $i 中找到的 index: $index');
+        // print('🎯 [定位] section $i 中找到的 index: $index');
 
         if (index != -1) {
-          print('🎯 [定位] ✅ 在 section $i 的 index $index 找到当前播放');
+          // print('🎯 [定位] ✅ 在 section $i 的 index $index 找到当前播放');
 
           // 找到了，切换到对应的section
           if (i != currentSectionIndex) {
-            print('🎯 [定位] 需要切换 Tab: $currentSectionIndex -> $i');
+            // print('🎯 [定位] 需要切换 Tab: $currentSectionIndex -> $i');
             // 需要切换Tab
             _tabController?.animateTo(i);
             setState(() {
@@ -377,38 +377,38 @@ class _ListSheetContentState extends State<ListSheetContent>
               currentIndex = index;
             });
           } else {
-            print('🎯 [定位] 已在当前 Tab，更新 currentIndex: $index');
+            // print('🎯 [定位] 已在当前 Tab，更新 currentIndex: $index');
             currentIndex = index;
           }
 
           // 滚动到对应位置 - 使用对应section的scrollController
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final controller = sectionScrollControllers[i];
-            print(
-                '🎯 [定位] 获取 controller[$i]: ${controller != null ? 'exists' : 'null'}');
-            print('🎯 [定位] controller.isAttached: ${controller?.isAttached}');
+            // print(
+            // '🎯 [定位] 获取 controller[$i]: ${controller != null ? 'exists' : 'null'}');
+            // print('🎯 [定位] controller.isAttached: ${controller?.isAttached}');
 
             if (controller != null && controller.isAttached) {
-              print('🎯 [定位] 开始滚动到 index: $index');
+              // print('🎯 [定位] 开始滚动到 index: $index');
               controller.scrollTo(
                 index: index,
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
               );
             } else {
-              print('⚠️ [定位] controller 不可用，无法滚动');
+              // print('⚠️ [定位] controller 不可用，无法滚动');
             }
           });
           SmartDialog.showToast('已定位到当前播放');
           return;
         }
       }
-      print('⚠️ [定位] 未在任何 section 中找到当前播放');
+      // print('⚠️ [定位] 未在任何 section 中找到当前播放');
     } else {
-      print('🎯 [定位] 单个列表模式');
+      // print('🎯 [定位] 单个列表模式');
       // 单个列表，直接滚动
       if (currentIndex >= 0 && currentIndex < displayEpisodes.length) {
-        print('🎯 [定位] 滚动到 index: $currentIndex');
+        // print('🎯 [定位] 滚动到 index: $currentIndex');
         itemScrollController.scrollTo(
           index: currentIndex,
           duration: const Duration(milliseconds: 300),
@@ -416,8 +416,8 @@ class _ListSheetContentState extends State<ListSheetContent>
         );
         SmartDialog.showToast('已定位到当前播放');
       } else {
-        print(
-            '⚠️ [定位] currentIndex 无效: $currentIndex / ${displayEpisodes.length}');
+        // print(
+        // '⚠️ [定位] currentIndex 无效: $currentIndex / ${displayEpisodes.length}');
       }
     }
   }
@@ -871,7 +871,7 @@ class _ListSheetContentState extends State<ListSheetContent>
 
   // 构建TabBarView（多个sections时使用）
   Widget _buildTabBarView(ThemeData theme) {
-    print('🏗️ [构建] _buildTabBarView, sections: ${allSections!.length}');
+    // print('🏗️ [构建] _buildTabBarView, sections: ${allSections!.length}');
 
     return TabBarView(
       controller: _tabController,
@@ -879,15 +879,15 @@ class _ListSheetContentState extends State<ListSheetContent>
         final episodes = section.episodes ?? [];
         final sectionIndex = allSections!.indexOf(section);
 
-        print(
-            '🏗️ [构建] section $sectionIndex: ${section.title}, episodes: ${episodes.length}');
+        // print(
+        // '🏗️ [构建] section $sectionIndex: ${section.title}, episodes: ${episodes.length}');
 
         // 为每个section创建或获取独立的ScrollController
         if (!sectionScrollControllers.containsKey(sectionIndex)) {
-          print('🏗️ [构建] 创建新的 controller[$sectionIndex]');
+          // print('🏗️ [构建] 创建新的 controller[$sectionIndex]');
           sectionScrollControllers[sectionIndex] = ItemScrollController();
         } else {
-          print('🏗️ [构建] 使用已存在的 controller[$sectionIndex]');
+          // print('🏗️ [构建] 使用已存在的 controller[$sectionIndex]');
         }
         final scrollController = sectionScrollControllers[sectionIndex]!;
 
@@ -898,12 +898,12 @@ class _ListSheetContentState extends State<ListSheetContent>
               e.bvid == widget.bvid ||
               e.aid == widget.aid);
 
-          print('🏗️ [构建] 当前 section $sectionIndex, currentIdx: $currentIdx');
+          // print('🏗️ [构建] 当前 section $sectionIndex, currentIdx: $currentIdx');
 
           if (currentIdx != -1) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              print(
-                  '🏗️ [构建] 初始定位到 index: $currentIdx, isAttached: ${scrollController.isAttached}');
+              // print(
+              // '🏗️ [构建] 初始定位到 index: $currentIdx, isAttached: ${scrollController.isAttached}');
               if (scrollController.isAttached) {
                 scrollController.jumpTo(index: currentIdx);
               }

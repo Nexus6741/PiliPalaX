@@ -1,4 +1,4 @@
-import 'dart:developer';
+﻿import 'dart:developer';
 
 import 'package:dio/dio.dart';
 
@@ -55,11 +55,11 @@ class MemberHttp {
     // 对参数进行签名
     AppSign.appSign(params);
 
-    print('========== memberSpace API Request ==========');
-    print('Has access_key: ${accessKey != null && accessKey.isNotEmpty}');
-    print('Params keys: ${params.keys.toList()}');
-    print('Has sign: ${params.containsKey('sign')}');
-    print('==============================================');
+    // print('========== memberSpace API Request ==========');
+    // print('Has access_key: ${accessKey != null && accessKey.isNotEmpty}');
+    // print('Params keys: ${params.keys.toList()}');
+    // print('Has sign: ${params.containsKey('sign')}');
+    // print('==============================================');
 
     var res = await Request().get(
       Api.memberSpace,
@@ -73,83 +73,83 @@ class MemberHttp {
       ),
     );
 
-    print('========== memberSpace API Response ==========');
-    print('Response code: ${res.data['code']}');
-    print('Message: ${res.data['message']}');
+    // print('========== memberSpace API Response ==========');
+    // print('Response code: ${res.data['code']}');
+    // print('Message: ${res.data['message']}');
     if (res.data['code'] == 0) {
       try {
         final rawData = res.data['data'];
-        print('Raw data keys: ${rawData.keys.toList()}');
+        // print('Raw data keys: ${rawData.keys.toList()}');
 
         // 详细打印 archive 数据
         if (rawData['archive'] != null) {
-          print('---------- Archive Data ----------');
-          print('Archive count: ${rawData['archive']['count']}');
+          // print('---------- Archive Data ----------');
+          // print('Archive count: ${rawData['archive']['count']}');
           if (rawData['archive']['item'] != null &&
               rawData['archive']['item'].isNotEmpty) {
-            print('First archive item:');
+            // print('First archive item:');
             final firstItem = rawData['archive']['item'][0];
-            print('  - bvid: ${firstItem['bvid']}');
-            print('  - title: ${firstItem['title']}');
-            print('  - pic: ${firstItem['pic']}');
-            print('  - duration: ${firstItem['duration']}');
-            print('  - play: ${firstItem['play']}');
+            // print('  - bvid: ${firstItem['bvid']}');
+            // print('  - title: ${firstItem['title']}');
+            // print('  - pic: ${firstItem['pic']}');
+            // print('  - duration: ${firstItem['duration']}');
+            // print('  - play: ${firstItem['play']}');
           }
-          print('----------------------------------');
+          // print('----------------------------------');
         }
 
         // 详细打印 coinArchive 数据
         if (rawData['coin_archive'] != null) {
-          print('---------- CoinArchive Data ----------');
-          print('CoinArchive count: ${rawData['coin_archive']['count']}');
+          // print('---------- CoinArchive Data ----------');
+          // print('CoinArchive count: ${rawData['coin_archive']['count']}');
           if (rawData['coin_archive']['item'] != null &&
               rawData['coin_archive']['item'].isNotEmpty) {
-            print('First coin_archive item:');
+            // print('First coin_archive item:');
             final firstItem = rawData['coin_archive']['item'][0];
-            print('  - ALL KEYS: ${firstItem.keys.toList()}');
-            print('  - bvid: ${firstItem['bvid']}');
-            print('  - title: ${firstItem['title']}');
-            print('  - pic: ${firstItem['pic']}');
-            print('  - cover: ${firstItem['cover']}');
-            print('  - duration: ${firstItem['duration']}');
+            // print('  - ALL KEYS: ${firstItem.keys.toList()}');
+            // print('  - bvid: ${firstItem['bvid']}');
+            // print('  - title: ${firstItem['title']}');
+            // print('  - pic: ${firstItem['pic']}');
+            // print('  - cover: ${firstItem['cover']}');
+            // print('  - duration: ${firstItem['duration']}');
           }
-          print('--------------------------------------');
+          // print('--------------------------------------');
         }
 
         // 详细打印 likeArchive 数据
         if (rawData['like_archive'] != null) {
-          print('---------- LikeArchive Data ----------');
-          print('LikeArchive count: ${rawData['like_archive']['count']}');
+          // print('---------- LikeArchive Data ----------');
+          // print('LikeArchive count: ${rawData['like_archive']['count']}');
           if (rawData['like_archive']['item'] != null &&
               rawData['like_archive']['item'].isNotEmpty) {
-            print('First like_archive item:');
+            // print('First like_archive item:');
             final firstItem = rawData['like_archive']['item'][0];
-            print('  - bvid: ${firstItem['bvid']}');
-            print('  - title: ${firstItem['title']}');
-            print('  - pic: ${firstItem['pic']}');
-            print('  - duration: ${firstItem['duration']}');
+            // print('  - bvid: ${firstItem['bvid']}');
+            // print('  - title: ${firstItem['title']}');
+            // print('  - pic: ${firstItem['pic']}');
+            // print('  - duration: ${firstItem['duration']}');
           }
-          print('--------------------------------------');
+          // print('--------------------------------------');
         }
 
         final spaceData = SpaceData.fromJson(rawData);
-        print('✅ Parsed successfully');
-        print('Card parsed: ${spaceData.card != null}');
-        print('Card fans: ${spaceData.card?.fans}');
-        print('Card attention: ${spaceData.card?.attention}');
-        print('Card likes: ${spaceData.card?.likes?.likeNum}');
-        print('Images parsed: ${spaceData.images != null}');
-        print('Archive count: ${spaceData.archive?.count}');
-        print('Favourite2 count: ${spaceData.favourite2?.count}');
-        print('CoinArchive count: ${spaceData.coinArchive?.count}');
-        print('LikeArchive count: ${spaceData.likeArchive?.count}');
-        print('Tab2 count: ${spaceData.tab2?.length}');
-        print('==============================================');
+        // print('✅ Parsed successfully');
+        // print('Card parsed: ${spaceData.card != null}');
+        // print('Card fans: ${spaceData.card?.fans}');
+        // print('Card attention: ${spaceData.card?.attention}');
+        // print('Card likes: ${spaceData.card?.likes?.likeNum}');
+        // print('Images parsed: ${spaceData.images != null}');
+        // print('Archive count: ${spaceData.archive?.count}');
+        // print('Favourite2 count: ${spaceData.favourite2?.count}');
+        // print('CoinArchive count: ${spaceData.coinArchive?.count}');
+        // print('LikeArchive count: ${spaceData.likeArchive?.count}');
+        // print('Tab2 count: ${spaceData.tab2?.length}');
+        // print('==============================================');
         return {'status': true, 'data': spaceData};
       } catch (e, stackTrace) {
-        print('❌ Parse error: $e');
-        print('Stack trace: $stackTrace');
-        print('==============================================');
+        // print('❌ Parse error: $e');
+        // print('Stack trace: $stackTrace');
+        // print('==============================================');
         return {
           'status': false,
           'data': null,
@@ -568,7 +568,7 @@ class MemberHttp {
         if (currentMid != null) 'current_mid': currentMid,
       },
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {
         'status': true,
@@ -708,13 +708,13 @@ class MemberHttp {
         apiUrl = Api.spaceArchive;
     }
 
-    print('========== spaceArchive API Request ==========');
-    print('Type: $type');
-    print('API URL: $apiUrl');
-    print('Season ID: $seasonId');
-    print('Series ID: $seriesId');
-    print('Order: $order');
-    print('==============================================');
+    // print('========== spaceArchive API Request ==========');
+    // print('Type: $type');
+    // print('API URL: $apiUrl');
+    // print('Season ID: $seasonId');
+    // print('Series ID: $seriesId');
+    // print('Order: $order');
+    // print('==============================================');
 
     var res = await Request().get(
       apiUrl,
@@ -728,22 +728,22 @@ class MemberHttp {
       ),
     );
 
-    print('========== spaceArchive API Response ==========');
-    print('Response code: ${res.data['code']}');
-    print('Message: ${res.data['message']}');
+    // print('========== spaceArchive API Response ==========');
+    // print('Response code: ${res.data['code']}');
+    // print('Message: ${res.data['message']}');
     if (res.data['code'] == 0 && res.data['data'] != null) {
-      print('Data keys: ${res.data['data'].keys}');
-      print('Has cursor: ${res.data['data'].containsKey('cursor')}');
-      print('Has has_more: ${res.data['data'].containsKey('has_more')}');
-      print('Item count: ${res.data['data']['item']?.length ?? 0}');
+      // print('Data keys: ${res.data['data'].keys}');
+      // print('Has cursor: ${res.data['data'].containsKey('cursor')}');
+      // print('Has has_more: ${res.data['data'].containsKey('has_more')}');
+      // print('Item count: ${res.data['data']['item']?.length ?? 0}');
       if (res.data['data'].containsKey('cursor')) {
-        print('Cursor: ${res.data['data']['cursor']}');
+        // print('Cursor: ${res.data['data']['cursor']}');
       }
       if (res.data['data'].containsKey('has_more')) {
-        print('Has more: ${res.data['data']['has_more']}');
+        // print('Has more: ${res.data['data']['has_more']}');
       }
     }
-    print('==============================================');
+    // print('==============================================');
 
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
@@ -769,12 +769,12 @@ class MemberHttp {
 
     Map params = await WbiSign().makSign(data);
 
-    print('========== memberOpus API Request ==========');
-    print('Host MID: $hostMid');
-    print('Page: $page');
-    print('Offset: $offset');
-    print('Type: $type');
-    print('==============================================');
+    // print('========== memberOpus API Request ==========');
+    // print('Host MID: $hostMid');
+    // print('Page: $page');
+    // print('Offset: $offset');
+    // print('Type: $type');
+    // print('==============================================');
 
     var res = await Request().get(
       Api.memberOpus,
@@ -785,15 +785,15 @@ class MemberHttp {
       },
     );
 
-    print('========== memberOpus API Response ==========');
-    print('Response code: ${res.data['code']}');
-    print('Message: ${res.data['message']}');
+    // print('========== memberOpus API Response ==========');
+    // print('Response code: ${res.data['code']}');
+    // print('Message: ${res.data['message']}');
     if (res.data['code'] == 0) {
-      print('Items count: ${res.data['data']?['items']?.length ?? 0}');
-      print('Has more: ${res.data['data']?['has_more']}');
-      print('Offset: ${res.data['data']?['offset']}');
+      // print('Items count: ${res.data['data']?['items']?.length ?? 0}');
+      // print('Has more: ${res.data['data']?['has_more']}');
+      // print('Offset: ${res.data['data']?['offset']}');
     }
-    print('==============================================');
+    // print('==============================================');
 
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};

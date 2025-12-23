@@ -1,4 +1,4 @@
-// 工具函数
+﻿// 工具函数
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:async';
@@ -323,7 +323,7 @@ class Utils {
     // 1.0.22-alpha.13+174 is newer then 1.0.22-beta.12+174
     // 1.0.22-beta.13+174 is newer then 1.0.22-alpha.13+174
     // 1.0.23+174 is newer than 1.0.22-beta.13+174
-    print('localVersion: $localVersion, remoteVersion: $remoteVersion');
+    // print('localVersion: $localVersion, remoteVersion: $remoteVersion');
     if (localVersion == remoteVersion) {
       return false;
     }
@@ -505,8 +505,8 @@ class Utils {
               WidgetsBinding.instance.platformDispatcher.views.single)
           .padding
           .top;
-      print("paddingTop");
-      print(paddingTop);
+      // print("paddingTop");
+      // print(paddingTop);
       paddingTop += width * 9 / 16;
       return height - paddingTop;
     }

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -63,7 +63,7 @@ class CacheManage {
     } catch (e) {
       // 忽略找不到文件的错误
       if (e is! PathNotFoundException) {
-        print('Error retrieving size for ${file.path}: $e');
+        // print('Error retrieving size for ${file.path}: $e');
       }
     }
     return total;

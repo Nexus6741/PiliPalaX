@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
@@ -40,7 +40,7 @@ Widget addWidget(item, context, type, {floor = 1}) {
               SmartDialog.showToast(err.toString());
             }
           } else {
-            print("No match found.");
+            // print("No match found.");
           }
         },
         child: Container(

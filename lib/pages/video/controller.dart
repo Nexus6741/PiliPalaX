@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -124,11 +124,11 @@ class VideoDetailController extends GetxController
   void onInit() async {
     super.onInit();
     final Map argMap = Get.arguments ?? {};
-    print("🔍 VideoDetailController.onInit() - 开始初始化");
-    print("🔍 Get.arguments: $argMap");
-    print("🔍 Get.parameters: ${Get.parameters}");
-    print(
-        "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
+    // print("🔍 VideoDetailController.onInit() - 开始初始化");
+    // print("🔍 Get.arguments: $argMap");
+    // print("🔍 Get.parameters: ${Get.parameters}");
+    // print(
+    // "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
     userInfo = userInfoCache.get('userInfoCache');
 
     // 🔥 修复：清空旧的 videoItem 数据，避免显示上一个视频的封面
@@ -443,23 +443,23 @@ class VideoDetailController extends GetxController
           seasonType = bangumiCtr.bangumiDetail.value.type;
           if (seasonType == null && bangumiCtr.bangumiItem != null) {
             seasonType = bangumiCtr.bangumiItem!.type;
-            print(
-                '⚠️ bangumiDetail.value.type 为 null，从 bangumiItem 获取: $seasonType');
+            // print(
+            // '⚠️ bangumiDetail.value.type 为 null，从 bangumiItem 获取: $seasonType');
           }
 
           // 🔍 详细调试日志
-          print('🔍 [playerInit] 获取PGC参数:');
-          print('   - videoType: $videoType');
-          print('   - epid: $epid');
-          print('   - seasonId: $seasonId');
-          print(
-              '   - seasonType: $seasonType ${seasonType == null ? "(null)" : ""}');
-          print(
-              '   - bangumiDetail.value.type: ${bangumiCtr.bangumiDetail.value.type}');
-          print('   - bangumiItem?.type: ${bangumiCtr.bangumiItem?.type}');
-          print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
+          // print('🔍 [playerInit] 获取PGC参数:');
+          // print('   - videoType: $videoType');
+          // print('   - epid: $epid');
+          // print('   - seasonId: $seasonId');
+          // print(
+          // '   - seasonType: $seasonType ${seasonType == null ? "(null)" : ""}');
+          // print(
+          // '   - bangumiDetail.value.type: ${bangumiCtr.bangumiDetail.value.type}');
+          // print('   - bangumiItem?.type: ${bangumiCtr.bangumiItem?.type}');
+          // print('   - 类型说明: 1=番剧, 2=电影, 3=纪录片, 4=国创, 5=电视剧, 7=综艺');
         } catch (e) {
-          print('⚠️ 获取番剧参数失败: $e');
+          // print('⚠️ 获取番剧参数失败: $e');
         }
       }
 
@@ -527,7 +527,7 @@ class VideoDetailController extends GetxController
         final bangumiCtr = Get.find<BangumiIntroController>(tag: heroTag);
         epid = bangumiCtr.epId;
       } catch (e) {
-        print('⚠️ 获取番剧参数失败: $e');
+        // print('⚠️ 获取番剧参数失败: $e');
       }
 
       // 使用番剧专用API
@@ -661,7 +661,7 @@ class VideoDetailController extends GetxController
       // 🔥 优化：4K 视频避免使用 AV1 编码（性能要求太高）
       if (firstVideo.width != null && firstVideo.width! >= 3840) {
         if (firstVideo.codecs!.startsWith('av01')) {
-          print('⚠️ 检测到 4K 视频使用 AV1 编码，尝试切换到 HEVC/AVC');
+          // print('⚠️ 检测到 4K 视频使用 AV1 编码，尝试切换到 HEVC/AVC');
 
           // 优先级：HEVC (H.265) > AVC (H.264)
           final List<String> preferred4KCodecs = ['hev', 'avc'];
@@ -673,7 +673,7 @@ class VideoDetailController extends GetxController
               firstVideo = alternativeVideo;
               currentDecodeFormats =
                   VideoDecodeFormatsCode.fromString(alternativeVideo.codecs!)!;
-              print('✅ 已切换到 ${currentDecodeFormats.code} 编码');
+              // print('✅ 已切换到 ${currentDecodeFormats.code} 编码');
               break;
             } catch (e) {
               // 继续尝试下一个编码格式
@@ -993,7 +993,7 @@ class VideoDetailController extends GetxController
 
       return {'status': true};
     } catch (e) {
-      print('❌ 加载离线视频失败: $e');
+      // print('❌ 加载离线视频失败: $e');
       SmartDialog.showToast('加载离线视频失败: $e');
       return {'status': false, 'msg': e.toString()};
     }
@@ -1026,7 +1026,7 @@ class VideoDetailController extends GetxController
         await _handleSegmentData(data.clipInfoList!, isPgc: true);
       }
     } catch (e) {
-      print('查询番剧片头片尾失败: $e');
+      // print('查询番剧片头片尾失败: $e');
     }
   }
 
@@ -1042,7 +1042,7 @@ class VideoDetailController extends GetxController
         await _handleSegmentData(result['data'], isPgc: false);
       }
     } catch (e) {
-      print('查询 SponsorBlock 失败: $e');
+      // print('查询 SponsorBlock 失败: $e');
     }
   }
 
@@ -1127,7 +1127,7 @@ class VideoDetailController extends GetxController
                 '${videoLabel.value.isNotEmpty ? '/' : ''}${segmentType.title}';
           }
         } catch (e) {
-          print('处理片段失败: $e');
+          // print('处理片段失败: $e');
         }
       }
 
@@ -1136,7 +1136,7 @@ class VideoDetailController extends GetxController
         _initSkipListener();
       }
     } catch (e) {
-      print('处理片段数据失败: $e');
+      // print('处理片段数据失败: $e');
     }
   }
 
@@ -1204,7 +1204,7 @@ class VideoDetailController extends GetxController
         SponsorBlock.viewedVideoSponsorTime(segment.UUID);
       }
     } catch (e) {
-      print('跳过片段失败: $e');
+      // print('跳过片段失败: $e');
     }
   }
 

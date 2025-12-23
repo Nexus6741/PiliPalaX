@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -108,7 +108,7 @@ Future<void> showStatusBar() async {
     // print('Always immersive status bar enabled, skipping showStatusBar');
     return;
   }
-  print('showStatusBar start. OS: ${Platform.operatingSystem}');
+  // print('showStatusBar start. OS: ${Platform.operatingSystem}');
   dynamic document;
   late SystemUiMode mode = SystemUiMode.edgeToEdge;
   try {
@@ -119,17 +119,17 @@ Future<void> showStatusBar() async {
         Platform.operatingSystem == 'ohos') {
       if (Platform.isAndroid) {
         final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
-        print('Android SDK: $sdkInt');
+        // print('Android SDK: $sdkInt');
         if (sdkInt < 29) {
           mode = SystemUiMode.manual;
         }
       }
-      print('Setting SystemUiMode: $mode');
+      // print('Setting SystemUiMode: $mode');
       await SystemChrome.setEnabledSystemUIMode(
         mode,
         overlays: SystemUiOverlay.values,
       );
-      print('showStatusBar end');
+      // print('showStatusBar end');
     } else if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
       await const MethodChannel('com.alexmercerind/media_kit_video')
           .invokeMethod(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HiddenSetting extends StatefulWidget {
@@ -16,7 +16,7 @@ class _HiddenSettingState extends State<HiddenSetting> {
   }
 
   void test(Object? val) {
-    print(val);
+    // print(val);
   }
 
   @override

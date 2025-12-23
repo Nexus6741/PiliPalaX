@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -45,7 +45,7 @@ class _SetDisplayModeState extends State<SetDisplayMode> {
     try {
       modes = await FlutterDisplayMode.supported;
     } on PlatformException catch (e) {
-      print(e);
+      // print(e);
     }
     var res = await getDisplayModeType(modes);
 

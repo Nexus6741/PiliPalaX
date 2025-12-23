@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
@@ -43,7 +43,7 @@ class LoginHttp {
     );
     var res = await Request()
         .post(Api.getTVCode, queryParameters: {...params, 'sign': sign});
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -144,7 +144,7 @@ class LoginHttp {
         headers: headers,
       ),
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0 && res.data['data']['recaptcha_url'] == "") {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -208,7 +208,7 @@ class LoginHttp {
     String? recaptcha_token,
   }) async {
     dynamic publicKey = RSAKeyParser().parse(key);
-    print(publicKey);
+    // print(publicKey);
     String passwordEncrypted =
         Encrypter(RSA(publicKey: publicKey)).encrypt(salt + password).base64;
 
@@ -251,7 +251,7 @@ class LoginHttp {
     );
     data['sign'] = sign;
     data.map((key, value) {
-      print('$key: $value');
+      // print('$key: $value');
       return MapEntry<String, dynamic>(key, value);
     });
     var res = await Request().post(
@@ -263,7 +263,7 @@ class LoginHttp {
         //responseType: ResponseType.plain
       ),
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {
         'status': true,
@@ -326,7 +326,7 @@ class LoginHttp {
     );
     data['sign'] = sign;
     data.map((key, value) {
-      print('$key: $value');
+      // print('$key: $value');
       return MapEntry<String, dynamic>(key, value);
     });
     var res = await Request().post(
@@ -338,7 +338,7 @@ class LoginHttp {
         //responseType: ResponseType.plain
       ),
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -358,7 +358,7 @@ class LoginHttp {
     var res = await Request().get(Api.safeCenterGetInfo, data: {
       'tmp_code': tmpCode,
     });
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -374,7 +374,7 @@ class LoginHttp {
   // 风控验证手机前的极验验证码
   static Future preCapture() async {
     var res = await Request().post(Api.preCapture);
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -412,7 +412,7 @@ class LoginHttp {
       Constants.appSec,
     );
     data['sign'] = sign;
-    print(data);
+    // print(data);
     var res = await Request().post(
       Api.safeCenterSmsCode,
       data: data,
@@ -421,7 +421,7 @@ class LoginHttp {
         "Referer": refererUrl,
       }),
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -466,7 +466,7 @@ class LoginHttp {
         "Referer": refererUrl,
       }),
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -510,7 +510,7 @@ class LoginHttp {
     );
     data['sign'] = sign;
     data.map((key, value) {
-      print('$key: $value');
+      // print('$key: $value');
       return MapEntry<String, dynamic>(key, value);
     });
     var res = await Request().post(
@@ -521,7 +521,7 @@ class LoginHttp {
         headers: headers,
       ),
     );
-    print(res);
+    // print(res);
     if (res.data['code'] == 0) {
       return {'status': true, 'data': res.data['data']};
     } else {
@@ -536,9 +536,9 @@ class LoginHttp {
 
   // 获取登录设备列表
   static Future<Map<String, dynamic>> loginDevices() async {
-    print('========== loginDevices API START ==========');
+    // print('========== loginDevices API START ==========');
     try {
-      print('Calling Request().get with Api.loginDevices: ${Api.loginDevices}');
+      // print('Calling Request().get with Api.loginDevices: ${Api.loginDevices}');
 
       final params = {
         'local_id': buvid,
@@ -552,39 +552,39 @@ class LoginHttp {
         'ts': (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString(),
       };
 
-      print('Params before sign: $params');
+      // print('Params before sign: $params');
       String sign = Utils.appSign(params, Constants.appKey, Constants.appSec);
       params['sign'] = sign;
-      print('Params after sign: $params');
+      // print('Params after sign: $params');
 
       var res = await Request().get(
         Api.loginDevices,
         data: params,
       );
-      print('Response code: ${res.data['code']}');
-      print('Response message: ${res.data['message']}');
-      print('Response data: ${res.data['data']}');
+      // print('Response code: ${res.data['code']}');
+      // print('Response message: ${res.data['message']}');
+      // print('Response data: ${res.data['data']}');
 
       if (res.data['code'] == 0) {
         final dynamic data = res.data['data'];
 
         if (data is Map) {
-          print('Data is Map, keys: ${data.keys}');
+          // print('Data is Map, keys: ${data.keys}');
           final List<dynamic>? devices = data['devices'];
-          print('Devices from API: ${devices?.length ?? 0}');
+          // print('Devices from API: ${devices?.length ?? 0}');
 
           if (devices != null) {
             final List<LoginDevice> deviceList = devices.map((e) {
               return LoginDevice.fromJson(e);
             }).toList();
-            print('Processed device list: ${deviceList.length}');
+            // print('Processed device list: ${deviceList.length}');
             return {'status': true, 'data': deviceList};
           }
         }
 
         return {'status': true, 'data': []};
       } else {
-        print('API error: ${res.data['message']}');
+        // print('API error: ${res.data['message']}');
         return {
           'status': false,
           'code': res.data['code'],
@@ -592,14 +592,14 @@ class LoginHttp {
         };
       }
     } catch (e, stackTrace) {
-      print('Exception in loginDevices: $e');
-      print('StackTrace: $stackTrace');
+      // print('Exception in loginDevices: $e');
+      // print('StackTrace: $stackTrace');
       return {
         'status': false,
         'msg': e.toString(),
       };
     } finally {
-      print('========== loginDevices API END ==========');
+      // print('========== loginDevices API END ==========');
     }
   }
 }

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:PiliPalaX/utils/storage.dart';
 import 'package:easy_debounce/easy_throttle.dart';
@@ -61,7 +61,7 @@ class _DynamicsTabPageState extends State<DynamicsTabPage>
         }
       });
     dynamicsController.mid.listen((mid) {
-      print('midListen: $mid');
+      // print('midListen: $mid');
       scrollController.jumpTo(0);
       _futureBuilderFuture = _dynamicsTabController.queryFollowDynamic(
           'init', widget.dynamicsType, mid);
