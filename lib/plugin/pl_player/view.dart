@@ -4,6 +4,9 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
+import 'package:PiliPalaX/pages/video/controller.dart';
+import 'package:PiliPalaX/models/video/play/quality.dart';
+import 'package:PiliPalaX/models/video/play/url.dart';
 import 'package:PiliPalaX/utils/id_utils.dart';
 import 'package:PiliPalaX/models/video/video_shot_data.dart';
 import 'package:PiliPalaX/http/init.dart';
@@ -685,6 +688,100 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         ),
       ),
 
+      /// 画质选择
+      BottomControlType.qa: Builder(
+        builder: (context) {
+          // 获取 VideoDetailController
+          VideoDetailController? videoDetailCtr;
+          try {
+            final heroTag = videoIntroController?.heroTag ??
+                bangumiIntroController?.heroTag ??
+                '';
+            if (heroTag.isNotEmpty) {
+              videoDetailCtr = Get.find<VideoDetailController>(tag: heroTag);
+            }
+          } catch (_) {}
+
+          if (videoDetailCtr == null) {
+            return const SizedBox(width: 42, height: 30);
+          }
+
+          final videoInfo = videoDetailCtr.data;
+          if (videoInfo.dash == null) {
+            return const SizedBox(width: 42, height: 30);
+          }
+
+          final List<FormatItem> videoFormat = videoInfo.supportFormats!;
+          final VideoQuality currentVideoQa = videoDetailCtr.currentVideoQa;
+          final int totalQaSam = videoFormat.length;
+
+          // 计算可用的画质数量
+          int usefulQaSam = 0;
+          final List<VideoItem> video = videoInfo.dash!.video!;
+          final Set<int> idSet = {};
+          for (final VideoItem item in video) {
+            final int id = item.id!;
+            if (!idSet.contains(id)) {
+              idSet.add(id);
+              usefulQaSam++;
+            }
+          }
+
+          return SizedBox(
+            width: 50,
+            height: 30,
+            child: PopupMenuButton<int>(
+              tooltip: '画质',
+              initialValue: currentVideoQa.code,
+              color: Colors.black.withOpacity(0.8),
+              itemBuilder: (BuildContext context) {
+                return List.generate(totalQaSam, (index) {
+                  final item = videoFormat[index];
+                  final enabled = index >= totalQaSam - usefulQaSam;
+                  return PopupMenuItem<int>(
+                    enabled: enabled,
+                    height: 35,
+                    padding: const EdgeInsets.only(left: 15, right: 10),
+                    value: item.quality,
+                    onTap: () async {
+                      if (currentVideoQa.code == item.quality) {
+                        return;
+                      }
+                      final int quality = item.quality!;
+                      videoDetailCtr!.currentVideoQa =
+                          VideoQualityCode.fromCode(quality)!;
+                      videoDetailCtr.updatePlayer();
+                      SmartDialog.showToast(
+                          "画质已变为：${VideoQualityCode.fromCode(quality)!.description}");
+                    },
+                    child: Text(
+                      item.newDesc ?? '',
+                      style: enabled
+                          ? const TextStyle(color: Colors.white, fontSize: 13)
+                          : const TextStyle(
+                              color: Color(0x62FFFFFF),
+                              fontSize: 13,
+                            ),
+                    ),
+                  );
+                });
+              },
+              child: Container(
+                width: 50,
+                height: 30,
+                alignment: Alignment.center,
+                child: Text(
+                  // 在空格处截断，只显示前半部分（如 "1080P 高清" -> "1080P"）
+                  currentVideoQa.description.split(' ').first,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  semanticsLabel: '当前画质${currentVideoQa.description}',
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+
       /// 全屏
       BottomControlType.fullscreen: SizedBox(
         width: 42,
@@ -724,6 +821,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           if (anySeason) BottomControlType.episode,
           if (_.isFullScreen.value) BottomControlType.fit,
           BottomControlType.speed,
+          BottomControlType.qa, // 画质选择
           BottomControlType.fullscreen,
         ];
     for (var i = 0; i < userSpecifyItem.length; i++) {

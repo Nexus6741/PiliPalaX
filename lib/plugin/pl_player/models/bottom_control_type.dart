@@ -9,6 +9,7 @@ enum BottomControlType {
   fit,
   subtitle,
   speed,
+  qa, // 画质选择
   fullscreen,
   danmakuInput, // 弹幕输入框
 }
