@@ -654,38 +654,102 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       ),
 
       /// 播放速度
-      BottomControlType.speed: SizedBox(
-        width: 42,
-        height: 30,
-        child: PopupMenuButton<double>(
-          onSelected: (double value) {
-            _.setPlaybackSpeed(value);
-          },
-          initialValue: _.playbackSpeed,
-          color: Colors.black.withOpacity(0.8),
-          itemBuilder: (BuildContext context) {
-            return _.speedsList.map((double speed) {
-              return PopupMenuItem<double>(
-                height: 35,
-                padding: const EdgeInsets.only(left: 30),
-                value: speed,
-                child: Text(
-                  "${speed}X",
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  semanticsLabel: "$speed倍速",
+      BottomControlType.speed: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 减速按钮
+          SizedBox(
+            width: 32,
+            height: 30,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  double currentSpeed = _.playbackSpeed;
+                  double newSpeed = (currentSpeed - 0.1).clamp(0.5, 3.0);
+                  // 保留一位小数
+                  newSpeed = double.parse(newSpeed.toStringAsFixed(1));
+                  _.setPlaybackSpeed(newSpeed);
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  child: const Text(
+                    "-",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    semanticsLabel: "减速",
+                  ),
                 ),
-              );
-            }).toList();
-          },
-          child: Container(
+              ),
+            ),
+          ),
+          // 倍速显示和选择
+          SizedBox(
             width: 42,
             height: 30,
-            alignment: Alignment.center,
-            child: Obx(() => Text("${_.playbackSpeed}X",
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-                semanticsLabel: "${_.playbackSpeed}倍速")),
+            child: PopupMenuButton<double>(
+              onSelected: (double value) {
+                _.setPlaybackSpeed(value);
+              },
+              initialValue: _.playbackSpeed,
+              color: Colors.black.withOpacity(0.8),
+              itemBuilder: (BuildContext context) {
+                return _.speedsList.map((double speed) {
+                  return PopupMenuItem<double>(
+                    height: 35,
+                    padding: const EdgeInsets.only(left: 30),
+                    value: speed,
+                    child: Text(
+                      "${speed}X",
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      semanticsLabel: "$speed倍速",
+                    ),
+                  );
+                }).toList();
+              },
+              child: Container(
+                width: 42,
+                height: 30,
+                alignment: Alignment.center,
+                child: Obx(() => Text("${_.playbackSpeed}X",
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    semanticsLabel: "${_.playbackSpeed}倍速")),
+              ),
+            ),
           ),
-        ),
+          // 加速按钮
+          SizedBox(
+            width: 32,
+            height: 30,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  double currentSpeed = _.playbackSpeed;
+                  double newSpeed = (currentSpeed + 0.1).clamp(0.5, 3.0);
+                  // 保留一位小数
+                  newSpeed = double.parse(newSpeed.toStringAsFixed(1));
+                  _.setPlaybackSpeed(newSpeed);
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  child: const Text(
+                    "+",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    semanticsLabel: "加速",
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
 
       /// 画质选择
