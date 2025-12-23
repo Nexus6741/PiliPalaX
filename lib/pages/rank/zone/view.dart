@@ -3,13 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:PiliPalaX/common/constants.dart';
-import 'package:PiliPalaX/common/widgets/animated_dialog.dart';
-import 'package:PiliPalaX/common/widgets/overlay_pop.dart';
 import 'package:PiliPalaX/common/skeleton/video_card_h.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/common/widgets/video_card_h.dart';
-// import 'package:PiliPalaX/pages/home/index.dart';
-// import 'package:PiliPalaX/pages/main/index.dart';
 import 'package:PiliPalaX/pages/rank/zone/index.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
@@ -167,23 +163,6 @@ class _ZonePageState extends State<ZonePage>
             ),
           )
         ],
-      ),
-    );
-  }
-
-  void _removePopupDialog() {
-    _zoneController.popupDialog.last?.remove();
-    _zoneController.popupDialog.removeLast();
-  }
-
-  OverlayEntry _createPopupDialog(videoItem) {
-    return OverlayEntry(
-      builder: (context) => AnimatedDialog(
-        closeFn: _removePopupDialog,
-        child: OverlayPop(
-          videoItem: videoItem,
-          closeFn: _removePopupDialog,
-        ),
       ),
     );
   }

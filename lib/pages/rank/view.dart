@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -45,43 +46,13 @@ class _RankPageState extends State<RankPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = Theme.of(context);
 
     return Row(
       children: [
         const SizedBox(
           width: StyleString.cardSpace,
         ),
-        // SizedBox(
-        //     width: 55,
-        //     child: NavigationRail(
-        //
-        //       backgroundColor: Colors.transparent,
-        //       minWidth: 50.0,
-        //       // elevation: 0,
-        //       selectedIndex: _selectedTabIndex,
-        //       onDestinationSelected: (int index) {
-        //         feedBack();
-        //         if (_selectedTabIndex == index) {
-        //           _rankController.tabsCtrList[index]().animateToTop();
-        //         } else {
-        //           setState(() {
-        //             _rankController.tabController.index = index;
-        //             _selectedTabIndex = index;
-        //           });
-        //         }
-        //       },
-        //       labelType: NavigationRailLabelType.none,
-        //       destinations: [
-        //         for (var tab in _rankController.tabs)
-        //           NavigationRailDestination(
-        //             padding: EdgeInsets.zero,
-        //             icon: Text(tab['label']),
-        //             // selectedIcon: Text(tab['label']),
-        //             label: const SizedBox.shrink(),
-        //           ),
-        //       ],
-        //       trailing: const SizedBox(height: 100),
-        //     )),
         LayoutBuilder(builder: (context, constraint) {
           return SingleChildScrollView(
               child: ConstrainedBox(
@@ -92,38 +63,95 @@ class _RankPageState extends State<RankPage>
                           removeLeft: true,
                           removeRight: true,
                           removeTop: true,
-                          child: NavigationRail(
-                            groupAlignment: -1.0,
-                            backgroundColor: Colors.transparent,
-                            minWidth: 40.0,
-                            useIndicator: false,
-                            // elevation: 0,
-                            selectedIndex: _selectedTabIndex,
-                            onDestinationSelected: (int index) {
-                              feedBack();
-                              if (_selectedTabIndex == index) {
-                                _rankController.tabsCtrList[index]()
-                                    .animateToTop();
-                              } else {
-                                setState(() {
-                                  _rankController.tabController.index = index;
-                                  _selectedTabIndex = index;
-                                });
-                              }
-                            },
-                            labelType: NavigationRailLabelType.none,
-                            destinations: [
-                              for (var tab in _rankController.tabs)
-                                NavigationRailDestination(
-                                  icon: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 4),
-                                      child: Text(tab['label'])),
-                                  // selectedIcon: Text(tab['label']),
-                                  label: const SizedBox.shrink(),
+                          child: ClipRRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                width: 64,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surface
+                                      .withOpacity(0.3),
                                 ),
-                            ],
-                            trailing: const SizedBox(height: 100),
+                                child: ListView(
+                                  padding: const EdgeInsets.only(bottom: 100),
+                                  children: List.generate(
+                                    _rankController.tabs.length,
+                                    (index) => IntrinsicHeight(
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            feedBack();
+                                            if (_selectedTabIndex == index) {
+                                              _rankController.tabsCtrList[index]
+                                                      ()
+                                                  .animateToTop();
+                                            } else {
+                                              setState(() {
+                                                _rankController.tabController
+                                                    .index = index;
+                                                _selectedTabIndex = index;
+                                              });
+                                            }
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: _selectedTabIndex == index
+                                                  ? theme.colorScheme.primary
+                                                      .withOpacity(0.15)
+                                                  : Colors.transparent,
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                if (_selectedTabIndex == index)
+                                                  Container(
+                                                    height: double.infinity,
+                                                    width: 3,
+                                                    color: theme
+                                                        .colorScheme.primary,
+                                                  )
+                                                else
+                                                  const SizedBox(width: 3),
+                                                Expanded(
+                                                  flex: 1,
+                                                  child: Container(
+                                                    alignment: Alignment.center,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      vertical: 7,
+                                                    ),
+                                                    child: Text(
+                                                      _rankController
+                                                          .tabs[index]['label'],
+                                                      style: TextStyle(
+                                                        color:
+                                                            _selectedTabIndex ==
+                                                                    index
+                                                                ? theme
+                                                                    .colorScheme
+                                                                    .primary
+                                                                : theme
+                                                                    .colorScheme
+                                                                    .onSurface,
+                                                        fontSize: 15,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           )))));
         }),
         Expanded(

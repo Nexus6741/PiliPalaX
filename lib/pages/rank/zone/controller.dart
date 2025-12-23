@@ -15,7 +15,6 @@ class ZoneController extends GetxController {
 
   // 获取推荐
   Future queryRankFeed(String type, int? rid, int? tid) async {
-    print('queryRankFeed: $type, $rid, $tid');
     this.rid = rid;
     this.tid = tid;
     late dynamic res;

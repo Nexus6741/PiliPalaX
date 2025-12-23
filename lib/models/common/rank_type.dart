@@ -4,7 +4,6 @@ import 'package:PiliPalaX/pages/rank/zone/index.dart';
 
 enum RandType {
   all,
-  creation,
   animation,
   music,
   dance,
@@ -13,22 +12,17 @@ enum RandType {
   technology,
   sport,
   car,
-  life,
   food,
   animal,
   madness,
   fashion,
   entertainment,
   film,
-  documentary,
-  movie,
-  teleplay
 }
 
 extension RankTypeDesc on RandType {
   String get description => [
         '全站',
-        '国创',
         '动画',
         '音乐',
         '舞蹈',
@@ -37,21 +31,16 @@ extension RankTypeDesc on RandType {
         '科技',
         '运动',
         '汽车',
-        '生活',
         '美食',
         '动物',
         '鬼畜',
         '时尚',
         '娱乐',
         '影视',
-        '纪录',
-        '电影',
-        '剧集'
       ][index];
 
   String get id => [
         'all',
-        'creation',
         'animation',
         'music',
         'dance',
@@ -60,16 +49,12 @@ extension RankTypeDesc on RandType {
         'technology',
         'sport',
         'car',
-        'life',
         'food',
         'animal',
         'madness',
         'fashion',
         'entertainment',
         'film',
-        'documentary',
-        'movie',
-        'teleplay'
       ][index];
 }
 
@@ -89,20 +74,10 @@ List tabsConfig = [
       Icons.live_tv_outlined,
       size: 15,
     ),
-    'label': '国创',
-    'type': RandType.creation,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '168'),
-    'page': const ZonePage(rid: 168),
-  },
-  {
-    'icon': const Icon(
-      Icons.live_tv_outlined,
-      size: 15,
-    ),
     'label': '动画',
     'type': RandType.animation,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1'),
-    'page': const ZonePage(rid: 1),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1005'),
+    'page': const ZonePage(rid: 1005),
   },
   {
     'icon': const Icon(
@@ -111,8 +86,8 @@ List tabsConfig = [
     ),
     'label': '音乐',
     'type': RandType.music,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '3'),
-    'page': const ZonePage(rid: 3),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1003'),
+    'page': const ZonePage(rid: 1003),
   },
   {
     'icon': const Icon(
@@ -121,8 +96,8 @@ List tabsConfig = [
     ),
     'label': '舞蹈',
     'type': RandType.dance,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '129'),
-    'page': const ZonePage(rid: 129),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1004'),
+    'page': const ZonePage(rid: 1004),
   },
   {
     'icon': const Icon(
@@ -131,8 +106,8 @@ List tabsConfig = [
     ),
     'label': '游戏',
     'type': RandType.game,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '4'),
-    'page': const ZonePage(rid: 4),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1008'),
+    'page': const ZonePage(rid: 1008),
   },
   {
     'icon': const Icon(
@@ -141,8 +116,8 @@ List tabsConfig = [
     ),
     'label': '知识',
     'type': RandType.knowledge,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '36'),
-    'page': const ZonePage(rid: 36),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1010'),
+    'page': const ZonePage(rid: 1010),
   },
   {
     'icon': const Icon(
@@ -151,8 +126,8 @@ List tabsConfig = [
     ),
     'label': '科技',
     'type': RandType.technology,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '188'),
-    'page': const ZonePage(rid: 188),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1012'),
+    'page': const ZonePage(rid: 1012),
   },
   {
     'icon': const Icon(
@@ -161,8 +136,8 @@ List tabsConfig = [
     ),
     'label': '运动',
     'type': RandType.sport,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '234'),
-    'page': const ZonePage(rid: 234),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1018'),
+    'page': const ZonePage(rid: 1018),
   },
   {
     'icon': const Icon(
@@ -171,18 +146,8 @@ List tabsConfig = [
     ),
     'label': '汽车',
     'type': RandType.car,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '223'),
-    'page': const ZonePage(rid: 223),
-  },
-  {
-    'icon': const Icon(
-      Icons.live_tv_outlined,
-      size: 15,
-    ),
-    'label': '生活',
-    'type': RandType.life,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '160'),
-    'page': const ZonePage(rid: 160),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1013'),
+    'page': const ZonePage(rid: 1013),
   },
   {
     'icon': const Icon(
@@ -191,8 +156,8 @@ List tabsConfig = [
     ),
     'label': '美食',
     'type': RandType.food,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '211'),
-    'page': const ZonePage(rid: 211),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1020'),
+    'page': const ZonePage(rid: 1020),
   },
   {
     'icon': const Icon(
@@ -201,8 +166,8 @@ List tabsConfig = [
     ),
     'label': '动物',
     'type': RandType.animal,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '217'),
-    'page': const ZonePage(rid: 217),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1024'),
+    'page': const ZonePage(rid: 1024),
   },
   {
     'icon': const Icon(
@@ -211,8 +176,8 @@ List tabsConfig = [
     ),
     'label': '鬼畜',
     'type': RandType.madness,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '119'),
-    'page': const ZonePage(rid: 119),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1007'),
+    'page': const ZonePage(rid: 1007),
   },
   {
     'icon': const Icon(
@@ -221,8 +186,8 @@ List tabsConfig = [
     ),
     'label': '时尚',
     'type': RandType.fashion,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '155'),
-    'page': const ZonePage(rid: 155),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1014'),
+    'page': const ZonePage(rid: 1014),
   },
   {
     'icon': const Icon(
@@ -231,8 +196,8 @@ List tabsConfig = [
     ),
     'label': '娱乐',
     'type': RandType.entertainment,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '5'),
-    'page': const ZonePage(rid: 5),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1002'),
+    'page': const ZonePage(rid: 1002),
   },
   {
     'icon': const Icon(
@@ -241,37 +206,7 @@ List tabsConfig = [
     ),
     'label': '影视',
     'type': RandType.film,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '181'),
-    'page': const ZonePage(rid: 181),
+    'ctr': Get.put<ZoneController>(ZoneController(), tag: '1001'),
+    'page': const ZonePage(rid: 1001),
   },
-  {
-    'icon': const Icon(
-      Icons.live_tv_outlined,
-      size: 15,
-    ),
-    'label': '纪录',
-    'type': RandType.documentary,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '177'),
-    'page': const ZonePage(rid: 177),
-  },
-  {
-    'icon': const Icon(
-      Icons.live_tv_outlined,
-      size: 15,
-    ),
-    'label': '电影',
-    'type': RandType.movie,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '23'),
-    'page': const ZonePage(rid: 23),
-  },
-  {
-    'icon': const Icon(
-      Icons.live_tv_outlined,
-      size: 15,
-    ),
-    'label': '剧集',
-    'type': RandType.teleplay,
-    'ctr': Get.put<ZoneController>(ZoneController(), tag: '11'),
-    'page': const ZonePage(rid: 11),
-  }
 ];

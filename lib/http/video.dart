@@ -939,8 +939,12 @@ class VideoHttp {
   // 视频排行
   static Future getRankVideoList(int rid) async {
     try {
-      var rankApi = "${Api.getRankApi}?rid=$rid&type=all";
-      var res = await Request().get(rankApi);
+      final wbiSign = WbiSign();
+      final params = await wbiSign.makSign({
+        'rid': rid,
+        'type': 'all',
+      });
+      var res = await Request().get(Api.getRankApi, data: params);
       if (res.data['code'] == 0) {
         List<HotVideoItemModel> list = [];
         List<int> blackMidsList = localCache
