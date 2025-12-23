@@ -45,6 +45,7 @@ import 'widgets/common_btn.dart';
 import 'widgets/completion_overlay.dart';
 import 'widgets/forward_seek.dart';
 import 'widgets/play_pause_btn.dart';
+import 'package:PiliPalaX/pages/video/widgets/danmaku_input_bar.dart';
 
 class PLVideoPlayer extends StatefulWidget {
   const PLVideoPlayer({
@@ -698,6 +699,18 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
               fuc: () => _.triggerFullScreen(status: !_.isFullScreen.value),
             )),
       ),
+
+      /// 弹幕输入框
+      BottomControlType.danmakuInput: Expanded(
+        child: DanmakuInputBar(
+          cid: _.cid,
+          bvid: _.bvid,
+          controller: _,
+          onSendSuccess: (danmakuItem) {
+            _.danmakuController?.addDanmaku(danmakuItem);
+          },
+        ),
+      ),
     };
     final List<Widget> list = [];
     var userSpecifyItem = widget.bottomList ??
@@ -706,10 +719,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           // BottomControlType.time,
           if (anySeason) BottomControlType.pre,
           if (anySeason) BottomControlType.next,
-          for (var i = 0; i < 12; i++) BottomControlType.space,
-          if (!anySeason)
-            for (var i = 0; i < 3; i++) BottomControlType.spaceButton,
-          // if (!_.isFullScreen.value) BottomControlType.spaceButton,
+          BottomControlType.danmakuInput, // 添加弹幕输入框
           BottomControlType.subtitle,
           if (anySeason) BottomControlType.episode,
           if (_.isFullScreen.value) BottomControlType.fit,

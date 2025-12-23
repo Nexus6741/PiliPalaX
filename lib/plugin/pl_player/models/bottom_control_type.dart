@@ -10,4 +10,5 @@ enum BottomControlType {
   subtitle,
   speed,
   fullscreen,
+  danmakuInput, // 弹幕输入框
 }
