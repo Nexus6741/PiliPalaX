@@ -6,7 +6,12 @@ import 'package:PiliPalaX/http/user.dart';
 import 'package:PiliPalaX/models/user/history.dart';
 import 'package:PiliPalaX/utils/storage.dart';
 
-class HistoryController extends GetxController {
+class HistoryController extends GetxController
+    with GetSingleTickerProviderStateMixin {
+  final String? type;
+
+  HistoryController({this.type});
+
   final ScrollController scrollController = ScrollController();
   RxList<HisListItem> historyList = <HisListItem>[].obs;
   RxBool isLoadingMore = false.obs;
@@ -15,6 +20,10 @@ class HistoryController extends GetxController {
   RxBool isLoading = false.obs;
   RxBool enableMultiple = false.obs;
   RxInt checkedCount = 0.obs;
+
+  // Tab相关
+  TabController? tabController;
+  RxList<HisTabItem> tabs = <HisTabItem>[].obs;
 
   @override
   void onInit() {
@@ -30,13 +39,29 @@ class HistoryController extends GetxController {
       viewAt = historyList.last.viewAt!;
     }
     isLoadingMore.value = true;
-    var res = await UserHttp.historyList(max, viewAt);
+    var res = await UserHttp.historyList(max, viewAt, type: this.type ?? 'all');
     isLoadingMore.value = false;
     if (res['status']) {
+      HistoryData data = res['data'];
+
+      // 只在全部Tab且首次加载时初始化tabs
+      if (type == 'init' &&
+          this.type == null &&
+          data.tab != null &&
+          data.tab!.isNotEmpty) {
+        if (tabs.isEmpty) {
+          tabs.value = data.tab!;
+          tabController = TabController(
+            length: data.tab!.length + 1,
+            vsync: this,
+          );
+        }
+      }
+
       if (type == 'onload') {
-        historyList.addAll(res['data'].list);
+        historyList.addAll(data.list ?? []);
       } else {
-        historyList.value = res['data'].list;
+        historyList.value = data.list ?? [];
       }
     }
     return res;
@@ -60,9 +85,7 @@ class HistoryController extends GetxController {
           content:
               Text(!pauseStatus.value ? '啊叻？你要暂停历史记录功能吗？' : '啊叻？要恢复历史记录功能吗？'),
           actions: [
-            TextButton(
-                onPressed: () => Get.back(),
-                child: const Text('取消')),
+            TextButton(onPressed: () => Get.back(), child: const Text('取消')),
             TextButton(
               onPressed: () async {
                 SmartDialog.showLoading(msg: '请求中');
@@ -104,9 +127,7 @@ class HistoryController extends GetxController {
           title: const Text('提示'),
           content: const Text('啊叻？你要清空历史记录功能吗？'),
           actions: [
-            TextButton(
-                onPressed: () => Get.back(),
-                child: const Text('取消')),
+            TextButton(onPressed: () => Get.back(), child: const Text('取消')),
             TextButton(
               onPressed: () async {
                 SmartDialog.showLoading(msg: '请求中');
@@ -199,5 +220,11 @@ class HistoryController extends GetxController {
         );
       },
     );
+  }
+
+  @override
+  void onClose() {
+    tabController?.dispose();
+    super.onClose();
   }
 }

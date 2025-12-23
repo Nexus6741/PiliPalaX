@@ -119,9 +119,10 @@ class UserHttp {
   }
 
   // 观看历史
-  static Future historyList(int? max, int? viewAt) async {
+  static Future historyList(int? max, int? viewAt,
+      {String type = 'all'}) async {
     var res = await Request().get(Api.historyList, data: {
-      'type': 'all',
+      'type': type,
       'ps': 20,
       'max': max ?? 0,
       'view_at': viewAt ?? 0,
