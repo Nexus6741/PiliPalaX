@@ -191,6 +191,133 @@ Widget addWidget(item, context, type, {floor = 1}) {
     case 'ADDITIONAL_TYPE_MATCH':
       return const SizedBox();
     case 'ADDITIONAL_TYPE_COMMON':
+      // 游戏推广卡片
+      final content = dynamicProperty[type];
+      if (content != null) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Material(
+            color: bgColor,
+            borderRadius:
+                floor == 1 ? null : const BorderRadius.all(Radius.circular(6)),
+            child: InkWell(
+              borderRadius: floor == 1
+                  ? null
+                  : const BorderRadius.all(Radius.circular(6)),
+              onTap: content.jumpUrl != null
+                  ? () {
+                      Get.toNamed(
+                        '/webview',
+                        parameters: {
+                          'url': content.jumpUrl!,
+                          'type': 'url',
+                          'pageTitle': content.title ?? ''
+                        },
+                      );
+                    }
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    if (content.cover != null && content.cover!.isNotEmpty) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: NetworkImgLayer(
+                          width: 45,
+                          height: 45,
+                          src: content.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (content.title != null &&
+                              content.title!.isNotEmpty)
+                            Text(
+                              content.title!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          if (content.desc1 != null &&
+                              content.desc1!.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              content.desc1!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.outline,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                          if (content.desc2 != null &&
+                              content.desc2!.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              content.desc2!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.outline,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (content.button?.jumpUrl != null &&
+                        content.button!.jumpUrl!.isNotEmpty) ...[
+                      const SizedBox(width: 10),
+                      FilledButton.tonal(
+                        onPressed: () {
+                          Get.toNamed(
+                            '/webview',
+                            parameters: {
+                              'url': content.button!.jumpUrl!,
+                              'type': 'url',
+                              'pageTitle': ''
+                            },
+                          );
+                        },
+                        style: FilledButton.styleFrom(
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(6),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                          ),
+                          visualDensity: const VisualDensity(
+                            horizontal: -2,
+                            vertical: -3,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          content.button!.jumpStyle?.text ??
+                              content.button!.text ??
+                              '进入',
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
       return const SizedBox();
     case 'ADDITIONAL_TYPE_VOTE':
       return const SizedBox();

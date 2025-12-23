@@ -213,6 +213,8 @@ class DynamicAddModel {
     this.ugc,
     this.reserve,
     this.goods,
+    this.common,
+    this.match,
   });
 
   String? type;
@@ -220,12 +222,8 @@ class DynamicAddModel {
   Ugc? ugc;
   Reserve? reserve;
   Good? goods;
-
-  /// TODO 比赛vs
-  String? match;
-
-  /// TODO 游戏信息
-  String? common;
+  AddCommon? common;
+  AddMatch? match;
 
   DynamicAddModel.fromJson(Map<String, dynamic> json) {
     type = json['type'];
@@ -234,6 +232,8 @@ class DynamicAddModel {
     reserve =
         json['reserve'] != null ? Reserve.fromJson(json['reserve']) : null;
     goods = json['goods'] != null ? Good.fromJson(json['goods']) : null;
+    common = json['common'] != null ? AddCommon.fromJson(json['common']) : null;
+    match = json['match'] != null ? AddMatch.fromJson(json['match']) : null;
   }
 }
 
@@ -917,5 +917,137 @@ class Stat {
   Stat.fromJson(Map<String, dynamic> json) {
     danmu = json['danmaku'];
     play = json['play'];
+  }
+}
+
+// 游戏推广卡片
+class AddCommon {
+  AddCommon({
+    this.button,
+    this.cover,
+    this.desc1,
+    this.desc2,
+    this.jumpUrl,
+    this.title,
+  });
+
+  AddButton? button;
+  String? cover;
+  String? desc1;
+  String? desc2;
+  String? jumpUrl;
+  String? title;
+
+  AddCommon.fromJson(Map<String, dynamic> json) {
+    button = json['button'] != null ? AddButton.fromJson(json['button']) : null;
+    cover = json['cover'];
+    desc1 = json['desc1'];
+    desc2 = json['desc2'];
+    jumpUrl = json['jump_url'];
+    title = json['title'];
+  }
+}
+
+// 比赛信息卡片
+class AddMatch {
+  AddMatch({
+    this.button,
+    this.jumpUrl,
+    this.matchInfo,
+  });
+
+  AddButton? button;
+  String? jumpUrl;
+  MatchInfo? matchInfo;
+
+  AddMatch.fromJson(Map<String, dynamic> json) {
+    button = json['button'] != null ? AddButton.fromJson(json['button']) : null;
+    jumpUrl = json['jump_url'];
+    matchInfo = json['match_info'] != null
+        ? MatchInfo.fromJson(json['match_info'])
+        : null;
+  }
+}
+
+class MatchInfo {
+  MatchInfo({
+    this.title,
+    this.subTitle,
+    this.leftTeam,
+    this.rightTeam,
+    this.centerTop,
+    this.centerBottom,
+  });
+
+  String? title;
+  String? subTitle;
+  MatchTeam? leftTeam;
+  MatchTeam? rightTeam;
+  List<String>? centerTop;
+  String? centerBottom;
+
+  MatchInfo.fromJson(Map<String, dynamic> json) {
+    title = json['title'];
+    subTitle = json['sub_title'];
+    leftTeam = json['left_team'] != null
+        ? MatchTeam.fromJson(json['left_team'])
+        : null;
+    rightTeam = json['right_team'] != null
+        ? MatchTeam.fromJson(json['right_team'])
+        : null;
+    centerTop = json['center_top'] != null
+        ? List<String>.from(json['center_top'])
+        : null;
+    centerBottom = json['center_bottom'];
+  }
+}
+
+class MatchTeam {
+  MatchTeam({
+    this.name,
+    this.pic,
+  });
+
+  String? name;
+  String? pic;
+
+  MatchTeam.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    pic = json['pic'];
+  }
+}
+
+class AddButton {
+  AddButton({
+    this.icon,
+    this.jumpUrl,
+    this.text,
+    this.jumpStyle,
+  });
+
+  String? icon;
+  String? jumpUrl;
+  String? text;
+  JumpStyle? jumpStyle;
+
+  AddButton.fromJson(Map<String, dynamic> json) {
+    icon = json['icon'];
+    jumpUrl = json['jump_url'];
+    text = json['text'];
+    jumpStyle = json['jump_style'] != null
+        ? JumpStyle.fromJson(json['jump_style'])
+        : null;
+  }
+}
+
+class JumpStyle {
+  JumpStyle({
+    this.text,
+  });
+
+  String? text;
+
+  JumpStyle.fromJson(Map<String, dynamic> json) {
+    text = json['text'];
   }
 }
