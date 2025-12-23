@@ -42,8 +42,9 @@ class MemberArchiveController extends GetxController {
   List<Map<String, String>> orderList = [
     {'type': 'pubdate', 'label': '最新发布'},
     {'type': 'click', 'label': '最多播放'},
-    {'type': 'stow', 'label': '最多收藏'},
   ];
+  // 对于season/series类型，使用sort参数（desc/asc）
+  RxString currentSort = 'desc'.obs;
   RxList<SpaceArchiveItem> archivesList = <SpaceArchiveItem>[].obs;
 
   // 合集分组相关
@@ -93,7 +94,8 @@ class MemberArchiveController extends GetxController {
     var res = await MemberHttp.spaceArchive(
       type: type,
       mid: mid,
-      order: currentOrder['type']!,
+      order: type == 'video' ? currentOrder['type']! : null,
+      sort: (type == 'season' || type == 'series') ? currentSort.value : null,
       pn: type == 'charging' ? page : null,
       aid: type == 'video' ? lastAid : null, // 使用lastAid进行游标分页
       next: (type == 'season' || type == 'series')
@@ -238,38 +240,130 @@ class MemberArchiveController extends GetxController {
 
   // 根据选中的section筛选视频
   void _filterArchivesBySection() {
+    print('========== _filterArchivesBySection ==========');
+    print(
+        'Current section: ${currentSection.value?.title} (id: ${currentSection.value?.id})');
+    print('All archives count: ${allArchivesList.length}');
+
     if (currentSection.value == null || currentSection.value!.id == null) {
       // 显示全部
       archivesList.value = allArchivesList;
+      print('Showing all archives');
     } else {
       // 根据sectionId筛选
+      final targetSectionId = currentSection.value!.id;
+      print('Filtering by section_id: $targetSectionId');
+
+      // 打印前3个视频的section_id
+      if (allArchivesList.isNotEmpty) {
+        print('Sample section_ids from allArchivesList:');
+        for (var i = 0; i < allArchivesList.length && i < 3; i++) {
+          print(
+              '  [$i] title: ${allArchivesList[i].title}, section_id: ${allArchivesList[i].sectionId}');
+        }
+      }
+
       archivesList.value = allArchivesList.where((item) {
-        return item.sectionId == currentSection.value!.id;
+        return item.sectionId == targetSectionId;
       }).toList();
+
+      print('Filtered result: ${archivesList.length} items');
+      if (archivesList.isNotEmpty) {
+        print('First filtered item: ${archivesList.first.title}');
+      }
     }
-    print('Filtered archives: ${archivesList.length} items');
+    print('==============================================');
   }
 
   // 切换section
   void changeSection(SectionInfo section) {
+    print('========== changeSection ==========');
+    print('Changing from: ${currentSection.value?.title} to: ${section.title}');
+    print('===================================');
     currentSection.value = section;
     _filterArchivesBySection();
   }
 
   toggleSort() async {
-    List<String> typeList = orderList.map((e) => e['type']!).toList();
-    int index = typeList.indexOf(currentOrder['type']!);
-    if (index == orderList.length - 1) {
-      currentOrder.value = orderList.first;
+    print('========== toggleSort START ==========');
+    print('Type: $type');
+
+    // 根据类型使用不同的排序方式
+    if (type == 'video') {
+      // video类型：使用order（pubdate/click）
+      List<String> typeList = orderList.map((e) => e['type']!).toList();
+      int index = typeList.indexOf(currentOrder['type']!);
+      if (index == orderList.length - 1) {
+        currentOrder.value = orderList.first;
+      } else {
+        currentOrder.value = orderList[index + 1];
+      }
+      print('Old order: ${typeList[index]}');
+      print('New order: ${currentOrder['type']}');
     } else {
-      currentOrder.value = orderList[index + 1];
+      // season/series类型：使用sort（desc/asc）
+      String oldSort = currentSort.value;
+      currentSort.value = currentSort.value == 'desc' ? 'asc' : 'desc';
+      print('Old sort: $oldSort');
+      print('New sort: ${currentSort.value}');
     }
+
+    print(
+        'Current section before reset: ${currentSection.value?.title} (id: ${currentSection.value?.id})');
+    print('Current archivesList count: ${archivesList.length}');
+    print('Current allArchivesList count: ${allArchivesList.length}');
+    print('======================================');
+
     // 切换排序时重置状态
     isEnd = false;
     firstAid = null;
     lastAid = null;
     next = null;
-    getMemberArchive('init');
+    page = 0;
+    // 清空列表
+    archivesList.clear();
+    allArchivesList.clear();
+    // 重置section选择（重要！）
+    // 注意：不清空sections列表，因为合集信息不会因排序而改变
+    // 但需要在重新加载后重新筛选
+    final previousSection = currentSection.value;
+
+    print(
+        'Saved previous section: ${previousSection?.title} (id: ${previousSection?.id})');
+    print('Starting data reload...');
+
+    // 重新加载数据
+    await getMemberArchive('init');
+
+    print('Data reload completed');
+    print('New allArchivesList count: ${allArchivesList.length}');
+    print(
+        'Available sections: ${sections.map((s) => '${s.title}(${s.id})').toList()}');
+
+    // 如果之前选择了特定的section，重新应用筛选
+    if (previousSection != null && previousSection.id != null) {
+      print('Attempting to re-apply section filter...');
+      // 在新数据中找到对应的section
+      final matchingSection = sections.firstWhereOrNull(
+        (s) => s.id == previousSection.id,
+      );
+      if (matchingSection != null) {
+        print(
+            'Found matching section: ${matchingSection.title} (id: ${matchingSection.id})');
+        currentSection.value = matchingSection;
+        _filterArchivesBySection();
+        print('✅ Re-applied section filter successfully');
+      } else {
+        print('❌ No matching section found for id: ${previousSection.id}');
+      }
+    } else {
+      print('No previous section to re-apply (showing all)');
+    }
+
+    print('========== toggleSort END ==========');
+    print('Final archivesList count: ${archivesList.length}');
+    print('Final currentSection: ${currentSection.value?.title}');
+    print('====================================');
   }
 
   episodicButton() async {

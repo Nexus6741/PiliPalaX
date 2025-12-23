@@ -43,6 +43,7 @@ class VideoCardHMember extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     return Stack(
+                      clipBehavior: Clip.none,
                       children: [
                         Hero(
                           tag: heroTag,
@@ -53,35 +54,25 @@ class VideoCardHMember extends StatelessWidget {
                           ),
                         ),
                         // 充电视频或合作视频标识（右上角）
-                        Builder(builder: (context) {
-                          String? badge;
-                          String badgeType = 'primary';
-
-                          // 判断是否为充电视频
-                          if (videoItem.ugcPay != null &&
-                              videoItem.ugcPay! > 0) {
-                            badge = '充电专属';
-                            badgeType = 'error';
-                          }
-                          // 判断是否为合作视频（优先级低于充电视频）
-                          else if (videoItem.isCooperation == true) {
-                            badge = '合作';
-                            badgeType = 'primary';
-                          }
-
-                          if (badge != null) {
-                            return Positioned(
-                              top: 6,
-                              right: 6,
-                              child: PBadge(
-                                text: badge,
-                                type: badgeType,
-                              ),
-                            );
-                          }
-                          return const SizedBox();
-                        }),
-                        // 时长
+                        if (videoItem.ugcPay != null && videoItem.ugcPay! > 0)
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: PBadge(
+                              text: '充电专属',
+                              type: 'error',
+                            ),
+                          )
+                        else if (videoItem.isCooperation == true)
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: PBadge(
+                              text: '合作',
+                              type: 'primary',
+                            ),
+                          ),
+                        // 时长（右下角）
                         if (videoItem.duration > 0)
                           Positioned(
                             right: 6,

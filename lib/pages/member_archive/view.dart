@@ -108,8 +108,11 @@ class _MemberArchivePageState extends State<MemberArchivePage> {
                   () => TextButton.icon(
                     icon: const Icon(Icons.sort, size: 20),
                     onPressed: _memberArchivesController.toggleSort,
-                    label:
-                        Text(_memberArchivesController.currentOrder['label']!),
+                    label: Text(_memberArchivesController.type == 'video'
+                        ? _memberArchivesController.currentOrder['label']!
+                        : (_memberArchivesController.currentSort.value == 'desc'
+                            ? '默认'
+                            : '倒序')),
                   ),
                 ),
               ]),
