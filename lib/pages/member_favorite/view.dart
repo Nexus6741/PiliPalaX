@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:PiliPalaX/common/constants.dart';
 import 'package:PiliPalaX/common/widgets/http_error.dart';
 import 'package:PiliPalaX/models/space_fav/space_fav_data.dart';
 import 'package:PiliPalaX/pages/member_favorite/controller.dart';
 import 'package:PiliPalaX/pages/member_favorite/widgets/fav_item.dart';
 import 'package:PiliPalaX/utils/grid.dart';
+import 'package:PiliPalaX/utils/storage.dart';
 
 class MemberFavoritePage extends StatefulWidget {
   const MemberFavoritePage({
@@ -24,6 +26,8 @@ class MemberFavoritePage extends StatefulWidget {
 class _MemberFavoritePageState extends State<MemberFavoritePage>
     with AutomaticKeepAliveClientMixin {
   late MemberFavoriteController _controller;
+  late bool enableGradientBg;
+  Box setting = GStorage.setting;
 
   @override
   bool get wantKeepAlive => true;
@@ -43,6 +47,8 @@ class _MemberFavoritePageState extends State<MemberFavoritePage>
       MemberFavoriteController(mid: widget.mid),
       tag: widget.heroTag ?? 'member_favorite_${widget.mid}',
     );
+    enableGradientBg =
+        setting.get(SettingBoxKey.enableGradientBg, defaultValue: true);
   }
 
   @override
@@ -142,7 +148,9 @@ class _MemberFavoritePageState extends State<MemberFavoritePage>
         // 标题栏
         SliverToBoxAdapter(
           child: Material(
-            color: theme.colorScheme.surface,
+            color: enableGradientBg
+                ? Colors.transparent
+                : theme.colorScheme.surface,
             child: InkWell(
               onTap: onToggle,
               child: Container(

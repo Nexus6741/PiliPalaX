@@ -132,7 +132,7 @@ class _StyleSettingState extends State<StyleSetting> {
             needReboot: true,
           ),
           const SetSwitchItem(
-            title: '首页背景渐变',
+            title: '背景渐变',
             setKey: SettingBoxKey.enableGradientBg,
             leading: Icon(Icons.gradient_outlined),
             defaultVal: true,

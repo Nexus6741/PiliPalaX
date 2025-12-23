@@ -57,10 +57,18 @@ class UserInfoCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isLight = colorScheme.isLight;
     final isPortrait = context.width < 600;
+    final topPadding = MediaQuery.viewPaddingOf(context).top;
 
-    return isPortrait
-        ? _buildV(context, colorScheme, isLight)
-        : _buildH(context, colorScheme, isLight);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 顶部安全区域
+        SizedBox(height: topPadding),
+        isPortrait
+            ? _buildV(context, colorScheme, isLight)
+            : _buildH(context, colorScheme, isLight),
+      ],
+    );
   }
 
   // 统计数据组件

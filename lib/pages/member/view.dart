@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'package:hive/hive.dart';
 import 'package:PiliPalaX/pages/member/index.dart';
 import 'package:PiliPalaX/utils/utils.dart';
+import 'package:PiliPalaX/utils/storage.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
+import 'package:PiliPalaX/common/widgets/dynamic_sliver_appbar.dart';
 
 import '../member_dynamics/view.dart';
 import '../member_seasons_and_series/view.dart';
@@ -29,6 +33,8 @@ class _MemberPageState extends State<MemberPage>
   late String heroTag;
   late MemberController _memberController;
   late int mid;
+  late bool enableGradientBg;
+  Box setting = GStorage.setting;
 
   @override
   void initState() {
@@ -36,50 +42,72 @@ class _MemberPageState extends State<MemberPage>
     mid = int.parse(Get.parameters['mid']!);
     heroTag = Get.arguments?['heroTag'] ?? Utils.makeHeroTag(mid);
     _memberController = Get.put(MemberController(mid: mid), tag: heroTag);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+    enableGradientBg =
+        setting.get(SettingBoxKey.enableGradientBg, defaultValue: true);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      primary: true,
-      appBar: AppBar(
-        actions: _buildActions(context),
-      ),
-      body: Obx(() {
-        // 加载中
-        if (_memberController.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        // 加载失败
-        if (_memberController.errorMsg.value.isNotEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(_memberController.errorMsg.value),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => _memberController.refresh(),
-                  child: const Text('重试'),
+      extendBodyBehindAppBar: false,
+      body: Stack(
+        children: [
+          // gradient background
+          if (enableGradientBg)
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.6,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                        Theme.of(context)
+                            .colorScheme
+                            .primaryContainer
+                            .withOpacity(0.6),
+                        Theme.of(context).colorScheme.surface
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: const [0.1, 0.4, 0.7],
+                    ),
+                  ),
                 ),
-              ],
+              ),
             ),
-          );
-        }
+          Obx(() {
+            // 加载中
+            if (_memberController.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        // 数据为空
-        if (_memberController.spaceData.value == null) {
-          return const Center(child: Text('暂无数据'));
-        }
+            // 加载失败
+            if (_memberController.errorMsg.value.isNotEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(_memberController.errorMsg.value),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => _memberController.refresh(),
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+              );
+            }
 
-        return _buildContent(context);
-      }),
+            // 数据为空
+            if (_memberController.spaceData.value == null) {
+              return const Center(child: Text('暂无数据'));
+            }
+
+            return _buildContent(context);
+          }),
+        ],
+      ),
     );
   }
 
@@ -126,13 +154,20 @@ class _MemberPageState extends State<MemberPage>
     // 获取支持的Tab列表
     final tabs = _getSupportedTabs();
 
-    return NestedScrollView(
-      floatHeaderSlivers: false,
+    return ExtendedNestedScrollView(
+      onlyOneScrollInBody: true,
+      pinnedHeaderSliverHeightBuilder: () =>
+          kToolbarHeight + MediaQuery.viewPaddingOf(context).top,
       headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
         return <Widget>[
-          // 用户信息卡片
-          SliverToBoxAdapter(
-            child: Obx(() => UserInfoCard(
+          // 动态高度的 SliverAppBar
+          DynamicSliverAppBar(
+            pinned: true,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            title: Obx(() => Text(_memberController.card?.name ?? '')),
+            actions: _buildActions(context),
+            flexibleSpace: Obx(() => UserInfoCard(
                   isOwner: _memberController.ownerMid == mid,
                   card: card,
                   images: images,
@@ -142,32 +177,44 @@ class _MemberPageState extends State<MemberPage>
                   silence: spaceData.silence,
                 )),
           ),
+        ];
+      },
+      body: Column(
+        children: [
           // Tab栏
           if (tabs.isNotEmpty)
-            SliverPersistentHeader(
-              delegate: _MySliverPersistentHeaderDelegate(
-                child: ColoredBox(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  child: TabBar(
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 15),
-                    tabAlignment: TabAlignment.center,
-                    isScrollable: true,
-                    tabs: tabs.map((tab) => Tab(text: tab['title'])).toList(),
-                    controller: _memberController.tabController,
+            Container(
+              height: 45,
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color:
+                        Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                    width: 1,
                   ),
                 ),
               ),
-              pinned: true,
+              child: TabBar(
+                labelPadding: const EdgeInsets.symmetric(horizontal: 15),
+                tabAlignment: TabAlignment.center,
+                isScrollable: true,
+                dividerColor: Colors.transparent,
+                tabs: tabs.map((tab) => Tab(text: tab['title'])).toList(),
+                controller: _memberController.tabController,
+              ),
             ),
-        ];
-      },
-      body: tabs.isEmpty
-          ? const Center(child: Text('暂无内容'))
-          : TabBarView(
-              physics: const CustomTabBarViewScrollPhysics(),
-              controller: _memberController.tabController,
-              children: tabs.map((tab) => _buildTabContent(tab)).toList(),
-            ),
+          // TabBarView
+          Expanded(
+            child: tabs.isEmpty
+                ? const Center(child: Text('暂无内容'))
+                : TabBarView(
+                    physics: const CustomTabBarViewScrollPhysics(),
+                    controller: _memberController.tabController,
+                    children: tabs.map((tab) => _buildTabContent(tab)).toList(),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -423,30 +470,5 @@ class _MemberPageState extends State<MemberPage>
         ],
       ),
     ];
-  }
-}
-
-class _MySliverPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double _minExtent = 40;
-  final double _maxExtent = 40;
-  final Widget child;
-
-  _MySliverPersistentHeaderDelegate({required this.child});
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return child;
-  }
-
-  @override
-  double get maxExtent => _maxExtent;
-
-  @override
-  double get minExtent => _minExtent;
-
-  @override
-  bool shouldRebuild(covariant _MySliverPersistentHeaderDelegate oldDelegate) {
-    return false;
   }
 }
