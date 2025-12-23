@@ -149,7 +149,8 @@ class ListSheetContent extends StatefulWidget {
   State<ListSheetContent> createState() => _ListSheetContentState();
 }
 
-class _ListSheetContentState extends State<ListSheetContent> {
+class _ListSheetContentState extends State<ListSheetContent>
+    with SingleTickerProviderStateMixin {
   final ItemScrollController itemScrollController = ItemScrollController();
   late int currentIndex;
   bool reverse = false;
@@ -163,6 +164,9 @@ class _ListSheetContentState extends State<ListSheetContent> {
   // 订阅状态
   bool isSubscribed = false;
   bool isSubscribing = false;
+
+  // TabController for section tabs
+  TabController? _tabController;
 
   @override
   void initState() {
@@ -191,6 +195,14 @@ class _ListSheetContentState extends State<ListSheetContent> {
         }
       }
       displayEpisodes = allSections![currentSectionIndex].episodes!;
+
+      // 初始化TabController
+      _tabController = TabController(
+        length: allSections!.length,
+        vsync: this,
+        initialIndex: currentSectionIndex,
+      );
+      _tabController!.addListener(_handleTabChange);
     } else {
       displayEpisodes = widget.episodes!;
     }
@@ -213,6 +225,19 @@ class _ListSheetContentState extends State<ListSheetContent> {
         itemScrollController.jumpTo(index: currentIndex);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController?.removeListener(_handleTabChange);
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  // 处理Tab切换
+  void _handleTabChange() {
+    if (_tabController == null || !_tabController!.indexIsChanging) return;
+    _changeSection(_tabController!.index);
   }
 
   // 检查订阅状态（确保与服务器同步）
@@ -260,13 +285,8 @@ class _ListSheetContentState extends State<ListSheetContent> {
     setState(() {
       currentSectionIndex = index;
       displayEpisodes = allSections![index].episodes!;
-      // 重新定位到第一个
+      // 更新当前索引为该section中的第一个
       currentIndex = 0;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (itemScrollController.isAttached) {
-          itemScrollController.jumpTo(index: 0);
-        }
-      });
     });
   }
 
@@ -666,6 +686,12 @@ class _ListSheetContentState extends State<ListSheetContent> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // 如果有多个sections，使用TabBarView
+    final bool hasMultipleSections = allSections != null &&
+        allSections!.length > 1 &&
+        _tabController != null;
+
     return Container(
       height: Utils.getSheetHeight(context),
       color: theme.colorScheme.surface,
@@ -678,7 +704,9 @@ class _ListSheetContentState extends State<ListSheetContent> {
             child: Row(
               children: [
                 Text(
-                  '合集（${displayEpisodes.length}）',
+                  hasMultipleSections
+                      ? '合集（${allSections!.fold<int>(0, (sum, section) => sum + (section.episodes?.length ?? 0))}）'
+                      : '合集（${displayEpisodes.length}）',
                   style: theme.textTheme.titleMedium,
                 ),
                 // 订阅按钮（仅合集显示）
@@ -706,38 +734,42 @@ class _ListSheetContentState extends State<ListSheetContent> {
                   icon: const Icon(Icons.my_location, size: 20),
                   onPressed: _locateCurrentPlaying,
                 ),
-                IconButton(
-                  tooltip: '跳至顶部',
-                  icon: const Icon(Icons.vertical_align_top, size: 20),
-                  onPressed: () {
-                    itemScrollController.scrollTo(
-                      index: !reverse ? 0 : displayEpisodes.length - 1,
-                      duration: const Duration(milliseconds: 200),
-                    );
-                  },
-                ),
-                IconButton(
-                  tooltip: '跳至底部',
-                  icon: const Icon(Icons.vertical_align_bottom, size: 20),
-                  onPressed: () {
-                    itemScrollController.scrollTo(
-                      index: !reverse ? displayEpisodes.length - 1 : 0,
-                      duration: const Duration(milliseconds: 200),
-                    );
-                  },
-                ),
-                IconButton(
-                  tooltip: '反序',
-                  icon: Icon(
-                    !reverse ? MdiIcons.sortAscending : MdiIcons.sortDescending,
-                    size: 20,
+                if (!hasMultipleSections) ...[
+                  IconButton(
+                    tooltip: '跳至顶部',
+                    icon: const Icon(Icons.vertical_align_top, size: 20),
+                    onPressed: () {
+                      itemScrollController.scrollTo(
+                        index: !reverse ? 0 : displayEpisodes.length - 1,
+                        duration: const Duration(milliseconds: 200),
+                      );
+                    },
                   ),
-                  onPressed: () {
-                    setState(() {
-                      reverse = !reverse;
-                    });
-                  },
-                ),
+                  IconButton(
+                    tooltip: '跳至底部',
+                    icon: const Icon(Icons.vertical_align_bottom, size: 20),
+                    onPressed: () {
+                      itemScrollController.scrollTo(
+                        index: !reverse ? displayEpisodes.length - 1 : 0,
+                        duration: const Duration(milliseconds: 200),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    tooltip: '反序',
+                    icon: Icon(
+                      !reverse
+                          ? MdiIcons.sortAscending
+                          : MdiIcons.sortDescending,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        reverse = !reverse;
+                      });
+                    },
+                  ),
+                ],
                 IconButton(
                   tooltip: '关闭',
                   icon: const Icon(Icons.close, size: 20),
@@ -750,11 +782,10 @@ class _ListSheetContentState extends State<ListSheetContent> {
             height: 1,
             color: theme.dividerColor.withValues(alpha: 0.1),
           ),
-          // Section Tab（如果有多个sections）- 放在标题栏下方
-          if (allSections != null && allSections!.length > 1)
+          // Section Tab（如果有多个sections）- 使用TabBar实现可滑动切换
+          if (hasMultipleSections)
             Container(
               height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 border: Border(
@@ -764,66 +795,115 @@ class _ListSheetContentState extends State<ListSheetContent> {
                   ),
                 ),
               ),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: allSections!.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final section = allSections![index];
-                  final isSelected = index == currentSectionIndex;
-                  return Material(
-                    color: isSelected
-                        ? theme.colorScheme.secondaryContainer
-                        : theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(20),
-                      onTap: () => _changeSection(index),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Center(
-                          child: Text(
-                            section.title ?? '分组${index + 1}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isSelected
-                                  ? theme.colorScheme.onSecondaryContainer
-                                  : theme.colorScheme.outline,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          Expanded(
-            child: Material(
-              child: ScrollablePositionedList.separated(
-                padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).padding.bottom + 20),
-                reverse: reverse,
-                itemCount: displayEpisodes.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return buildEpisodeListItem(
-                    displayEpisodes[index],
-                    index,
-                    currentIndex == index,
-                  );
-                },
-                itemScrollController: itemScrollController,
-                separatorBuilder: (_, index) => Divider(
-                  height: 1,
-                  color: theme.dividerColor.withValues(alpha: 0.1),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: theme.colorScheme.primary,
+                indicatorWeight: 3,
+                labelColor: theme.colorScheme.primary,
+                unselectedLabelColor: theme.colorScheme.outline,
+                labelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                ),
+                tabs: allSections!.map((section) {
+                  return Tab(
+                    text: section.title ??
+                        '分组${allSections!.indexOf(section) + 1}',
+                  );
+                }).toList(),
               ),
             ),
+          // 内容区域
+          Expanded(
+            child: hasMultipleSections
+                ? _buildTabBarView(theme)
+                : _buildSingleList(theme),
           ),
         ],
+      ),
+    );
+  }
+
+  // 构建TabBarView（多个sections时使用）
+  Widget _buildTabBarView(ThemeData theme) {
+    return TabBarView(
+      controller: _tabController,
+      children: allSections!.map((section) {
+        final episodes = section.episodes ?? [];
+        final sectionIndex = allSections!.indexOf(section);
+
+        // 为每个section创建独立的ScrollController
+        final scrollController = ItemScrollController();
+
+        // 如果是当前section，需要定位到当前播放的视频
+        if (sectionIndex == currentSectionIndex) {
+          final currentIdx = episodes.indexWhere((e) =>
+              e.cid == widget.currentCid ||
+              e.bvid == widget.bvid ||
+              e.aid == widget.aid);
+
+          if (currentIdx != -1) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (scrollController.isAttached) {
+                scrollController.jumpTo(index: currentIdx);
+              }
+            });
+          }
+        }
+
+        return Material(
+          child: ScrollablePositionedList.separated(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom + 20),
+            itemCount: episodes.length,
+            itemBuilder: (BuildContext context, int index) {
+              final isCurrentIndex = sectionIndex == currentSectionIndex &&
+                  (episodes[index].cid == widget.currentCid ||
+                      episodes[index].bvid == widget.bvid ||
+                      episodes[index].aid == widget.aid);
+              return buildEpisodeListItem(
+                episodes[index],
+                index,
+                isCurrentIndex,
+              );
+            },
+            itemScrollController: scrollController,
+            separatorBuilder: (_, index) => Divider(
+              height: 1,
+              color: theme.dividerColor.withValues(alpha: 0.1),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // 构建单个列表（单个section或无section时使用）
+  Widget _buildSingleList(ThemeData theme) {
+    return Material(
+      child: ScrollablePositionedList.separated(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 20),
+        reverse: reverse,
+        itemCount: displayEpisodes.length,
+        itemBuilder: (BuildContext context, int index) {
+          return buildEpisodeListItem(
+            displayEpisodes[index],
+            index,
+            currentIndex == index,
+          );
+        },
+        itemScrollController: itemScrollController,
+        separatorBuilder: (_, index) => Divider(
+          height: 1,
+          color: theme.dividerColor.withValues(alpha: 0.1),
+        ),
       ),
     );
   }

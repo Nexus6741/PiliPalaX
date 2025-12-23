@@ -228,27 +228,103 @@ class VideoDetailController extends GetxController
   }
 
   showReplyReplyPanel() {
-    replyReplyBottomSheetCtr =
-        scaffoldKey.currentState?.showBottomSheet((BuildContext context) {
-      // SmartDialog.show(
-      //     alignment: Alignment.bottomRight,
-      //     builder: (context) {
-      return VideoReplyReplyPanel(
-        oid: oid.value,
-        rpid: fRpid,
-        closePanel: () => {
-          fRpid = 0,
+    // 检查是否为横屏
+    final context = Get.context!;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    if (isLandscape) {
+      // 横屏：使用侧边栏
+      // 计算侧边栏宽度，需要根据不同的布局模式计算
+      final double screenHeight = MediaQuery.of(context).size.height;
+      final double screenWidth = MediaQuery.of(context).size.width;
+      final double topPadding = MediaQuery.of(context).padding.top;
+      final double leftPadding = MediaQuery.of(context).padding.left;
+      final double rightPadding = MediaQuery.of(context).padding.right;
+
+      double sidePanelWidth;
+
+      // 检查是否为竖屏扩大展示模式
+      final bool enableVerticalExpand =
+          setting.get(SettingBoxKey.enableVerticalExpand, defaultValue: false);
+      final bool isVerticalVideo =
+          plPlayerController?.direction.value == 'vertical';
+
+      if (enableVerticalExpand && isVerticalVideo) {
+        // 第一种布局：竖屏扩大展示 - 简介和评论在视频两侧
+        final double videoHeight = screenHeight - topPadding;
+        final double videoWidth = videoHeight * 9 / 16;
+        sidePanelWidth = (screenWidth - videoWidth) / 2;
+      } else {
+        // 第二种布局：普通横屏 - 评论在右侧，简介在下方
+        final double videoWidth =
+            (screenHeight / screenWidth * 1.04).clamp(1 / 2, 1.0) * screenWidth;
+        sidePanelWidth = screenWidth - videoWidth - leftPadding - rightPadding;
+      }
+
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: 'Dismiss',
+        barrierColor: Colors.transparent,
+        transitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Align(
+            alignment: Alignment.centerRight,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: sidePanelWidth,
+                color: Colors.black.withOpacity(0.8),
+                child: VideoReplyReplyPanel(
+                  oid: oid.value,
+                  rpid: fRpid,
+                  closePanel: () => {
+                    fRpid = 0,
+                    Navigator.of(context).pop(),
+                  },
+                  firstFloor: firstFloor,
+                  replyType: ReplyType.video,
+                  source: 'videoDetail',
+                  id: targetReplyRpid,
+                ),
+              ),
+            ),
+          );
         },
-        firstFloor: firstFloor,
-        replyType: ReplyType.video,
-        source: 'videoDetail',
-        id: targetReplyRpid,
-      );
-    });
-    replyReplyBottomSheetCtr?.closed.then((value) {
-      fRpid = 0;
-      targetReplyRpid = null;
-    });
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween(begin: const Offset(1, 0), end: Offset.zero)
+                .animate(CurvedAnimation(
+                    parent: animation, curve: Curves.fastOutSlowIn)),
+            child: child,
+          );
+        },
+      ).then((value) {
+        fRpid = 0;
+        targetReplyRpid = null;
+      });
+    } else {
+      // 竖屏：使用底部弹窗
+      replyReplyBottomSheetCtr =
+          scaffoldKey.currentState?.showBottomSheet((BuildContext context) {
+        return VideoReplyReplyPanel(
+          oid: oid.value,
+          rpid: fRpid,
+          closePanel: () => {
+            fRpid = 0,
+          },
+          firstFloor: firstFloor,
+          replyType: ReplyType.video,
+          source: 'videoDetail',
+          id: targetReplyRpid,
+        );
+      });
+      replyReplyBottomSheetCtr?.closed.then((value) {
+        fRpid = 0;
+        targetReplyRpid = null;
+      });
+    }
   }
 
   /// 更新画质、音质

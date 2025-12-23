@@ -80,9 +80,13 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Container(
-      height:
-          widget.source == 'videoDetail' ? Utils.getSheetHeight(context) : null,
+      height: widget.source == 'videoDetail' && !isLandscape
+          ? Utils.getSheetHeight(context)
+          : null,
       color: Theme.of(context).colorScheme.surface,
       child: Column(
         children: [
@@ -100,7 +104,13 @@ class _VideoReplyReplyPanelState extends State<VideoReplyReplyPanel> {
                     onPressed: () {
                       _ctrl.currentPage = 0;
                       widget.closePanel!();
-                      Navigator.pop(context);
+                      if (isLandscape) {
+                        // 横屏时需要手动关闭dialog
+                        // Navigator.pop已在closePanel中调用
+                      } else {
+                        // 竖屏时关闭bottomSheet
+                        Navigator.pop(context);
+                      }
                     },
                   ),
                 ],

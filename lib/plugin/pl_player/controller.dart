@@ -997,7 +997,7 @@ class PlPlayerController {
             SmartDialog.showToast('无法加载解码器, $event，可能会切换至软解');
             return;
           }
-          SmartDialog.showToast('视频加载错误, $event');
+          SmartDialog.showToast('视频加载错误，请稍等或切换网络重试');
         }),
         // videoPlayerController!.stream.volume.listen((event) {
         //   if (!mute.value && _volumeBeforeMute != event) {
@@ -1897,7 +1897,8 @@ class PlPlayerController {
     Map res = await VideoHttp.subtitlesJson(bvid: _bvid, cid: _cid);
     if (serviceId != null && serviceId != _currentServiceId) return;
     if (!res["status"]) {
-      SmartDialog.showToast('查询字幕错误，${res["msg"]}');
+      // SmartDialog.showToast('查询字幕错误，${res["msg"]}');
+      SmartDialog.showToast('查询字幕错误');
     }
     if (res["data"].length == 0) {
       return;
