@@ -581,7 +581,7 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               semanticLabel: "加载中",
             ),
             const Text(
-              'Buffering...',
+              '加载中...',
               style: TextStyle(color: Colors.white, fontSize: 12),
               semanticsLabel: '',
             ),
