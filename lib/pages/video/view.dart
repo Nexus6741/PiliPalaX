@@ -796,8 +796,6 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             Positioned.fill(
                               child: VideoHero(
                                 tag: heroTag,
-                                width: videoWidth,
-                                height: videoHeight,
                                 // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                                 child: NetworkImgLayer(
                                   key: ValueKey(
@@ -833,13 +831,58 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                       duration:
                                           const Duration(milliseconds: 300),
                                       curve: Curves.easeOut,
-                                      child: NetworkImgLayer(
-                                        key: ValueKey(videoDetailController
-                                            .videoItem['pic']),
-                                        src: videoDetailController
-                                            .videoItem['pic'],
-                                        width: videoWidth,
-                                        height: videoHeight,
+                                      child: Stack(
+                                        children: [
+                                          // 封面图片
+                                          NetworkImgLayer(
+                                            key: ValueKey(videoDetailController
+                                                .videoItem['pic']),
+                                            src: videoDetailController
+                                                .videoItem['pic'],
+                                            width: videoWidth,
+                                            height: videoHeight,
+                                          ),
+                                          // 🔥 修复：加载中提示显示在封面之上
+                                          if (plPlayerController == null ||
+                                              plPlayerController!
+                                                      .videoController ==
+                                                  null ||
+                                              !(plPlayerController!
+                                                  .isVideoLoaded.value))
+                                            Center(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(30),
+                                                decoration: const BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  gradient: RadialGradient(
+                                                    colors: [
+                                                      Colors.black26,
+                                                      Colors.transparent
+                                                    ],
+                                                  ),
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Image.asset(
+                                                      'assets/images/loading.gif',
+                                                      height: 25,
+                                                      semanticLabel: "加载中",
+                                                    ),
+                                                    const Text(
+                                                      '加载中...',
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12),
+                                                      semanticsLabel: '',
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -1008,8 +1051,6 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   Positioned.fill(
                     child: VideoHero(
                       tag: heroTag,
-                      width: videoWidth,
-                      height: videoHeight,
                       // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                       child: NetworkImgLayer(
                         key: ValueKey(videoDetailController.videoItem['pic']),
@@ -1041,12 +1082,53 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                 : 1.0,
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOut,
-                            child: NetworkImgLayer(
-                              key: ValueKey(
-                                  videoDetailController.videoItem['pic']),
-                              src: videoDetailController.videoItem['pic'],
-                              width: videoWidth,
-                              height: videoHeight,
+                            child: Stack(
+                              children: [
+                                // 封面图片
+                                NetworkImgLayer(
+                                  key: ValueKey(
+                                      videoDetailController.videoItem['pic']),
+                                  src: videoDetailController.videoItem['pic'],
+                                  width: videoWidth,
+                                  height: videoHeight,
+                                ),
+                                // 🔥 修复：加载中提示显示在封面之上
+                                if (plPlayerController == null ||
+                                    plPlayerController!.videoController ==
+                                        null ||
+                                    !(plPlayerController!.isVideoLoaded.value))
+                                  Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(30),
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: RadialGradient(
+                                          colors: [
+                                            Colors.black26,
+                                            Colors.transparent
+                                          ],
+                                        ),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Image.asset(
+                                            'assets/images/loading.gif',
+                                            height: 25,
+                                            semanticLabel: "加载中",
+                                          ),
+                                          const Text(
+                                            '加载中...',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12),
+                                            semanticsLabel: '',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
@@ -1211,12 +1293,52 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                   : 1.0,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeOut,
-                          child: NetworkImgLayer(
-                            key: ValueKey(
-                                videoDetailController.videoItem['pic']),
-                            src: videoDetailController.videoItem['pic'],
-                            width: videoWidth,
-                            height: videoHeight,
+                          child: Stack(
+                            children: [
+                              // 封面图片
+                              NetworkImgLayer(
+                                key: ValueKey(
+                                    videoDetailController.videoItem['pic']),
+                                src: videoDetailController.videoItem['pic'],
+                                width: videoWidth,
+                                height: videoHeight,
+                              ),
+                              // 🔥 修复：加载中提示显示在封面之上
+                              if (plPlayerController == null ||
+                                  plPlayerController!.videoController == null ||
+                                  !(plPlayerController!.isVideoLoaded.value))
+                                Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(30),
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: RadialGradient(
+                                        colors: [
+                                          Colors.black26,
+                                          Colors.transparent
+                                        ],
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Image.asset(
+                                          'assets/images/loading.gif',
+                                          height: 25,
+                                          semanticLabel: "加载中",
+                                        ),
+                                        const Text(
+                                          '加载中...',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12),
+                                          semanticsLabel: '',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ),
@@ -1385,8 +1507,6 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     Positioned.fill(
                       child: VideoHero(
                         tag: heroTag,
-                        width: videoWidth,
-                        height: videoHeight,
                         // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                         child: NetworkImgLayer(
                           key: ValueKey(videoDetailController.videoItem['pic']),
@@ -1419,12 +1539,54 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                       : 1.0,
                               duration: const Duration(milliseconds: 300),
                               curve: Curves.easeOut,
-                              child: NetworkImgLayer(
-                                key: ValueKey(
-                                    videoDetailController.videoItem['pic']),
-                                src: videoDetailController.videoItem['pic'],
-                                width: videoWidth,
-                                height: videoHeight,
+                              child: Stack(
+                                children: [
+                                  // 封面图片
+                                  NetworkImgLayer(
+                                    key: ValueKey(
+                                        videoDetailController.videoItem['pic']),
+                                    src: videoDetailController.videoItem['pic'],
+                                    width: videoWidth,
+                                    height: videoHeight,
+                                  ),
+                                  // 🔥 修复：加载中提示显示在封面之上
+                                  if (plPlayerController == null ||
+                                      plPlayerController!.videoController ==
+                                          null ||
+                                      !(plPlayerController!
+                                          .isVideoLoaded.value))
+                                    Center(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(30),
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: RadialGradient(
+                                            colors: [
+                                              Colors.black26,
+                                              Colors.transparent
+                                            ],
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Image.asset(
+                                              'assets/images/loading.gif',
+                                              height: 25,
+                                              semanticLabel: "加载中",
+                                            ),
+                                            const Text(
+                                              '加载中...',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12),
+                                              semanticsLabel: '',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ),
@@ -1551,8 +1713,6 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       Positioned.fill(
                         child: VideoHero(
                           tag: heroTag,
-                          width: videoWidth,
-                          height: videoHeight,
                           // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
                           child: NetworkImgLayer(
                             key: ValueKey(
@@ -1587,12 +1747,55 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                                         : 1.0,
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeOut,
-                                child: NetworkImgLayer(
-                                  key: ValueKey(
-                                      videoDetailController.videoItem['pic']),
-                                  src: videoDetailController.videoItem['pic'],
-                                  width: videoWidth,
-                                  height: videoHeight,
+                                child: Stack(
+                                  children: [
+                                    // 封面图片
+                                    NetworkImgLayer(
+                                      key: ValueKey(videoDetailController
+                                          .videoItem['pic']),
+                                      src: videoDetailController
+                                          .videoItem['pic'],
+                                      width: videoWidth,
+                                      height: videoHeight,
+                                    ),
+                                    // 🔥 修复：加载中提示显示在封面之上
+                                    if (plPlayerController == null ||
+                                        plPlayerController!.videoController ==
+                                            null ||
+                                        !(plPlayerController!
+                                            .isVideoLoaded.value))
+                                      Center(
+                                        child: Container(
+                                          padding: const EdgeInsets.all(30),
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: RadialGradient(
+                                              colors: [
+                                                Colors.black26,
+                                                Colors.transparent
+                                              ],
+                                            ),
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Image.asset(
+                                                'assets/images/loading.gif',
+                                                height: 25,
+                                                semanticLabel: "加载中",
+                                              ),
+                                              const Text(
+                                                '加载中...',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12),
+                                                semanticsLabel: '',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),
