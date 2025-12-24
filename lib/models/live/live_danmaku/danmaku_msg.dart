@@ -69,10 +69,36 @@ class DanmakuMsg {
   });
 
   factory DanmakuMsg.fromPrefetch(Map<String, dynamic> json) {
+    Map<String, BaseEmote>? emoteMap;
+    BaseEmote? uemote;
+
+    // 解析表情信息
+    if (json['emots'] != null && json['emots'] is Map) {
+      try {
+        emoteMap = (json['emots'] as Map).map(
+          (key, value) => MapEntry(
+            key.toString(),
+            BaseEmote.fromJson(Map<String, dynamic>.from(value as Map)),
+          ),
+        );
+      } catch (_) {}
+    }
+
+    // 解析第三方表情（大表情）
+    if (json['uemote'] != null && json['uemote'] is Map) {
+      try {
+        uemote = BaseEmote.fromJson(
+          Map<String, dynamic>.from(json['uemote'] as Map),
+        );
+      } catch (_) {}
+    }
+
     return DanmakuMsg(
       name: json['nickname'] as String?,
       uid: json['uid'] as int?,
       text: json['text'] as String?,
+      emots: emoteMap,
+      uemote: uemote,
     );
   }
 }

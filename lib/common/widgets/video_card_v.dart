@@ -40,10 +40,6 @@ class VideoCardV extends StatelessWidget {
     // print("goto $goto");
     switch (goto) {
       case 'bangumi':
-        if (videoItem.bangumiBadge == '电影') {
-          SmartDialog.showToast('暂不支持电影观看');
-          return;
-        }
         int epId = videoItem.param;
         SmartDialog.showLoading(msg: '资源获取中');
         var result = await SearchHttp.bangumiInfo(seasonId: null, epId: epId);
@@ -53,12 +49,20 @@ class VideoCardV extends StatelessWidget {
           int cid = bangumiDetail.episodes!.first.cid;
           String bvid = IdUtils.av2bv(bangumiDetail.episodes!.first.aid);
           String bangumiHeroTag = Utils.makeHeroTag(bangumiDetail.seasonId);
+          // 根据类型判断是番剧还是影视
+          SearchType videoType = SearchType.media_bangumi;
+          if (videoItem.bangumiBadge == '电影' ||
+              videoItem.bangumiBadge == '电视剧' ||
+              videoItem.bangumiBadge == '纪录片' ||
+              videoItem.bangumiBadge == '综艺') {
+            videoType = SearchType.media_ft;
+          }
           Get.toNamed(
             '/video?bvid=$bvid&cid=$cid&seasonId=${bangumiDetail.seasonId}&epId=$epId',
             arguments: {
               'pic': videoItem.pic,
               'heroTag': bangumiHeroTag,
-              'videoType': SearchType.media_bangumi,
+              'videoType': videoType,
               'bangumiItem': bangumiDetail,
             },
           );
