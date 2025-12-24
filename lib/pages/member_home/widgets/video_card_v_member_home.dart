@@ -16,9 +16,11 @@ class VideoCardVMemberHome extends StatelessWidget {
   const VideoCardVMemberHome({
     super.key,
     required this.videoItem,
+    this.useTransparentBg = false,
   });
 
   final SpaceArchiveItem videoItem;
+  final bool useTransparentBg;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,9 @@ class VideoCardVMemberHome extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.hardEdge,
+      color: useTransparentBg
+          ? Theme.of(context).colorScheme.surface.withOpacity(0.4)
+          : null,
       child: InkWell(
         onTap: () => _onTap(heroTag),
         onLongPress: () {

@@ -89,6 +89,7 @@ class _MemberLikePageState extends State<MemberLikePage> {
               (context, index) {
                 return VideoCardVMemberHome(
                   videoItem: _controller.likeList[index],
+                  useTransparentBg: true,
                 );
               },
               childCount: _controller.likeList.length,

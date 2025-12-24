@@ -22,6 +22,7 @@ class PgcCardVMemberBangumi extends StatelessWidget {
 
     return Card(
       shape: const RoundedRectangleBorder(borderRadius: StyleString.mdRadius),
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: InkWell(
         borderRadius: StyleString.mdRadius,
         onTap: () {

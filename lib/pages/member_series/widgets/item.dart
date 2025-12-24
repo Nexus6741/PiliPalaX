@@ -22,6 +22,7 @@ class MemberSeriesItem extends StatelessWidget {
       elevation: 0,
       clipBehavior: Clip.hardEdge,
       margin: EdgeInsets.zero,
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
       child: InkWell(
         onTap: () async {
           int cid =

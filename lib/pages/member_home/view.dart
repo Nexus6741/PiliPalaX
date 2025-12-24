@@ -130,6 +130,7 @@ class _MemberHomePageState extends State<MemberHomePage>
               itemBuilder: (context, index) {
                 return VideoCardVMemberHome(
                   videoItem: spaceData.coinArchive!.item![index],
+                  useTransparentBg: true,
                 );
               },
               itemCount: min(
@@ -157,6 +158,7 @@ class _MemberHomePageState extends State<MemberHomePage>
               itemBuilder: (context, index) {
                 return VideoCardVMemberHome(
                   videoItem: spaceData.likeArchive!.item![index],
+                  useTransparentBg: true,
                 );
               },
               itemCount: min(

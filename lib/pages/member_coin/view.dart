@@ -89,6 +89,7 @@ class _MemberCoinPageState extends State<MemberCoinPage> {
               (context, index) {
                 return VideoCardVMemberHome(
                   videoItem: _controller.coinList[index],
+                  useTransparentBg: true,
                 );
               },
               childCount: _controller.coinList.length,
