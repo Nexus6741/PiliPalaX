@@ -31,9 +31,7 @@ import '../../../services/shutdown_timer_service.dart';
 import 'widgets/header_control.dart';
 import 'widgets/video_cover_widgets.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
-import 'package:flutter_floating/floating/floating.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class VideoDetailPage extends StatefulWidget {
   const VideoDetailPage({super.key});
@@ -564,37 +562,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
   // }
 
   Widget get plPlayer {
-    // 🔥 修复：当播放器还没准备好时，显示缓冲 logo
-    Widget buildBufferingOverlay() {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.all(30),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [Colors.black26, Colors.transparent],
-            ),
-          ),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Image.asset(
-              'assets/images/loading.gif',
-              height: 25,
-              semanticLabel: "加载中",
-            ),
-            const Text(
-              '加载中...',
-              style: TextStyle(color: Colors.white, fontSize: 12),
-              semanticsLabel: '',
-            ),
-          ]),
-        ),
-      );
-    }
-
+    // 🔥 性能优化：使用复用的 VideoLoadingIndicator Widget
     if (!_playerInitFinished) {
       // 播放器初始化未完成，显示缓冲 logo
       if (videoDetailController.autoPlay.value) {
-        return buildBufferingOverlay();
+        return const VideoLoadingIndicator();
       }
       return const SizedBox();
     }
@@ -611,10 +583,11 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     plPlayerController!.videoController == null) {
                   // 如果是自动播放模式，显示缓冲 logo
                   if (videoDetailController.autoPlay.value) {
-                    return buildBufferingOverlay();
+                    return const VideoLoadingIndicator();
                   }
                   return nil;
                 }
+                // 🔥 性能优化：移除嵌套 Obx，直接在外层 Obx 中访问响应式变量
                 return PLVideoPlayer(
                   key: Key(heroTag),
                   controller: plPlayerController!,
@@ -628,13 +601,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       ? bangumiIntroController
                       : null,
                   headerControl: videoDetailController.headerControl,
-                  danmuWidget: Obx(
-                    () => PlDanmaku(
-                      key: Key(
-                          videoDetailController.danmakuCid.value.toString()),
-                      cid: videoDetailController.danmakuCid.value,
-                      playerController: plPlayerController!,
-                    ),
+                  danmuWidget: PlDanmaku(
+                    key: Key(videoDetailController.danmakuCid.value.toString()),
+                    cid: videoDetailController.danmakuCid.value,
+                    playerController: plPlayerController!,
                   ),
                 );
               },
@@ -642,54 +612,59 @@ class _VideoDetailPageState extends State<VideoDetailPage>
           } else {
             // 🔥 修复：FutureBuilder 还没有数据时，显示缓冲 logo
             if (videoDetailController.autoPlay.value) {
-              return buildBufferingOverlay();
+              return const VideoLoadingIndicator();
             }
             return const SizedBox();
           }
         });
   }
 
-  Widget get manualPlayerWidget => Obx(() => Visibility(
-      visible: videoDetailController.isShowCover.value &&
-          videoDetailController.isEffective.value,
-      child: Stack(children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: AppBar(
-            primary: false,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            backgroundColor: Colors.transparent,
-            actions: [
-              IconButton(
-                tooltip: '稍后再看',
-                onPressed: () async {
-                  var res = await UserHttp.toViewLater(
-                      bvid: videoDetailController.bvid);
-                  SmartDialog.showToast(res['msg']);
-                },
-                icon: const Icon(Icons.history_outlined),
-              ),
-              const SizedBox(width: 14)
-            ],
+  // 🔥 性能优化：只在需要时才构建子 widget，避免构建不可见的 widget
+  Widget get manualPlayerWidget => Obx(() {
+        if (!videoDetailController.isShowCover.value ||
+            !videoDetailController.isEffective.value) {
+          return const SizedBox.shrink();
+        }
+
+        return Stack(children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: AppBar(
+              primary: false,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              backgroundColor: Colors.transparent,
+              actions: [
+                IconButton(
+                  tooltip: '稍后再看',
+                  onPressed: () async {
+                    var res = await UserHttp.toViewLater(
+                        bvid: videoDetailController.bvid);
+                    SmartDialog.showToast(res['msg']);
+                  },
+                  icon: const Icon(Icons.history_outlined),
+                ),
+                const SizedBox(width: 14)
+              ],
+            ),
           ),
-        ),
-        Positioned(
-          right: 12,
-          bottom: 10,
-          child: IconButton(
-              tooltip: '播放',
-              onPressed: handlePlay,
-              icon: Image.asset(
-                'assets/images/play.png',
-                width: 60,
-                height: 60,
-              )),
-        ),
-      ])));
+          Positioned(
+            right: 12,
+            bottom: 10,
+            child: IconButton(
+                tooltip: '播放',
+                onPressed: handlePlay,
+                icon: Image.asset(
+                  'assets/images/play.png',
+                  width: 60,
+                  height: 60,
+                )),
+          ),
+        ]);
+      });
 
   Widget get childWhenDisabled => SafeArea(
         top: !removeSafeArea &&
@@ -1990,38 +1965,38 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               child: childWhenDisabledAlmostSquareInner),
         ),
       );
-  Widget get childWhenEnabled => Obx(
-        () => !videoDetailController.autoPlay.value
-            ? const SizedBox()
-            : PLVideoPlayer(
-                key: Key(heroTag),
-                controller: plPlayerController!,
-                videoIntroController:
-                    videoDetailController.videoType == SearchType.video
-                        ? videoIntroController
-                        : null,
-                bangumiIntroController: videoDetailController.videoType ==
-                            SearchType.media_bangumi ||
-                        videoDetailController.videoType == SearchType.media_ft
-                    ? bangumiIntroController
-                    : null,
-                headerControl: HeaderControl(
-                  controller: plPlayerController,
-                  videoDetailCtr: videoDetailController,
-                  heroTag: heroTag,
+  // 🔥 性能优化：移除嵌套 Obx，减少监听器数量
+  Widget get childWhenEnabled => Obx(() {
+        if (!videoDetailController.autoPlay.value) {
+          return const SizedBox();
+        }
+
+        return PLVideoPlayer(
+          key: Key(heroTag),
+          controller: plPlayerController!,
+          videoIntroController:
+              videoDetailController.videoType == SearchType.video
+                  ? videoIntroController
+                  : null,
+          bangumiIntroController:
+              videoDetailController.videoType == SearchType.media_bangumi ||
+                      videoDetailController.videoType == SearchType.media_ft
+                  ? bangumiIntroController
+                  : null,
+          headerControl: HeaderControl(
+            controller: plPlayerController,
+            videoDetailCtr: videoDetailController,
+            heroTag: heroTag,
+          ),
+          danmuWidget: pipNoDanmaku
+              ? null
+              : PlDanmaku(
+                  key: Key(videoDetailController.danmakuCid.value.toString()),
+                  cid: videoDetailController.danmakuCid.value,
+                  playerController: plPlayerController!,
                 ),
-                danmuWidget: pipNoDanmaku
-                    ? null
-                    : Obx(
-                        () => PlDanmaku(
-                          key: Key(videoDetailController.danmakuCid.value
-                              .toString()),
-                          cid: videoDetailController.danmakuCid.value,
-                          playerController: plPlayerController!,
-                        ),
-                      ),
-              ),
-      );
+        );
+      });
   Widget autoChoose(Widget childWhenDisabled) {
     if (!Platform.isAndroid) {
       return childWhenDisabled;
