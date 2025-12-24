@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
@@ -29,6 +29,7 @@ import 'package:PiliPalaX/utils/storage.dart';
 
 import '../../../services/shutdown_timer_service.dart';
 import 'widgets/header_control.dart';
+import 'widgets/video_cover_widgets.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
 import 'package:flutter_floating/floating/floating.dart';
 import 'package:flutter_floating/floating/manager/floating_manager.dart';
@@ -753,8 +754,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     if (!removeSafeArea) showStatusBar();
                   }
                   return AnimatedContainer(
-                    duration: const Duration(milliseconds: 350),
+                    duration: const Duration(milliseconds: 250),
                     curve: Curves.fastOutSlowIn,
+                    clipBehavior: Clip.none,
                     color: showStatusBarBackgroundColor ? null : Colors.black,
                     height: MediaQuery.of(context).orientation ==
                                 Orientation.landscape ||
@@ -796,11 +798,10 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                             Positioned.fill(
                               child: VideoHero(
                                 tag: heroTag,
-                                // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
-                                child: NetworkImgLayer(
-                                  key: ValueKey(
-                                      videoDetailController.videoItem['pic']),
-                                  src: videoDetailController.videoItem['pic'],
+                                // 🔥 性能优化：使用复用的封面 Widget
+                                child: VideoCoverImage(
+                                  imageUrl:
+                                      videoDetailController.videoItem['pic'],
                                   width: videoWidth,
                                   height: videoHeight,
                                 ),
@@ -1023,8 +1024,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
           final double sidePanelWidth = context.width - videoWidth;
           return Row(children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.fastOutSlowIn,
+              clipBehavior: Clip.none,
               height: videoHeight,
               width: isFullScreen.value == true ? context.width : videoWidth,
               child: PopScope(
@@ -1051,10 +1053,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                   Positioned.fill(
                     child: VideoHero(
                       tag: heroTag,
-                      // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
-                      child: NetworkImgLayer(
-                        key: ValueKey(videoDetailController.videoItem['pic']),
-                        src: videoDetailController.videoItem['pic'],
+                      // 🔥 性能优化：使用复用的封面 Widget
+                      child: VideoCoverImage(
+                        imageUrl: videoDetailController.videoItem['pic'],
                         width: videoWidth,
                         height: videoHeight,
                       ),
@@ -1174,8 +1175,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               ),
             ),
             AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.fastOutSlowIn,
+              clipBehavior: Clip.none,
               width: isFullScreen.value ? 0 : sidePanelWidth,
               height: videoHeight,
               child: AnimatedOpacity(
@@ -1241,8 +1243,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
         final double bottomHeight = context.height - videoHeight;
         return Column(children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 250),
             curve: Curves.fastOutSlowIn,
+            clipBehavior: Clip.none,
             width: videoWidth,
             height: isFullScreen.value == true
                 ? context.height -
@@ -1439,8 +1442,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
           final double sidePanelWidth = (context.width - videoWidth) / 2;
           return Row(children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.fastOutSlowIn,
+              clipBehavior: Clip.none,
               width: isFullScreen.value ? 0 : sidePanelWidth,
               height: videoHeight,
               child: AnimatedOpacity(
@@ -1478,8 +1482,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               ),
             ),
             AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.fastOutSlowIn,
+              clipBehavior: Clip.none,
               height: videoHeight,
               width: isFullScreen.value == true ? context.width : videoWidth,
               child: PopScope(
@@ -1507,10 +1512,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                     Positioned.fill(
                       child: VideoHero(
                         tag: heroTag,
-                        // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
-                        child: NetworkImgLayer(
-                          key: ValueKey(videoDetailController.videoItem['pic']),
-                          src: videoDetailController.videoItem['pic'],
+                        // 🔥 性能优化：使用复用的封面 Widget
+                        child: VideoCoverImage(
+                          imageUrl: videoDetailController.videoItem['pic'],
                           width: videoWidth,
                           height: videoHeight,
                         ),
@@ -1633,8 +1637,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
               ),
             ),
             AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
+              duration: const Duration(milliseconds: 250),
               curve: Curves.fastOutSlowIn,
+              clipBehavior: Clip.none,
               width: isFullScreen.value ? 0 : sidePanelWidth,
               height: videoHeight,
               child: AnimatedOpacity(
@@ -1683,8 +1688,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
           Column(
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 350),
+                duration: const Duration(milliseconds: 250),
                 curve: Curves.fastOutSlowIn,
+                clipBehavior: Clip.none,
                 width: isFullScreen.value == true ? context.width : videoWidth,
                 height:
                     isFullScreen.value == true ? context.height : videoHeight,
@@ -1713,11 +1719,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                       Positioned.fill(
                         child: VideoHero(
                           tag: heroTag,
-                          // 🔥 修复：使用封面URL作为key，确保切换视频时强制刷新封面
-                          child: NetworkImgLayer(
-                            key: ValueKey(
-                                videoDetailController.videoItem['pic']),
-                            src: videoDetailController.videoItem['pic'],
+                          // 🔥 性能优化：使用复用的封面 Widget
+                          child: VideoCoverImage(
+                            imageUrl: videoDetailController.videoItem['pic'],
                             width: videoWidth,
                             height: videoHeight,
                           ),
@@ -1843,8 +1847,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
                 ),
               ),
               AnimatedContainer(
-                duration: const Duration(milliseconds: 350),
+                duration: const Duration(milliseconds: 250),
                 curve: Curves.fastOutSlowIn,
+                clipBehavior: Clip.none,
                 height: isFullScreen.value ? 0 : bottomHeight,
                 width: videoWidth,
                 child: AnimatedOpacity(
@@ -1884,8 +1889,9 @@ class _VideoDetailPageState extends State<VideoDetailPage>
             ],
           ),
           AnimatedContainer(
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 250),
             curve: Curves.fastOutSlowIn,
+            clipBehavior: Clip.none,
             width: isFullScreen.value ? 0 : rightWidth,
             height: rightHeight,
             child: AnimatedOpacity(
