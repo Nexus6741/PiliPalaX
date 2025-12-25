@@ -13,6 +13,7 @@ import 'package:PiliPalaX/pages/dynamics_topic/view.dart';
 import '../pages/about/index.dart';
 import '../pages/blacklist/index.dart';
 import '../pages/danmaku_block/index.dart';
+import '../pages/sponsor_block/view.dart';
 import '../pages/dynamics/detail/index.dart';
 import '../pages/dynamics/index.dart';
 import '../pages/dynamics_create/simple_view_fixed.dart';
@@ -279,6 +280,8 @@ class Routes {
     CustomGetPage(name: '/subDetail', page: () => const SubDetailPage()),
     // 弹幕屏蔽管理
     CustomGetPage(name: '/danmakuBlock', page: () => const DanmakuBlockPage()),
+    // 空降助手
+    CustomGetPage(name: '/sponsorBlock', page: () => const SponsorBlockPage()),
     // 话题页
     CustomGetPage(
         name: '/dynamicsTopic', page: () => const DynamicsTopicPage()),

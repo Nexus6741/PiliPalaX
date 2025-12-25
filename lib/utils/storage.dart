@@ -148,6 +148,7 @@ class SettingBoxKey {
       blockUserID = 'blockUserID',
       blockSettings = 'blockSettings',
       blockLimit = 'blockLimit',
+      blockColor = 'blockColor',
       blockToast = 'blockToast',
       blockTrack = 'blockTrack',
 

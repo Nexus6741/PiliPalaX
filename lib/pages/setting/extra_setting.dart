@@ -212,6 +212,20 @@ class _ExtraSettingState extends State<ExtraSetting> {
             setKey: SettingBoxKey.enableQuickFav,
             defaultVal: false,
           ),
+          ListTile(
+            dense: false,
+            title: Text('空降助手', style: titleStyle),
+            subtitle: Text('点击配置', style: subTitleStyle),
+            leading: const Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Icon(Icons.shield_outlined),
+                Icon(Icons.play_arrow_rounded, size: 15),
+              ],
+            ),
+            onTap: () => Get.toNamed('/sponsorBlock'),
+          ),
           const SetSwitchItem(
             title: '评论区搜索关键词',
             subTitle: '展示评论区搜索关键词',

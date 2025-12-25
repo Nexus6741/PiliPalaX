@@ -1578,6 +1578,77 @@ class _HeaderControlState extends State<HeaderControl> {
     );
   }
 
+  /// 空降助手 - 提交片段按钮
+  Widget submitSegmentButton() {
+    print(
+        '🔍 [submitSegmentButton] enableSponsorBlock: ${widget.videoDetailCtr!.enableSponsorBlock}');
+
+    if (!widget.videoDetailCtr!.enableSponsorBlock) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      width: 42,
+      height: 34,
+      child: IconButton(
+        tooltip: '提交片段',
+        style: ButtonStyle(
+          padding: WidgetStateProperty.all(EdgeInsets.zero),
+        ),
+        onPressed: () => widget.videoDetailCtr!.openSubmitPanel(context),
+        icon: const Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              size: 22,
+              color: Colors.white,
+            ),
+            Icon(
+              Icons.play_arrow_rounded,
+              size: 14,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 空降助手 - 片段信息按钮
+  Widget segmentInfoButton() {
+    return Obx(() {
+      print(
+          '🔍 [segmentInfoButton] segmentList.length: ${widget.videoDetailCtr!.segmentList.length}');
+
+      if (widget.videoDetailCtr!.segmentList.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      return SizedBox(
+        width: 42,
+        height: 34,
+        child: IconButton(
+          tooltip: '片段信息',
+          style: ButtonStyle(
+            padding: WidgetStateProperty.all(EdgeInsets.zero),
+          ),
+          onPressed: () => widget.videoDetailCtr!.showSegmentDetail(context),
+          icon: const Text(
+            'ADS',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -1761,6 +1832,8 @@ class _HeaderControlState extends State<HeaderControl> {
               likeVideoButton(),
               coinVideoButton(),
               danmakuSwitcher(),
+              submitSegmentButton(),
+              segmentInfoButton(),
               pipButton(),
               shareButton(),
             ]),

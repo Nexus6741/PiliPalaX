@@ -6,6 +6,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:PiliPalaX/http/constants.dart';
+import 'package:PiliPalaX/http/loading_state.dart';
 import 'package:PiliPalaX/http/video.dart';
 import 'package:PiliPalaX/http/sponsor_block.dart';
 import 'package:PiliPalaX/models/common/reply_type.dart';
@@ -30,6 +31,7 @@ import 'package:path/path.dart' as path;
 
 import '../../../utils/id_utils.dart';
 import 'widgets/header_control.dart';
+import 'widgets/submit_segment_panel.dart';
 
 class VideoDetailController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -120,15 +122,20 @@ class VideoDetailController extends GetxController
       setting.get(SettingBoxKey.enableSponsorBlock, defaultValue: false);
   bool get enableBlock => enableSponsorBlock || enablePgcSkip;
 
+  // 片段提交面板状态
+  bool isFirstOpenSubmitPanel = true;
+  int? savedStartTime;
+  int? savedEndTime;
+
   @override
   void onInit() async {
     super.onInit();
     final Map argMap = Get.arguments ?? {};
-    // print("🔍 VideoDetailController.onInit() - 开始初始化");
-    // print("🔍 Get.arguments: $argMap");
-    // print("🔍 Get.parameters: ${Get.parameters}");
-    // print(
-    // "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
+    print("🔍 VideoDetailController.onInit() - 开始初始化");
+    print("🔍 Get.arguments: $argMap");
+    print("🔍 Get.parameters: ${Get.parameters}");
+    print(
+        "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
     userInfo = userInfoCache.get('userInfoCache');
 
     // 🔥 修复：清空旧的 videoItem 数据，避免显示上一个视频的封面
@@ -504,8 +511,13 @@ class VideoDetailController extends GetxController
     plPlayerController!.headerControl = headerControl;
 
     // 查询跳过片段（番剧片头片尾或 SponsorBlock）
+    print('🔍 [playerInit] 检查是否查询 SponsorBlock');
+    print('🔍 enableBlock: $enableBlock, autoplay: $autoplay');
     if (enableBlock && autoplay) {
+      print('✅ 开始查询 SponsorBlock');
       querySponsorBlock();
+    } else {
+      print('⚠️ 不满足查询条件，跳过');
     }
   }
 
@@ -1001,7 +1013,16 @@ class VideoDetailController extends GetxController
 
   /// 查询跳过片段（SponsorBlock 或番剧片头片尾）
   Future<void> querySponsorBlock() async {
-    if (!enableBlock) return;
+    print('🔍 [querySponsorBlock] 开始查询');
+    print(
+        '🔍 enableBlock: $enableBlock (enableSponsorBlock: $enableSponsorBlock, enablePgcSkip: $enablePgcSkip)');
+    print('🔍 autoPlay: ${autoPlay.value}');
+    print('🔍 videoType: $videoType');
+
+    if (!enableBlock) {
+      print('⚠️ enableBlock 为 false，跳过查询');
+      return;
+    }
 
     positionSubscription?.cancel();
     positionSubscription = null;
@@ -1011,11 +1032,15 @@ class VideoDetailController extends GetxController
     // 如果是番剧，从 API 获取片头片尾信息
     if (videoType == SearchType.media_bangumi ||
         videoType == SearchType.media_ft) {
+      print('🔍 番剧视频，查询片头片尾');
       await _queryPgcSkipSegments();
     } else if (enableSponsorBlock) {
       // 普通视频从 SponsorBlock 获取
+      print('🔍 普通视频，查询 SponsorBlock');
       await _querySponsorBlockSegments();
     }
+
+    print('🔍 查询完成，segmentList.length: ${segmentList.length}');
   }
 
   /// 查询番剧片头片尾
@@ -1033,16 +1058,47 @@ class VideoDetailController extends GetxController
   /// 查询 SponsorBlock 片段
   Future<void> _querySponsorBlockSegments() async {
     try {
+      print('🔍 [_querySponsorBlockSegments] 开始请求 API');
+      print('🔍 bvid: $bvid, cid: ${cid.value}');
+
       final result = await SponsorBlock.getSkipSegments(
         bvid: bvid,
         cid: cid.value,
       );
 
-      if (result['code'] == 0 && result['data'] != null) {
-        await _handleSegmentData(result['data'], isPgc: false);
+      print('🔍 API 返回结果类型: ${result.runtimeType}');
+
+      if (result is Success) {
+        // 不检查泛型类型，直接检查 response 的类型
+        final response = result.response;
+        print('✅ Success，response 类型: ${response.runtimeType}');
+
+        if (response is List<SegmentItemModel>) {
+          print('✅ 成功获取片段，数量: ${response.length}');
+          for (var item in response) {
+            print(
+                '  - ${item.category}: ${item.segment[0]}ms - ${item.segment[1]}ms');
+          }
+          await _handleSegmentData(response, isPgc: false);
+        } else if (response is List) {
+          // 尝试转换
+          print('⚠️ response 是 List 但类型不匹配，尝试转换');
+          try {
+            final segments = response.cast<SegmentItemModel>();
+            print('✅ 转换成功，数量: ${segments.length}');
+            await _handleSegmentData(segments.toList(), isPgc: false);
+          } catch (e) {
+            print('❌ 转换失败: $e');
+          }
+        } else {
+          print('⚠️ response 类型不是 List: ${response.runtimeType}');
+          print('   response 内容: $response');
+        }
+      } else if (result is Error) {
+        print('❌ API 返回错误: ${result.errMsg}');
       }
     } catch (e) {
-      // print('查询 SponsorBlock 失败: $e');
+      print('❌ 查询 SponsorBlock 失败: $e');
     }
   }
 
@@ -1057,7 +1113,7 @@ class VideoDetailController extends GetxController
 
     try {
       final blockLimit =
-          setting.get(SettingBoxKey.blockLimit, defaultValue: 3.0);
+          setting.get(SettingBoxKey.blockLimit, defaultValue: 0.0);
       final pgcSkipType = SkipType.values.firstWhere(
         (e) =>
             e.name ==
@@ -1065,6 +1121,17 @@ class VideoDetailController extends GetxController
                 defaultValue: SkipType.alwaysSkip.name),
         orElse: () => SkipType.alwaysSkip,
       );
+
+      // 读取 SponsorBlock 设置
+      List<dynamic>? blockSettings = setting.get(SettingBoxKey.blockSettings);
+      Map<SegmentType, SkipType> skipTypeMap = {};
+      if (blockSettings != null &&
+          blockSettings.length == SegmentType.values.length) {
+        for (int i = 0; i < SegmentType.values.length; i++) {
+          skipTypeMap[SegmentType.values[i]] =
+              SkipType.values[blockSettings[i] as int];
+        }
+      }
 
       for (var item in list) {
         try {
@@ -1086,11 +1153,13 @@ class VideoDetailController extends GetxController
             skipType = pgcSkipType;
           } else {
             // 从设置中获取该类型片段的跳过方式
-            skipType = SkipType.showOnly; // 默认仅显示
+            skipType = skipTypeMap[segmentType] ?? SkipType.disable;
+            // 如果禁用，跳过此片段
+            if (skipType == SkipType.disable) continue;
           }
 
           // 如果片段太短，只显示不跳过
-          if (skipType != SkipType.showOnly) {
+          if (skipType != SkipType.showOnly && blockLimit > 0) {
             if (item.segment[1] == item.segment[0] ||
                 (item.segment[1] - item.segment[0]) / 1000 < blockLimit) {
               skipType = SkipType.showOnly;
@@ -1256,6 +1325,146 @@ class VideoDetailController extends GetxController
     // 3秒后自动关闭
     Future.delayed(const Duration(seconds: 3), () {
       SmartDialog.dismiss(tag: 'skip_button');
+    });
+  }
+
+  /// 显示片段详情对话框
+  void showSegmentDetail(BuildContext context) {
+    if (segmentList.isEmpty) {
+      SmartDialog.showToast('暂无片段信息');
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('片段信息'),
+        contentPadding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: segmentList.map((item) {
+              return ListTile(
+                dense: true,
+                title: Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _getSegmentColor(item.segmentType),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      item.segmentType.title,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+                subtitle: Text(
+                  '${_formatDuration(item.segmentStart ~/ 1000)} - ${_formatDuration(item.segmentEnd ~/ 1000)}',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.skipType.title,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    if (item.segmentEnd != 0)
+                      IconButton(
+                        icon: Icon(
+                          item.skipType == SkipType.showOnly
+                              ? Icons.my_location
+                              : Icons.skip_next,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          Get.back();
+                          _skipSegment(item);
+                        },
+                      ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 获取片段颜色
+  Color _getSegmentColor(SegmentType type) {
+    List<dynamic>? blockColor = setting.get(SettingBoxKey.blockColor);
+    if (blockColor != null && blockColor.length > type.index) {
+      try {
+        return Color(int.parse('FF${blockColor[type.index]}', radix: 16));
+      } catch (e) {
+        return type.color;
+      }
+    }
+    return type.color;
+  }
+
+  /// 格式化时长
+  String _formatDuration(int seconds) {
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    final secs = seconds % 60;
+
+    if (hours > 0) {
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    } else {
+      return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    }
+  }
+
+  /// 打开片段提交面板
+  void openSubmitPanel(BuildContext context) {
+    if (plPlayerController == null) {
+      SmartDialog.showToast('播放器未初始化');
+      return;
+    }
+
+    // 获取当前播放位置
+    final currentPos = plPlayerController!.position.value.inMilliseconds;
+
+    // 如果是首次打开，使用当前位置；否则使用保存的时间
+    final startTime =
+        isFirstOpenSubmitPanel ? currentPos : (savedStartTime ?? currentPos);
+    final endTime = isFirstOpenSubmitPanel
+        ? (currentPos + 10000)
+        : (savedEndTime ?? (currentPos + 10000));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SubmitSegmentPanel(
+        videoDetailCtr: this,
+        currentPosition: startTime,
+        isFirstOpen: isFirstOpenSubmitPanel,
+      ),
+    ).then((_) {
+      // 面板关闭后，标记为非首次打开
+      if (isFirstOpenSubmitPanel) {
+        isFirstOpenSubmitPanel = false;
+        // 保存当前设置的时间
+        savedStartTime = startTime;
+        savedEndTime = endTime;
+        print(
+            '🔍 [VideoDetailController] 首次打开完成，保存时间: ${startTime}ms - ${endTime}ms');
+      }
     });
   }
 

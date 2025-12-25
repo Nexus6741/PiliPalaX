@@ -39,7 +39,7 @@ enum SegmentType {
   ),
   intro(
     '过场/开场动画',
-    '片头',
+    '开场',
     '没有实际内容的间隔片段。可以是暂停、静态帧或重复动画。不适用于包含内容的过场。',
     Color(0xFF00ffff),
     [
@@ -99,6 +99,7 @@ enum SegmentType {
     [ActionType.full],
   );
 
+  /// from https://github.com/hanydd/BilibiliSponsorBlock/blob/master/public/_locales/zh_CN/messages.json
   final String title;
   final String shortTitle;
   final String description;
