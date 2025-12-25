@@ -1580,8 +1580,8 @@ class _HeaderControlState extends State<HeaderControl> {
 
   /// 空降助手 - 提交片段按钮
   Widget submitSegmentButton() {
-    print(
-        '🔍 [submitSegmentButton] enableSponsorBlock: ${widget.videoDetailCtr!.enableSponsorBlock}');
+    // print(
+    //     '🔍 [submitSegmentButton] enableSponsorBlock: ${widget.videoDetailCtr!.enableSponsorBlock}');
 
     if (!widget.videoDetailCtr!.enableSponsorBlock) {
       return const SizedBox.shrink();

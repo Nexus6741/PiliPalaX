@@ -45,22 +45,21 @@ class _SubmitSegmentPanelState extends State<SubmitSegmentPanel> {
     // 暂停视频
     if (wasPlaying) {
       widget.videoDetailCtr.plPlayerController?.pause();
-      print('🔍 [SubmitSegmentPanel] 暂停视频');
+      // print('🔍 [SubmitSegmentPanel] 暂停视频');
     }
 
     // 如果是首次打开，自动获取当前位置作为开始时间
     if (widget.isFirstOpen) {
       startTime = widget.currentPosition;
       endTime = widget.currentPosition + 10000; // 默认+10秒
-      print('🔍 [SubmitSegmentPanel] 首次打开，自动设置开始时间: ${_formatTime(startTime)}');
+      // print('🔍 [SubmitSegmentPanel] 首次打开，自动设置开始时间: ${_formatTime(startTime)}');
     } else {
       // 非首次打开，使用保存的时间
       startTime =
           widget.videoDetailCtr.savedStartTime ?? widget.currentPosition;
       endTime = widget.videoDetailCtr.savedEndTime ??
           (widget.currentPosition + 10000);
-      print(
-          '🔍 [SubmitSegmentPanel] 非首次打开，使用保存的时间: ${_formatTime(startTime)} - ${_formatTime(endTime)}');
+      // print('🔍 [SubmitSegmentPanel] 非首次打开，使用保存的时间: ${_formatTime(startTime)} - ${_formatTime(endTime)}');
     }
   }
 
@@ -69,7 +68,7 @@ class _SubmitSegmentPanelState extends State<SubmitSegmentPanel> {
     // 恢复播放状态
     if (wasPlaying) {
       widget.videoDetailCtr.plPlayerController?.play();
-      print('🔍 [SubmitSegmentPanel] 恢复播放');
+      // print('🔍 [SubmitSegmentPanel] 恢复播放');
     }
     super.dispose();
   }
@@ -97,7 +96,7 @@ class _SubmitSegmentPanelState extends State<SubmitSegmentPanel> {
     widget.videoDetailCtr.savedEndTime = endTime;
 
     SmartDialog.showToast('已设置开始时间: ${_formatTime(startTime)}');
-    print('🔍 [SubmitSegmentPanel] 手动设置开始时间: ${_formatTime(startTime)}');
+    // print('🔍 [SubmitSegmentPanel] 手动设置开始时间: ${_formatTime(startTime)}');
   }
 
   void _setEndTime() {
@@ -116,7 +115,7 @@ class _SubmitSegmentPanelState extends State<SubmitSegmentPanel> {
     widget.videoDetailCtr.savedEndTime = endTime;
 
     SmartDialog.showToast('已设置结束时间: ${_formatTime(endTime)}');
-    print('🔍 [SubmitSegmentPanel] 手动设置结束时间: ${_formatTime(endTime)}');
+    // print('🔍 [SubmitSegmentPanel] 手动设置结束时间: ${_formatTime(endTime)}');
   }
 
   Future<void> _submitSegment() async {
@@ -136,9 +135,9 @@ class _SubmitSegmentPanelState extends State<SubmitSegmentPanel> {
       if (blockUserID.isEmpty) {
         blockUserID = const Uuid().v4().replaceAll('-', '');
         await setting.put('blockUserID', blockUserID);
-        print('🔍 [SubmitSegmentPanel] 生成新的 userID: $blockUserID');
+        // print('🔍 [SubmitSegmentPanel] 生成新的 userID: $blockUserID');
       } else {
-        print('🔍 [SubmitSegmentPanel] 使用已有 userID: $blockUserID');
+        // print('🔍 [SubmitSegmentPanel] 使用已有 userID: $blockUserID');
       }
 
       final videoDuration = widget.videoDetailCtr.plPlayerController?.duration
@@ -154,8 +153,7 @@ class _SubmitSegmentPanelState extends State<SubmitSegmentPanel> {
         actionType: ActionType.skip,
       );
 
-      print(
-          '🔍 [SubmitSegmentPanel] 提交片段: ${startTime / 1000}s - ${endTime / 1000}s, 类型: ${selectedType.name}');
+      // print('🔍 [SubmitSegmentPanel] 提交片段: ${startTime / 1000}s - ${endTime / 1000}s, 类型: ${selectedType.name}');
 
       final result = await SponsorBlock.postSkipSegments(
         bvid: widget.videoDetailCtr.bvid,
@@ -175,11 +173,11 @@ class _SubmitSegmentPanelState extends State<SubmitSegmentPanel> {
         widget.videoDetailCtr.querySponsorBlock();
       } else if (result is Error) {
         SmartDialog.showToast('提交失败: ${result.errMsg}');
-        print('❌ [SubmitSegmentPanel] 提交失败: ${result.errMsg}');
+        // print('❌ [SubmitSegmentPanel] 提交失败: ${result.errMsg}');
       }
     } catch (e) {
       SmartDialog.showToast('提交失败: $e');
-      print('❌ [SubmitSegmentPanel] 提交异常: $e');
+      // print('❌ [SubmitSegmentPanel] 提交异常: $e');
     } finally {
       if (mounted) {
         setState(() {

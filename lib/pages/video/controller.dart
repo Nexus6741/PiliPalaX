@@ -1032,15 +1032,15 @@ class VideoDetailController extends GetxController
     // 如果是番剧，从 API 获取片头片尾信息
     if (videoType == SearchType.media_bangumi ||
         videoType == SearchType.media_ft) {
-      print('🔍 番剧视频，查询片头片尾');
+      // print('🔍 番剧视频，查询片头片尾');
       await _queryPgcSkipSegments();
     } else if (enableSponsorBlock) {
       // 普通视频从 SponsorBlock 获取
-      print('🔍 普通视频，查询 SponsorBlock');
+      // print('🔍 普通视频，查询 SponsorBlock');
       await _querySponsorBlockSegments();
     }
 
-    print('🔍 查询完成，segmentList.length: ${segmentList.length}');
+    // print('🔍 查询完成，segmentList.length: ${segmentList.length}');
   }
 
   /// 查询番剧片头片尾
@@ -1058,47 +1058,47 @@ class VideoDetailController extends GetxController
   /// 查询 SponsorBlock 片段
   Future<void> _querySponsorBlockSegments() async {
     try {
-      print('🔍 [_querySponsorBlockSegments] 开始请求 API');
-      print('🔍 bvid: $bvid, cid: ${cid.value}');
+      // print('🔍 [_querySponsorBlockSegments] 开始请求 API');
+      // print('🔍 bvid: $bvid, cid: ${cid.value}');
 
       final result = await SponsorBlock.getSkipSegments(
         bvid: bvid,
         cid: cid.value,
       );
 
-      print('🔍 API 返回结果类型: ${result.runtimeType}');
+      // print('🔍 API 返回结果类型: ${result.runtimeType}');
 
       if (result is Success) {
         // 不检查泛型类型，直接检查 response 的类型
         final response = result.response;
-        print('✅ Success，response 类型: ${response.runtimeType}');
+        // print('✅ Success，response 类型: ${response.runtimeType}');
 
         if (response is List<SegmentItemModel>) {
-          print('✅ 成功获取片段，数量: ${response.length}');
+          // print('✅ 成功获取片段，数量: ${response.length}');
           for (var item in response) {
-            print(
-                '  - ${item.category}: ${item.segment[0]}ms - ${item.segment[1]}ms');
+            // print(
+            // '  - ${item.category}: ${item.segment[0]}ms - ${item.segment[1]}ms');
           }
           await _handleSegmentData(response, isPgc: false);
         } else if (response is List) {
           // 尝试转换
-          print('⚠️ response 是 List 但类型不匹配，尝试转换');
+          // print('⚠️ response 是 List 但类型不匹配，尝试转换');
           try {
             final segments = response.cast<SegmentItemModel>();
-            print('✅ 转换成功，数量: ${segments.length}');
+            // print('✅ 转换成功，数量: ${segments.length}');
             await _handleSegmentData(segments.toList(), isPgc: false);
           } catch (e) {
-            print('❌ 转换失败: $e');
+            // print('❌ 转换失败: $e');
           }
         } else {
-          print('⚠️ response 类型不是 List: ${response.runtimeType}');
-          print('   response 内容: $response');
+          // print('⚠️ response 类型不是 List: ${response.runtimeType}');
+          // print('   response 内容: $response');
         }
       } else if (result is Error) {
-        print('❌ API 返回错误: ${result.errMsg}');
+        // print('❌ API 返回错误: ${result.errMsg}');
       }
     } catch (e) {
-      print('❌ 查询 SponsorBlock 失败: $e');
+      // print('❌ 查询 SponsorBlock 失败: $e');
     }
   }
 
@@ -1462,8 +1462,7 @@ class VideoDetailController extends GetxController
         // 保存当前设置的时间
         savedStartTime = startTime;
         savedEndTime = endTime;
-        print(
-            '🔍 [VideoDetailController] 首次打开完成，保存时间: ${startTime}ms - ${endTime}ms');
+        // print('🔍 [VideoDetailController] 首次打开完成，保存时间: ${startTime}ms - ${endTime}ms');
       }
     });
   }
