@@ -8,6 +8,11 @@ import 'package:PiliPalaX/utils/feed_back.dart';
 import './controller.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
 import 'package:PiliPalaX/pages/rcmd/controller.dart';
+import 'package:PiliPalaX/pages/live/controller.dart';
+import 'package:PiliPalaX/pages/hot/controller.dart';
+import 'package:PiliPalaX/pages/rank/controller.dart';
+import 'package:PiliPalaX/pages/bangumi/controller.dart';
+import 'package:PiliPalaX/pages/pgc/controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,6 +32,30 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+  }
+
+  // 刷新当前tab的内容
+  void _refreshCurrentTab() {
+    int currentIndex = _homeController.initialIndex.value;
+    if (currentIndex < _homeController.tabsCtrList.length) {
+      var controller = _homeController.tabsCtrList[currentIndex]();
+
+      // 根据不同的控制器类型调用对应的刷新方法
+      if (controller is RcmdController) {
+        controller.onRefresh();
+      } else if (controller is LiveController) {
+        controller.onRefresh();
+      } else if (controller is HotController) {
+        controller.onRefresh();
+      } else if (controller is RankController) {
+        controller.onRefresh();
+      } else if (controller is BangumiController) {
+        controller.queryBangumiListFeed(type: 'init');
+        controller.queryBangumiFollow();
+      } else if (controller is PgcController) {
+        controller.onRefresh();
+      }
+    }
   }
 
   @override
@@ -69,7 +98,7 @@ class _HomePageState extends State<HomePage>
             ),
           if (_homeController.tabs.length > 1) ...[
             if (_homeController.enableGradientBg) ...[
-              const CustomTabs(),
+              CustomTabs(onRefresh: _refreshCurrentTab),
             ] else ...[
               const SizedBox(height: 4),
               SizedBox(
@@ -105,16 +134,7 @@ class _HomePageState extends State<HomePage>
                     // 刷新按钮
                     IconButton(
                       tooltip: '刷新',
-                      onPressed: () {
-                        int currentIndex = _homeController.initialIndex.value;
-                        if (currentIndex < _homeController.tabsCtrList.length) {
-                          var controller =
-                              _homeController.tabsCtrList[currentIndex]();
-                          if (controller is RcmdController) {
-                            controller.onRefresh();
-                          }
-                        }
-                      },
+                      onPressed: _refreshCurrentTab,
                       icon: const Icon(Icons.refresh),
                     ),
                     const SizedBox(width: 8),
@@ -356,7 +376,9 @@ class DefaultUser extends StatelessWidget {
 }
 
 class CustomTabs extends StatefulWidget {
-  const CustomTabs({super.key});
+  final VoidCallback onRefresh;
+
+  const CustomTabs({super.key, required this.onRefresh});
 
   @override
   State<CustomTabs> createState() => _CustomTabsState();
@@ -406,15 +428,7 @@ class _CustomTabsState extends State<CustomTabs> {
           // 刷新按钮
           IconButton(
             tooltip: '刷新',
-            onPressed: () {
-              int currentIndex = _homeController.initialIndex.value;
-              if (currentIndex < _homeController.tabsCtrList.length) {
-                var controller = _homeController.tabsCtrList[currentIndex]();
-                if (controller is RcmdController) {
-                  controller.onRefresh();
-                }
-              }
-            },
+            onPressed: widget.onRefresh,
             icon: const Icon(Icons.refresh),
           ),
           const SizedBox(width: 8),
