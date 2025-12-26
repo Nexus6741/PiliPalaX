@@ -1865,21 +1865,31 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                 bangumiIntroController: bangumiIntroController,
               );
             } else {
-              return Container(
-                color: Colors.black54,
-                child: Center(
-                  child: IconButton(
-                    iconSize: 50,
-                    onPressed: () {
-                      _.seekTo(Duration.zero);
-                      _.play();
-                    },
-                    icon: const Icon(
-                      Icons.refresh,
-                      color: Colors.white,
+              // 非全屏状态下的重播按钮
+              // 使用 Stack 让背景穿透手势，只有按钮本身响应点击
+              return Stack(
+                children: [
+                  // 背景层 - 忽略指针让手势穿透
+                  IgnorePointer(
+                    child: Container(
+                      color: Colors.black54,
                     ),
                   ),
-                ),
+                  // 重播按钮 - 居中显示
+                  Center(
+                    child: IconButton(
+                      iconSize: 50,
+                      onPressed: () {
+                        _.seekTo(Duration.zero);
+                        _.play();
+                      },
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               );
             }
           }

@@ -114,7 +114,7 @@ class _PlDanmakuState extends State<PlDanmaku> {
       // 转换为16进制小写字符串
       return (crc & 0xFFFFFFFF).toRadixString(16).padLeft(8, '0');
     } catch (e) {
-      debugPrint('计算midHash失败: $e');
+      // debugPrint('计算midHash失败: $e');
       return null;
     }
   }
@@ -183,9 +183,9 @@ class _PlDanmakuState extends State<PlDanmaku> {
           child: DanmakuScreen(
             createdController: (DanmakuController e) async {
               playerController.danmakuController = _controller = e;
-              debugPrint('🎯 弹幕控制器已初始化');
-              debugPrint('🎯 弹幕是否开启: ${playerController.isOpenDanmu.value}');
-              debugPrint('🎯 控制器地址: ${e.hashCode}');
+              // debugPrint('🎯 弹幕控制器已初始化');
+              // debugPrint('🎯 弹幕是否开启: ${playerController.isOpenDanmu.value}');
+              // debugPrint('🎯 控制器地址: ${e.hashCode}');
             },
             option: DanmakuOption(
               fontSize: 15 * fontSizeVal,

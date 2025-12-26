@@ -131,11 +131,11 @@ class VideoDetailController extends GetxController
   void onInit() async {
     super.onInit();
     final Map argMap = Get.arguments ?? {};
-    print("🔍 VideoDetailController.onInit() - 开始初始化");
-    print("🔍 Get.arguments: $argMap");
-    print("🔍 Get.parameters: ${Get.parameters}");
-    print(
-        "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
+    // print("🔍 VideoDetailController.onInit() - 开始初始化");
+    // print("🔍 Get.arguments: $argMap");
+    // print("🔍 Get.parameters: ${Get.parameters}");
+    // print(
+    //     "🔍 videoType: $videoType (${videoType == SearchType.media_bangumi || videoType == SearchType.media_ft ? '番剧/影视' : '普通视频'})");
     userInfo = userInfoCache.get('userInfoCache');
 
     // 🔥 修复：清空旧的 videoItem 数据，避免显示上一个视频的封面
@@ -511,13 +511,13 @@ class VideoDetailController extends GetxController
     plPlayerController!.headerControl = headerControl;
 
     // 查询跳过片段（番剧片头片尾或 SponsorBlock）
-    print('🔍 [playerInit] 检查是否查询 SponsorBlock');
-    print('🔍 enableBlock: $enableBlock, autoplay: $autoplay');
+    // print('🔍 [playerInit] 检查是否查询 SponsorBlock');
+    // print('🔍 enableBlock: $enableBlock, autoplay: $autoplay');
     if (enableBlock && autoplay) {
-      print('✅ 开始查询 SponsorBlock');
+      // print('✅ 开始查询 SponsorBlock');
       querySponsorBlock();
     } else {
-      print('⚠️ 不满足查询条件，跳过');
+      // print('⚠️ 不满足查询条件，跳过');
     }
   }
 
@@ -1013,14 +1013,14 @@ class VideoDetailController extends GetxController
 
   /// 查询跳过片段（SponsorBlock 或番剧片头片尾）
   Future<void> querySponsorBlock() async {
-    print('🔍 [querySponsorBlock] 开始查询');
-    print(
-        '🔍 enableBlock: $enableBlock (enableSponsorBlock: $enableSponsorBlock, enablePgcSkip: $enablePgcSkip)');
-    print('🔍 autoPlay: ${autoPlay.value}');
-    print('🔍 videoType: $videoType');
+    // print('🔍 [querySponsorBlock] 开始查询');
+    // print(
+    //     '🔍 enableBlock: $enableBlock (enableSponsorBlock: $enableSponsorBlock, enablePgcSkip: $enablePgcSkip)');
+    // print('🔍 autoPlay: ${autoPlay.value}');
+    // print('🔍 videoType: $videoType');
 
     if (!enableBlock) {
-      print('⚠️ enableBlock 为 false，跳过查询');
+      // print('⚠️ enableBlock 为 false，跳过查询');
       return;
     }
 

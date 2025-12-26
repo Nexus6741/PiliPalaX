@@ -7,6 +7,7 @@ import 'package:PiliPalaX/common/widgets/search_expand_route.dart';
 import 'package:PiliPalaX/utils/feed_back.dart';
 import './controller.dart';
 import 'package:PiliPalaX/common/widgets/spring_physics.dart';
+import 'package:PiliPalaX/pages/rcmd/controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -74,26 +75,50 @@ class _HomePageState extends State<HomePage>
               SizedBox(
                 width: double.infinity,
                 height: 42,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: TabBar(
-                    controller: _homeController.tabController,
-                    tabs: [
-                      for (var i in _homeController.tabs) Tab(text: i['label'])
-                    ],
-                    isScrollable: true,
-                    dividerColor: Colors.transparent,
-                    enableFeedback: true,
-                    splashBorderRadius: BorderRadius.circular(10),
-                    tabAlignment: TabAlignment.center,
-                    onTap: (value) {
-                      feedBack();
-                      if (_homeController.initialIndex.value == value) {
-                        _homeController.tabsCtrList[value]().animateToTop();
-                      }
-                      _homeController.initialIndex.value = value;
-                    },
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: TabBar(
+                          controller: _homeController.tabController,
+                          tabs: [
+                            for (var i in _homeController.tabs)
+                              Tab(text: i['label'])
+                          ],
+                          isScrollable: true,
+                          dividerColor: Colors.transparent,
+                          enableFeedback: true,
+                          splashBorderRadius: BorderRadius.circular(10),
+                          tabAlignment: TabAlignment.center,
+                          onTap: (value) {
+                            feedBack();
+                            if (_homeController.initialIndex.value == value) {
+                              _homeController.tabsCtrList[value]()
+                                  .animateToTop();
+                            }
+                            _homeController.initialIndex.value = value;
+                          },
+                        ),
+                      ),
+                    ),
+                    // 刷新按钮
+                    IconButton(
+                      tooltip: '刷新',
+                      onPressed: () {
+                        int currentIndex = _homeController.initialIndex.value;
+                        if (currentIndex < _homeController.tabsCtrList.length) {
+                          var controller =
+                              _homeController.tabsCtrList[currentIndex]();
+                          if (controller is RcmdController) {
+                            controller.onRefresh();
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.refresh),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                 ),
               ),
             ],
@@ -354,25 +379,46 @@ class _CustomTabsState extends State<CustomTabs> {
     return Container(
       height: 44,
       margin: const EdgeInsets.only(top: 4),
-      child: Obx(
-        () => ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 14.0),
-          scrollDirection: Axis.horizontal,
-          itemCount: _homeController.tabs.length,
-          separatorBuilder: (BuildContext context, int index) {
-            return const SizedBox(width: 10);
-          },
-          itemBuilder: (BuildContext context, int index) {
-            String label = _homeController.tabs[index]['label'];
-            return Obx(
-              () => CustomChip(
-                onTap: () => onTap(index),
-                label: label,
-                selected: index == _homeController.initialIndex.value,
+      child: Row(
+        children: [
+          Expanded(
+            child: Obx(
+              () => ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                scrollDirection: Axis.horizontal,
+                itemCount: _homeController.tabs.length,
+                separatorBuilder: (BuildContext context, int index) {
+                  return const SizedBox(width: 10);
+                },
+                itemBuilder: (BuildContext context, int index) {
+                  String label = _homeController.tabs[index]['label'];
+                  return Obx(
+                    () => CustomChip(
+                      onTap: () => onTap(index),
+                      label: label,
+                      selected: index == _homeController.initialIndex.value,
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
+            ),
+          ),
+          // 刷新按钮
+          IconButton(
+            tooltip: '刷新',
+            onPressed: () {
+              int currentIndex = _homeController.initialIndex.value;
+              if (currentIndex < _homeController.tabsCtrList.length) {
+                var controller = _homeController.tabsCtrList[currentIndex]();
+                if (controller is RcmdController) {
+                  controller.onRefresh();
+                }
+              }
+            },
+            icon: const Icon(Icons.refresh),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
     );
   }

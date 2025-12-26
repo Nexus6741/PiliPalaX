@@ -81,25 +81,25 @@ abstract class SponsorBlock {
         options: options,
       );
 
-      print('🔍 [SponsorBlock.getSkipSegments] 响应状态码: ${res.statusCode}');
-      print(
-          '🔍 [SponsorBlock.getSkipSegments] 响应数据类型: ${res.data.runtimeType}');
-      print('🔍 [SponsorBlock.getSkipSegments] 响应数据: ${res.data}');
+      // print('🔍 [SponsorBlock.getSkipSegments] 响应状态码: ${res.statusCode}');
+      // print(
+      //     '🔍 [SponsorBlock.getSkipSegments] 响应数据类型: ${res.data.runtimeType}');
+      // print('🔍 [SponsorBlock.getSkipSegments] 响应数据: ${res.data}');
 
       if (res.statusCode == 200) {
         if (res.data is List) {
           final list = res.data as List;
-          print('✅ [SponsorBlock.getSkipSegments] 解析列表，长度: ${list.length}');
+          // print('✅ [SponsorBlock.getSkipSegments] 解析列表，长度: ${list.length}');
           return Success(
             list.map((i) => SegmentItemModel.fromJson(i)).toList(),
           );
         } else {
-          print('⚠️ [SponsorBlock.getSkipSegments] 响应不是列表');
+          // print('⚠️ [SponsorBlock.getSkipSegments] 响应不是列表');
         }
       }
       return getErrMsg(res);
     } catch (e) {
-      print('❌ [SponsorBlock.getSkipSegments] 异常: $e');
+      // print('❌ [SponsorBlock.getSkipSegments] 异常: $e');
       return Error(e.toString());
     }
   }

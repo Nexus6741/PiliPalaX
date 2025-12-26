@@ -1,8 +1,5 @@
 import 'package:PiliPalaX/common/widgets/network_img_layer.dart';
 import 'package:PiliPalaX/http/search.dart';
-import 'package:PiliPalaX/http/user.dart';
-import 'package:PiliPalaX/http/video.dart';
-import 'package:PiliPalaX/models/common/search_type.dart';
 import 'package:PiliPalaX/pages/video/introduction/bangumi/controller.dart';
 import 'package:PiliPalaX/pages/video/introduction/detail/controller.dart';
 import 'package:PiliPalaX/pages/video/related/controller.dart';
@@ -48,28 +45,172 @@ class _CompletionOverlayState extends State<CompletionOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // 背景层 - 半透明黑色
+        Container(
+          color: Colors.black.withOpacity(0.85),
+        ),
+
+        // 顶部区域 - 用户信息和操作按钮
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            color: Colors.transparent,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // User Info and Actions
+                if (widget.videoIntroController != null) _buildUserInfo(),
+                const SizedBox(height: 20),
+                // Recommended Videos
+                const Text(
+                  '推荐视频',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+        ),
+
+        // 底部区域 - 相关视频列表
+        Positioned(
+          top: 200,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: _buildRelatedVideos(),
+        ),
+
+        // 右下角关闭按钮
+        Positioned(
+          right: 20,
+          bottom: 20,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                // 退出全屏
+                widget.playerController.triggerFullScreen(status: false);
+              },
+              borderRadius: BorderRadius.circular(24),
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                      color: Colors.white.withOpacity(0.3), width: 1),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRelatedVideos() {
+    return Obx(() {
+      if (relatedController.relatedVideoList.isEmpty) {
+        return const Center(
+          child: Text('暂无推荐视频', style: TextStyle(color: Colors.white)),
+        );
+      }
+
+      // 使用 ListView.builder 正常显示列表
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          physics: const ClampingScrollPhysics(),
+          itemCount: relatedController.relatedVideoList.length,
+          itemBuilder: (context, index) {
+            final video = relatedController.relatedVideoList[index];
+            return _buildVideoCard(video);
+          },
+        ),
+      );
+    });
+  }
+
+  Widget _buildVideoCard(dynamic video) {
     return Container(
-      color: Colors.black.withOpacity(0.85),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // User Info and Actions
-          if (widget.videoIntroController != null) _buildUserInfo(),
-
-          const SizedBox(height: 20),
-
-          // Recommended Videos
-          const Text(
-            '推荐视频',
-            style: TextStyle(
-                color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: _buildRelatedVideos(),
-          ),
-        ],
+      width: 200,
+      margin: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: () {
+          String newHeroTag = Utils.makeHeroTag(video.bvid);
+          if (video.cid != null) {
+            Get.toNamed('/video?bvid=${video.bvid}&cid=${video.cid}',
+                arguments: {'videoItem': video, 'heroTag': newHeroTag});
+          } else {
+            SearchHttp.ab2c(aid: video.aid, bvid: video.bvid).then((cid) =>
+                Get.toNamed('/video?bvid=${video.bvid}&cid=${video.cid}',
+                    arguments: {'videoItem': video, 'heroTag': newHeroTag}));
+          }
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                children: [
+                  NetworkImgLayer(
+                    src: video.pic ?? '',
+                    width: 200,
+                    height: 112,
+                  ),
+                  Positioned(
+                    right: 4,
+                    bottom: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        Utils.timeFormat(video.duration ?? 0),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              video.title ?? '',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              video.owner?.name ?? '',
+              style:
+                  TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -83,17 +224,26 @@ class _CompletionOverlayState extends State<CompletionOverlay> {
       return Row(
         children: [
           // Avatar
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white, width: 1),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: NetworkImgLayer(
-                src: owner.face ?? '',
-                width: 48,
-                height: 48,
+          GestureDetector(
+            onTap: () {
+              // 跳转到用户空间
+              Get.toNamed(
+                '/member?mid=${owner.mid}',
+                arguments: {'face': owner.face},
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white, width: 1),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: NetworkImgLayer(
+                  src: owner.face ?? '',
+                  width: 48,
+                  height: 48,
+                ),
               ),
             ),
           ),
@@ -171,7 +321,7 @@ class _CompletionOverlayState extends State<CompletionOverlay> {
               onTap: () => ctr.actionDislikeVideo(),
             )),
         Obx(() => _buildActionButton(
-              icon: Icons.monetization_on_outlined, // Coin icon
+              icon: Icons.monetization_on_outlined,
               label: '投币',
               color: ctr.hasCoin.value
                   ? Theme.of(context).colorScheme.primary
@@ -220,90 +370,5 @@ class _CompletionOverlayState extends State<CompletionOverlay> {
         ],
       ),
     );
-  }
-
-  Widget _buildRelatedVideos() {
-    return Obx(() {
-      if (relatedController.relatedVideoList.isEmpty) {
-        return const Center(
-            child: Text('暂无推荐视频', style: TextStyle(color: Colors.white)));
-      }
-
-      return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: relatedController.relatedVideoList.length,
-        itemBuilder: (context, index) {
-          final video = relatedController.relatedVideoList[index];
-          return Container(
-            width: 200,
-            margin: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () {
-                String newHeroTag = Utils.makeHeroTag(video.bvid);
-                if (video.cid != null) {
-                  Get.toNamed('/video?bvid=${video.bvid}&cid=${video.cid}',
-                      arguments: {'videoItem': video, 'heroTag': newHeroTag});
-                } else {
-                  SearchHttp.ab2c(aid: video.aid, bvid: video.bvid).then(
-                      (cid) => Get.toNamed(
-                              '/video?bvid=${video.bvid}&cid=${video.cid}',
-                              arguments: {
-                                'videoItem': video,
-                                'heroTag': newHeroTag
-                              }));
-                }
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Stack(
-                      children: [
-                        NetworkImgLayer(
-                          src: video.pic ?? '',
-                          width: 200,
-                          height: 112,
-                        ),
-                        Positioned(
-                          right: 4,
-                          bottom: 4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              Utils.timeFormat(video.duration ?? 0),
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 10),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    video.title ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    video.owner?.name ?? '',
-                    style: TextStyle(
-                        color: Colors.white.withOpacity(0.7), fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    });
   }
 }

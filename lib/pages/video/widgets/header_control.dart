@@ -1619,8 +1619,8 @@ class _HeaderControlState extends State<HeaderControl> {
   /// 空降助手 - 片段信息按钮
   Widget segmentInfoButton() {
     return Obx(() {
-      print(
-          '🔍 [segmentInfoButton] segmentList.length: ${widget.videoDetailCtr!.segmentList.length}');
+      // print(
+      //     '🔍 [segmentInfoButton] segmentList.length: ${widget.videoDetailCtr!.segmentList.length}');
 
       if (widget.videoDetailCtr!.segmentList.isEmpty) {
         return const SizedBox.shrink();
